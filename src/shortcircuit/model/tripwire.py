@@ -29,7 +29,8 @@ class Tripwire:
 
         payload = {
             "username": self.username,
-            "password": self.password
+            "password": self.password,
+            "mode": "login",
         }
         headers = {
             "Referer": login_url,
