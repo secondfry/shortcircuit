@@ -112,7 +112,7 @@ class Tripwire:
             systemFrom = convert_to_int(signatureIn['systemID'])
             systemTo = convert_to_int(signatureOut['systemID'])
 
-            if systemFrom == 0 or systemTo == 0:
+            if systemFrom == 0 or systemFrom < 10000 or systemTo == 0 or systemTo < 10000:
                 continue
 
             connections += 1
