@@ -6,4 +6,4 @@
 
 
 __appname__ = "Short Circuit"
-__version__ = "v0.2.0-beta"
+__version__ = "v0.2.1-beta"

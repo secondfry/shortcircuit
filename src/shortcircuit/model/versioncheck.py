@@ -20,7 +20,7 @@ class VersionCheck(QtCore.QObject):
 
         try:
             result = requests.get(
-                url="https://api.github.com/repos/farshield/shortcircuit/releases/latest",
+                url="https://api.github.com/repos/secondfry/shortcircuit/releases/latest",
                 timeout=3.1
             )
         except requests.exceptions.RequestException:

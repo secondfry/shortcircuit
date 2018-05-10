@@ -89,28 +89,37 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_2">
      <item>
-      <widget class="QLabel" name="label">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-       <property name="pixmap">
-        <pixmap resource="../resources.qrc">:/images/author.png</pixmap>
-       </property>
-      </widget>
-     </item>
-     <item>
       <widget class="QLabel" name="label_2">
        <property name="styleSheet">
         <string notr="true"/>
        </property>
        <property name="text">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;justify&quot;&gt;Short Circuit is an open-source application able to find the shortest path between solar systems (wormholes included) using the Eve SDE and wormhole mapping tools such as Tripwire. Short Circuit can run on all platforms where Python and PySide are supported.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Credits&lt;/span&gt;: Daimian Mercer (Tripwire), Dreae (PyCrest), pyfa-org (PyFa), EvE-Scout, Sharps, choo t&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        <string>&lt;html&gt;
+&lt;body&gt;
+&lt;p&gt;
+    Short Circuit is an open-source application able to find the shortest path between solar systems (wormholes
+    included) using the Eve SDE and wormhole mapping tools such as Tripwire. Short Circuit can run on all platforms
+    where Python and PySide are supported.
+&lt;/p&gt;
+&lt;p&gt;
+    Original author – Valtyr Farshield.
+&lt;/p&gt;
+&lt;p&gt;&lt;b&gt;Maintainer list&lt;/b&gt;&lt;/p&gt;
+&lt;ul&gt;
+    &lt;li&gt;@Second_Fry (Lenai Chelien).&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;b&gt;Credits&lt;/b&gt;&lt;/p&gt;
+&lt;ul&gt;
+    &lt;li&gt;Daimian Mercer (Tripwire).&lt;/li&gt;
+    &lt;li&gt;Dreae (PyCrest).&lt;/li&gt;
+    &lt;li&gt;pyfa-org (PyFa).&lt;/li&gt;
+    &lt;li&gt;EvE-Scout.&lt;/li&gt;
+    &lt;li&gt;Sharps.&lt;/li&gt;
+    &lt;li&gt;choo t.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
@@ -121,19 +130,6 @@
       </widget>
      </item>
     </layout>
-   </item>
-   <item>
-    <widget class="QLabel" name="label_author">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="text">
-      <string>Creator:</string>
-     </property>
-    </widget>
    </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
