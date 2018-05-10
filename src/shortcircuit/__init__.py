@@ -1,6 +1,9 @@
 # __init__.py
 
-__organization__ = "FarshieldTech"
+# Original credits goes to Valtyr Farshield from FarshieldTech
+# Maintainer list:
+# @Second_Fry
+
+
 __appname__ = "Short Circuit"
-__version__ = "v.0.1.4-beta"
-__author__ = "Valtyr Farshield"
+__version__ = "v0.2.0-beta"
