@@ -8,6 +8,8 @@
 # WARNING! All changes made in this file will be lost!
 
 from PySide import QtCore, QtGui
+import os
+
 
 class Ui_AboutDialog(object):
     def setupUi(self, AboutDialog):
@@ -57,16 +59,6 @@ class Ui_AboutDialog(object):
         self.verticalLayout.addLayout(self.horizontalLayout_3)
         self.horizontalLayout_2 = QtGui.QHBoxLayout()
         self.horizontalLayout_2.setObjectName("horizontalLayout_2")
-        self.label = QtGui.QLabel(AboutDialog)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Maximum, QtGui.QSizePolicy.Preferred)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.label.sizePolicy().hasHeightForWidth())
-        self.label.setSizePolicy(sizePolicy)
-        self.label.setText("")
-        self.label.setPixmap(QtGui.QPixmap(":/images/author.png"))
-        self.label.setObjectName("label")
-        self.horizontalLayout_2.addWidget(self.label)
         self.label_2 = QtGui.QLabel(AboutDialog)
         self.label_2.setStyleSheet("")
         self.label_2.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignTop)
@@ -97,8 +89,7 @@ class Ui_AboutDialog(object):
     def retranslateUi(self, AboutDialog):
         AboutDialog.setWindowTitle(QtGui.QApplication.translate("AboutDialog", "About Short Circuit", None, QtGui.QApplication.UnicodeUTF8))
         self.label_title.setText(QtGui.QApplication.translate("AboutDialog", "Short Circuit", None, QtGui.QApplication.UnicodeUTF8))
-        self.label_2.setText(QtGui.QApplication.translate("AboutDialog", "<html><head/><body><p align=\"justify\">Short Circuit is an open-source application able to find the shortest path between solar systems (wormholes included) using the Eve SDE and wormhole mapping tools such as Tripwire. Short Circuit can run on all platforms where Python and PySide are supported.</p><p><span style=\" font-weight:600;\">Credits</span>: Daimian Mercer (Tripwire), Dreae (PyCrest), pyfa-org (PyFa), EvE-Scout, Sharps, choo t</p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
-        self.label_author.setText(QtGui.QApplication.translate("AboutDialog", "Creator:", None, QtGui.QApplication.UnicodeUTF8))
+        with open(os.path.join('..', 'resources', 'description.html'), 'r') as file:
+            description = file.read()
+        self.label_2.setText(QtGui.QApplication.translate("AboutDialog", description, None, QtGui.QApplication.UnicodeUTF8))
         self.pushButton_o7.setText(QtGui.QApplication.translate("AboutDialog", "Fly safe o7", None, QtGui.QApplication.UnicodeUTF8))
-
-import resources_rc

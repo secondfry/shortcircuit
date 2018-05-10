@@ -4,7 +4,7 @@ import sys
 import time
 import csv
 import StringIO
-from . import __appname__, __version__, __author__, __organization__
+from . import __appname__, __version__
 from PySide import QtGui, QtCore
 from view.gui_main import Ui_MainWindow
 from view.gui_crest import Ui_CrestDialog
@@ -86,11 +86,10 @@ class AboutDialog(QtGui.QDialog, Ui_AboutDialog):
     """
     Tripwire Configuration Window
     """
-    def __init__(self, author, version, parent=None):
+    def __init__(self, version, parent=None):
         super(AboutDialog, self).__init__(parent)
         self.setupUi(self)
         self.label_title.setText("Short Circuit {}".format(version))
-        self.label_author.setText("Creator: {}".format(author))
         # noinspection PyUnresolvedReferences
         self.pushButton_o7.clicked.connect(self.close)
         self.label_icon.mouseDoubleClickEvent = AboutDialog.icon_double_click
@@ -98,7 +97,7 @@ class AboutDialog(QtGui.QDialog, Ui_AboutDialog):
     @staticmethod
     def icon_double_click(event):
         event.accept()
-        QtGui.QDesktopServices.openUrl(QtCore.QUrl("https://github.com/farshield/shortcircuit"))
+        QtGui.QDesktopServices.openUrl(QtCore.QUrl("https://github.com/secondfry/shortcircuit"))
 
 
 class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
@@ -116,7 +115,6 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
         self.settings = QtCore.QSettings(
             QtCore.QSettings.IniFormat,
             QtCore.QSettings.UserScope,
-            __organization__,
             __appname__
         )
 
@@ -550,7 +548,7 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
     @staticmethod
     def banner_double_click(event):
         event.accept()
-        AboutDialog(__author__, __version__).exec_()
+        AboutDialog(__version__).exec_()
 
     @QtCore.Slot(str)
     def login_handler(self, char_name):
