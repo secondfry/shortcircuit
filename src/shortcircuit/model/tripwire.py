@@ -84,57 +84,79 @@ class Tripwire:
         connections = -1  # not logged in, yet
         chain = self.get_chain()
 
-        if chain:
-            # we get some sort of response so at least we're logged in
-            connections = 0
+        if not chain:
+            return connections
 
-            # let's see how many wormhole signatures exist (if any...)
-            for sig in chain["chain"]["map"]:
-                if sig["type"] != "GATE":
-                    connections += 1
+        # We got some sort of response so at least we're logged in
+        connections = 0
 
-                    # Retrieve signature meta data
-                    source = convert_to_int(sig["systemID"])
-                    dest = convert_to_int(sig["connectionID"])
-                    sig_source = sig["signatureID"]
-                    sig_dest = sig["sig2ID"]
-                    code_source = sig["type"]
-                    code_dest = sig["sig2Type"]
-                    if sig["life"] == "Stable":
-                        wh_life = 1
-                    else:
-                        wh_life = 0
-                    if sig["mass"] == "Stable":
-                        wh_mass = 2
-                    elif sig["mass"] == "Destab":
-                        wh_mass = 1
-                    else:
-                        wh_mass = 0
+        # Process wormholes
+        for wormholeId, wormhole in chain['wormholes'].iteritems():
+            if wormhole['type'] == 'GATE':
+                continue
 
-                    # Compute time elapsed from this moment to when the signature was updated
-                    last_modified = datetime.strptime(sig["time"], "%Y-%m-%d %H:%M:%S")
-                    delta = datetime.utcnow() - last_modified
-                    time_elapsed = round(delta.total_seconds() / 3600.0, 1)
+            if not wormhole['parent']:
+                signatureIn = chain['signatures'][wormhole['initialID']]
+                signatureOut = chain['signatures'][wormhole['secondaryID']]
+                wh_type = '????'
+            else:
+                parent = wormhole['parent'] + 'ID'
+                sibling = {
+                    'initialID': 'secondaryID',
+                    'secondaryID': 'initialID',
+                }.get(parent)
+                signatureIn = chain['signatures'][wormhole[parent]]
+                signatureOut = chain['signatures'][wormhole[sibling]]
+                wh_type = wormhole['type']
 
-                    if source != 0 and dest != 0:
-                        # Determine wormhole size
-                        size_result1 = self.eve_db.get_whsize_by_code(code_source)
-                        size_result2 = self.eve_db.get_whsize_by_code(code_dest)
-                        if size_result1 in [0, 1, 2, 3]:
-                            wh_size = size_result1
-                        elif size_result2 in [0, 1, 2, 3]:
-                            wh_size = size_result2
-                        else:
-                            # Wormhole codes are unknown => determine size based on class of wormholes
-                            wh_size = self.eve_db.get_whsize_by_system(source, dest)
+            systemFrom = convert_to_int(signatureIn['systemID'])
+            systemTo = convert_to_int(signatureOut['systemID'])
 
-                        # Add wormhole conection to solar system
-                        solar_map.add_connection(
-                            source,
-                            dest,
-                            SolarMap.WORMHOLE,
-                            [sig_source, code_source, sig_dest, code_dest, wh_size, wh_life, wh_mass, time_elapsed],
-                        )
+            if systemFrom == 0 or systemTo == 0:
+                continue
+
+            connections += 1
+
+            wh_life = {
+                'stable': 1,
+                'critical': 0,
+            }.get(wormhole['life'], 0)
+
+            wh_mass = {
+                'stable': 2,
+                'destab': 1,
+                'critical': 0,
+            }.get(wormhole['mass'], 0)
+
+            # Compute time elapsed from this moment to when the signature was updated
+            last_modified = datetime.strptime(signatureIn['modifiedTime'], "%Y-%m-%d %H:%M:%S")
+            delta = datetime.utcnow() - last_modified
+            time_elapsed = round(delta.total_seconds() / 3600.0, 1)
+
+            # Determine wormhole size
+            wh_size = -1
+            if wormhole['type']:
+                wh_size = self.eve_db.get_whsize_by_code(wormhole['type'])
+            if wh_size not in [0, 1, 2, 3]:
+                # Wormhole codes are unknown => determine size based on class of wormholes
+                wh_size = self.eve_db.get_whsize_by_system(systemFrom, systemTo)
+
+            # Add wormhole conection to solar system
+            solar_map.add_connection(
+                systemFrom,
+                systemTo,
+                SolarMap.WORMHOLE,
+                [
+                    signatureIn['signatureID'],
+                    wh_type,
+                    signatureOut['signatureID'],
+                    'K162',
+                    wh_size,
+                    wh_life,
+                    wh_mass,
+                    time_elapsed
+                ],
+            )
 
         return connections
 
