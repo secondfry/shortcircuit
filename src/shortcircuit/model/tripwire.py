@@ -12,7 +12,7 @@ class Tripwire:
     """
     Tripwire handler
     """
-    USER_AGENT = "Short Circuit v0.2.2-beta"
+    USER_AGENT = "Short Circuit v0.2.3-beta"
 
     def __init__(self, eve_db, username, password, url):
         self.eve_db = eve_db
@@ -92,15 +92,20 @@ class Tripwire:
 
         # Process wormholes
         for wormholeId, wormhole in chain['wormholes'].iteritems():
-            if wormhole['type'] == 'GATE':
-                continue
+            try:
+                if wormhole['type'] == 'GATE':
+                    continue
 
-            if not wormhole['parent']:
-                signatureIn = chain['signatures'][wormhole['initialID']]
-                signatureOut = chain['signatures'][wormhole['secondaryID']]
-                wh_type = '????'
-            else:
-                parent = wormhole['parent'] + 'ID'
+                if wormhole['initialID'] not in chain['signatures']:
+                    continue
+
+                if wormhole['secondaryID'] not in chain['signatures']:
+                    continue
+
+                if not wormhole['parent']:
+                    parent = 'initialID'
+                else:
+                    parent = wormhole['parent'] + 'ID'
                 sibling = {
                     'initialID': 'secondaryID',
                     'secondaryID': 'initialID',
@@ -109,54 +114,56 @@ class Tripwire:
                 signatureOut = chain['signatures'][wormhole[sibling]]
                 wh_type = wormhole['type']
 
-            systemFrom = convert_to_int(signatureIn['systemID'])
-            systemTo = convert_to_int(signatureOut['systemID'])
+                systemFrom = convert_to_int(signatureIn['systemID'])
+                systemTo = convert_to_int(signatureOut['systemID'])
 
-            if systemFrom == 0 or systemFrom < 10000 or systemTo == 0 or systemTo < 10000:
-                continue
+                if systemFrom == 0 or systemFrom < 10000 or systemTo == 0 or systemTo < 10000:
+                    continue
 
-            connections += 1
+                connections += 1
 
-            wh_life = {
-                'stable': 1,
-                'critical': 0,
-            }.get(wormhole['life'], 0)
+                wh_life = {
+                    'stable': 1,
+                    'critical': 0,
+                }.get(wormhole['life'], 0)
 
-            wh_mass = {
-                'stable': 2,
-                'destab': 1,
-                'critical': 0,
-            }.get(wormhole['mass'], 0)
+                wh_mass = {
+                    'stable': 2,
+                    'destab': 1,
+                    'critical': 0,
+                }.get(wormhole['mass'], 0)
 
-            # Compute time elapsed from this moment to when the signature was updated
-            last_modified = datetime.strptime(signatureIn['modifiedTime'], "%Y-%m-%d %H:%M:%S")
-            delta = datetime.utcnow() - last_modified
-            time_elapsed = round(delta.total_seconds() / 3600.0, 1)
+                # Compute time elapsed from this moment to when the signature was updated
+                last_modified = datetime.strptime(signatureIn['modifiedTime'], "%Y-%m-%d %H:%M:%S")
+                delta = datetime.utcnow() - last_modified
+                time_elapsed = round(delta.total_seconds() / 3600.0, 1)
 
-            # Determine wormhole size
-            wh_size = -1
-            if wormhole['type']:
-                wh_size = self.eve_db.get_whsize_by_code(wormhole['type'])
-            if wh_size not in [0, 1, 2, 3]:
-                # Wormhole codes are unknown => determine size based on class of wormholes
-                wh_size = self.eve_db.get_whsize_by_system(systemFrom, systemTo)
+                # Determine wormhole size
+                wh_size = -1
+                if wormhole['type']:
+                    wh_size = self.eve_db.get_whsize_by_code(wormhole['type'])
+                if wh_size not in [0, 1, 2, 3]:
+                    # Wormhole codes are unknown => determine size based on class of wormholes
+                    wh_size = self.eve_db.get_whsize_by_system(systemFrom, systemTo)
 
-            # Add wormhole conection to solar system
-            solar_map.add_connection(
-                systemFrom,
-                systemTo,
-                SolarMap.WORMHOLE,
-                [
-                    signatureIn['signatureID'],
-                    wh_type,
-                    signatureOut['signatureID'],
-                    'K162',
-                    wh_size,
-                    wh_life,
-                    wh_mass,
-                    time_elapsed
-                ],
-            )
+                # Add wormhole conection to solar system
+                solar_map.add_connection(
+                    systemFrom,
+                    systemTo,
+                    SolarMap.WORMHOLE,
+                    [
+                        signatureIn['signatureID'],
+                        wh_type,
+                        signatureOut['signatureID'],
+                        'K162',
+                        wh_size,
+                        wh_life,
+                        wh_mass,
+                        time_elapsed
+                    ],
+                )
+            except Exception as e:
+                pass
 
         return connections
 
