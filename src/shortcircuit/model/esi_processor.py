@@ -1,28 +1,28 @@
-# crestprocessor.py
+# esi_processor.py
 
 import threading
 from PySide import QtCore
-from crest.crest import Crest
+from esi.esi import ESI
 
 
-class CrestProcessor(QtCore.QObject):
+class ESIProcessor(QtCore.QObject):
     """
-    CREST Middle-ware
+    ESI Middleware
     """
     login_response = QtCore.Signal(str)
     logout_response = QtCore.Signal()
     location_response = QtCore.Signal(str)
     destination_response = QtCore.Signal(bool)
 
-    def __init__(self, implicit, client_id, client_secret, parent=None):
-        super(CrestProcessor, self).__init__(parent)
-        self.crest = Crest(implicit, client_id, client_secret, self._login_callback, self._logout_callback)
+    def __init__(self, parent=None):
+        super(ESIProcessor, self).__init__(parent)
+        self.esi = ESI(self._login_callback, self._logout_callback)
 
     def login(self):
-        return self.crest.start_server()
+        return self.esi.start_server()
 
     def logout(self):
-        self.crest.logout()
+        self.esi.logout()
 
     def get_location(self):
         server_thread = threading.Thread(target=self._get_location)
@@ -30,7 +30,7 @@ class CrestProcessor(QtCore.QObject):
         server_thread.start()
 
     def _get_location(self):
-        location = self.crest.get_char_location()
+        location = self.esi.get_char_location()
         self.location_response.emit(location)
 
     def set_destination(self, sys_id):
@@ -39,7 +39,7 @@ class CrestProcessor(QtCore.QObject):
         server_thread.start()
 
     def _set_destination(self, sys_id):
-        response = self.crest.set_char_destination(sys_id)
+        response = self.esi.set_char_destination(sys_id)
         self.destination_response.emit(response)
 
     def _login_callback(self, char_name):

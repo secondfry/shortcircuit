@@ -29,7 +29,7 @@ HTML = '''
 <div id="article">
     <h1>Short Circuit</h1>
     <div>
-        <p>If you see this message then it means you should be logged in with CREST. You may close this window and return to the application.</p>
+        <p>If you see this message then it means you should be logged in with ESI. You may close this window and return to the application.</p>
     </div>
 </div>
 <script type="text/javascript">
