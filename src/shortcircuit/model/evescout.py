@@ -19,7 +19,7 @@ class EveScout:
     def augment_map(self, solar_map):
         connections = -1
         headers = {
-            "User-Agent": "Short Circuit v0.3.0-beta"
+            "User-Agent": "Short Circuit v0.3.1-beta"
         }
         try:
             result = requests.get(
