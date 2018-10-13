@@ -1,15 +1,13 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'resources\ui\gui_about.ui'
+# Form implementation generated from reading ui file 'resources/ui/gui_about.ui'
 #
-# Created: Tue Oct 04 22:22:07 2016
-#      by: pyside-uic 0.2.15 running on PySide 1.2.4
+# Created: Sat Oct 13 10:43:18 2018
+#      by: pyside-uic 0.2.15 running on PySide 1.2.2
 #
 # WARNING! All changes made in this file will be lost!
 
 from PySide import QtCore, QtGui
-import os
-
 
 class Ui_AboutDialog(object):
     def setupUi(self, AboutDialog):
@@ -66,14 +64,6 @@ class Ui_AboutDialog(object):
         self.label_2.setObjectName("label_2")
         self.horizontalLayout_2.addWidget(self.label_2)
         self.verticalLayout.addLayout(self.horizontalLayout_2)
-        self.label_author = QtGui.QLabel(AboutDialog)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Minimum)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.label_author.sizePolicy().hasHeightForWidth())
-        self.label_author.setSizePolicy(sizePolicy)
-        self.label_author.setObjectName("label_author")
-        self.verticalLayout.addWidget(self.label_author)
         self.horizontalLayout = QtGui.QHBoxLayout()
         self.horizontalLayout.setObjectName("horizontalLayout")
         spacerItem = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
@@ -89,7 +79,32 @@ class Ui_AboutDialog(object):
     def retranslateUi(self, AboutDialog):
         AboutDialog.setWindowTitle(QtGui.QApplication.translate("AboutDialog", "About Short Circuit", None, QtGui.QApplication.UnicodeUTF8))
         self.label_title.setText(QtGui.QApplication.translate("AboutDialog", "Short Circuit", None, QtGui.QApplication.UnicodeUTF8))
-        with open(os.path.join('..', 'resources', 'description.html'), 'r') as file:
-            description = file.read()
-        self.label_2.setText(QtGui.QApplication.translate("AboutDialog", description, None, QtGui.QApplication.UnicodeUTF8))
+        self.label_2.setText(QtGui.QApplication.translate("AboutDialog", "<html>\n"
+"<body>\n"
+"<p>\n"
+"    Short Circuit is an open-source application able to find the shortest path between solar systems (wormholes\n"
+"    included) using the Eve SDE and wormhole mapping tools such as Tripwire. Short Circuit can run on all platforms\n"
+"    where Python and PySide are supported.\n"
+"</p>\n"
+"<p>\n"
+"    Original author – Valtyr Farshield.\n"
+"</p>\n"
+"<p><b>Maintainer list</b></p>\n"
+"<ul>\n"
+"    <li>@Second_Fry (Lenai Chelien).</li>\n"
+"</ul>\n"
+"<p><b>Credits</b></p>\n"
+"<ul>\n"
+"    <li>Daimian Mercer (Tripwire).</li>\n"
+"    <li>Dreae (PyCrest).</li>\n"
+"    <li>pyfa-org (PyFa).</li>\n"
+"    <li>EvE-Scout.</li>\n"
+"    <li>Sharps.</li>\n"
+"    <li>choo t.</li>\n"
+"</ul>\n"
+"</body>\n"
+"</html>\n"
+"", None, QtGui.QApplication.UnicodeUTF8))
         self.pushButton_o7.setText(QtGui.QApplication.translate("AboutDialog", "Fly safe o7", None, QtGui.QApplication.UnicodeUTF8))
+
+import resources_rc

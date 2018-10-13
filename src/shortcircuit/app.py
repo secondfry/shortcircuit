@@ -7,13 +7,12 @@ import StringIO
 from . import __appname__, __version__
 from PySide import QtGui, QtCore
 from view.gui_main import Ui_MainWindow
-from view.gui_crest import Ui_CrestDialog
 from view.gui_tripwire import Ui_TripwireDialog
 from view.gui_about import Ui_AboutDialog
 from model.navigation import Navigation
 from model.navprocessor import NavProcessor
 from model.evedb import EveDb
-from model.crestprocessor import CrestProcessor
+from model.esi_processor import ESIProcessor
 from model.versioncheck import VersionCheck
 
 
@@ -27,40 +26,6 @@ def dict_from_csvqfile(file_path):
         reader = csv.reader(f, delimiter=';')
 
     return reader
-
-
-class CrestDialog(QtGui.QDialog, Ui_CrestDialog):
-    """
-    CREST Configuration Window
-    """
-    def __init__(self, implicit, client_id, client_secret, parent=None):
-        super(CrestDialog, self).__init__(parent)
-        self.setupUi(self)
-        # noinspection PyUnresolvedReferences
-        self.radioButton_implicit.toggled.connect(self.stuff)
-        if implicit:
-            self.radioButton_implicit.setChecked(True)
-        else:
-            self.radioButton_user.setChecked(True)
-        self.lineEdit_client_id.setText(client_id)
-        self.lineEdit_client_secret.setText(client_secret)
-        self._credentials_enable(not self.radioButton_implicit.isChecked())
-
-    def _credentials_enable(self, state):
-        if state:
-            self.lineEdit_client_id.setEnabled(True)
-            self.lineEdit_client_id.setReadOnly(False)
-            self.lineEdit_client_secret.setEnabled(True)
-            self.lineEdit_client_secret.setReadOnly(False)
-        else:
-            self.lineEdit_client_id.setEnabled(False)
-            self.lineEdit_client_id.setReadOnly(True)
-            self.lineEdit_client_secret.setEnabled(False)
-            self.lineEdit_client_secret.setReadOnly(True)
-
-    @QtCore.Slot()
-    def stuff(self):
-        self._credentials_enable(not self.radioButton_implicit.isChecked())
 
 
 class TripwireDialog(QtGui.QDialog, Ui_TripwireDialog):
@@ -123,9 +88,6 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
         self.tripwire_user = None
         self.tripwire_pass = None
         self.evescout_enable = None
-        self.crest_implicit = None
-        self.crest_client_id = None
-        self.crest_client_secret = None
 
         # Table configuration
         self.tableWidget_path.setColumnCount(5)
@@ -181,17 +143,13 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
         # noinspection PyUnresolvedReferences
         self.version_thread.started.connect(self.version_check.process)
 
-        # CREST
+        # ESI
         self.eve_connected = False
-        self.crestp = CrestProcessor(
-            implicit=self.crest_implicit,
-            client_id=self.crest_client_id,
-            client_secret=self.crest_client_secret,
-        )
-        self.crestp.login_response.connect(self.login_handler)
-        self.crestp.logout_response.connect(self.logout_handler)
-        self.crestp.location_response.connect(self.location_handler)
-        self.crestp.destination_response.connect(self.destination_handler)
+        self.esip = ESIProcessor()
+        self.esip.login_response.connect(self.login_handler)
+        self.esip.logout_response.connect(self.logout_handler)
+        self.esip.location_response.connect(self.location_handler)
+        self.esip.destination_response.connect(self.destination_handler)
 
         # Start version check
         self.version_thread.start()
@@ -224,7 +182,6 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
         self.pushButton_eve_login.clicked.connect(self.btn_eve_login_clicked)
         self.pushButton_player_location.clicked.connect(self.btn_player_location_clicked)
         self.pushButton_find_path.clicked.connect(self.btn_find_path_clicked)
-        self.pushButton_crest_config.clicked.connect(self.btn_crest_config_clicked)
         self.pushButton_trip_config.clicked.connect(self.btn_trip_config_clicked)
         self.pushButton_trip_get.clicked.connect(self.btn_trip_get_clicked)
         self.pushButton_avoid_add.clicked.connect(self.btn_avoid_add_clicked)
@@ -250,11 +207,6 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
             self.restoreState(win_state)
         for col_idx, column_width in enumerate(self.settings.value("table_widths", "110,75,75,180").split(',')):
             self.tableWidget_path.setColumnWidth(col_idx, int(column_width))
-
-        # CREST info
-        self.crest_implicit = True if self.settings.value("crest_implicit", "true") == "true" else False
-        self.crest_client_id = self.settings.value("crest_client_id", "")
-        self.crest_client_secret = self.settings.value("crest_client_secret", "")
 
         # Tripwire info
         self.tripwire_url = self.settings.value("tripwire_url", "https://tripwire.eve-apps.com")
@@ -312,11 +264,6 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
             str(self.tableWidget_path.columnWidth(2)),
             str(self.tableWidget_path.columnWidth(3)),
         ]))
-
-        # Crest info
-        self.settings.setValue("crest_implicit", self.crest_implicit)
-        self.settings.setValue("crest_client_id", self.crest_client_id)
-        self.settings.setValue("crest_client_secret", self.crest_client_secret)
 
         # Tripwire info
         self.settings.setValue("tripwire_url", self.tripwire_url)
@@ -559,7 +506,7 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
             self.pushButton_set_dest.setEnabled(True)
             self.eve_connected = True
         else:
-            self._statusbar_message("Error: Unable to connect with CREST", MainWindow.MSG_ERROR)
+            self._statusbar_message("Error: Unable to connect with ESI", MainWindow.MSG_ERROR)
 
     @QtCore.Slot()
     def logout_handler(self):
@@ -574,13 +521,13 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
         if location:
             self.lineEdit_source.setText(location)
         else:
-            self._message_box("Player destination", "Unable to get location (character not online or CREST error)")
+            self._message_box("Player destination", "Unable to get location (character not online or ESI error)")
         self.pushButton_player_location.setEnabled(True)
 
     @QtCore.Slot(bool)
     def destination_handler(self, response):
         if not response:
-            self._message_box("Player destination", "CREST error when trying to set destination")
+            self._message_box("Player destination", "ESI error when trying to set destination")
         self.pushButton_set_dest.setEnabled(True)
 
     @QtCore.Slot(int)
@@ -620,15 +567,14 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
     @QtCore.Slot()
     def btn_eve_login_clicked(self):
         if not self.eve_connected:
-            url = self.crestp.login()
-            QtGui.QDesktopServices.openUrl(QtCore.QUrl.fromEncoded(url))
+            self.esip.login()
         else:
-            self.crestp.logout()
+            self.esip.logout()
 
     @QtCore.Slot()
     def btn_player_location_clicked(self):
         self.pushButton_player_location.setEnabled(False)
-        self.crestp.get_location()
+        self.esip.get_location()
 
     @QtCore.Slot()
     def btn_set_dest_clicked(self):
@@ -639,7 +585,7 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
             sys_id = self.nav.eve_db.name2id(dest_sys_name)
             if sys_id:
                 self.pushButton_set_dest.setEnabled(False)
-                self.crestp.set_destination(sys_id)
+                self.esip.set_destination(sys_id)
             else:
                 if self.lineEdit_set_dest.text().strip() == "":
                     msg_txt = "No system name give as input"
@@ -650,19 +596,6 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
     @QtCore.Slot()
     def btn_find_path_clicked(self):
         self.find_path()
-
-    @QtCore.Slot()
-    def btn_crest_config_clicked(self):
-        crest_dialog = CrestDialog(self.crest_implicit, self.crest_client_id, self.crest_client_secret)
-        if crest_dialog.exec_():
-            self.crest_implicit = crest_dialog.radioButton_implicit.isChecked()
-            self.crest_client_id = crest_dialog.lineEdit_client_id.text()
-            self.crest_client_secret = crest_dialog.lineEdit_client_secret.text()
-            self.crestp.crest.update_credentials(
-                self.crest_implicit,
-                self.crest_client_id,
-                self.crest_client_secret,
-            )
 
     @QtCore.Slot()
     def btn_trip_config_clicked(self):
