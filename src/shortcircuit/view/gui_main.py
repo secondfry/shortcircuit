@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'resources\ui\gui_main.ui'
+# Form implementation generated from reading ui file 'resources/ui/gui_main.ui'
 #
-# Created: Tue Oct 04 22:22:06 2016
-#      by: pyside-uic 0.2.15 running on PySide 1.2.4
+# Created: Sat Oct 13 10:43:18 2018
+#      by: pyside-uic 0.2.15 running on PySide 1.2.2
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -163,15 +163,6 @@ class Ui_MainWindow(object):
         self.pushButton_trip_config.setIcon(icon4)
         self.pushButton_trip_config.setObjectName("pushButton_trip_config")
         self.gridLayout_4.addWidget(self.pushButton_trip_config, 1, 1, 1, 1)
-        self.pushButton_crest_config = QtGui.QPushButton(self.groupBox__options)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Minimum)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.pushButton_crest_config.sizePolicy().hasHeightForWidth())
-        self.pushButton_crest_config.setSizePolicy(sizePolicy)
-        self.pushButton_crest_config.setIcon(icon4)
-        self.pushButton_crest_config.setObjectName("pushButton_crest_config")
-        self.gridLayout_4.addWidget(self.pushButton_crest_config, 0, 1, 1, 1)
         self.verticalLayout_3.addLayout(self.gridLayout_4)
         self.label_trip_status = QtGui.QLabel(self.groupBox__options)
         self.label_trip_status.setAlignment(QtCore.Qt.AlignCenter)
@@ -430,7 +421,6 @@ class Ui_MainWindow(object):
         self.pushButton_trip_get.setText(QtGui.QApplication.translate("MainWindow", "Get Tripwire Chain", None, QtGui.QApplication.UnicodeUTF8))
         self.pushButton_eve_login.setText(QtGui.QApplication.translate("MainWindow", "Log in with EvE", None, QtGui.QApplication.UnicodeUTF8))
         self.pushButton_trip_config.setText(QtGui.QApplication.translate("MainWindow", "Tripwire", None, QtGui.QApplication.UnicodeUTF8))
-        self.pushButton_crest_config.setText(QtGui.QApplication.translate("MainWindow", "CREST", None, QtGui.QApplication.UnicodeUTF8))
         self.label_trip_status.setText(QtGui.QApplication.translate("MainWindow", "Not connected to Tripwire, yet", None, QtGui.QApplication.UnicodeUTF8))
         self.label_evescout_status.setText(QtGui.QApplication.translate("MainWindow", "Eve-Scout", None, QtGui.QApplication.UnicodeUTF8))
         self.groupBox_restrictions.setTitle(QtGui.QApplication.translate("MainWindow", "Restrictions", None, QtGui.QApplication.UnicodeUTF8))

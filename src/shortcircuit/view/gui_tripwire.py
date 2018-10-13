@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'resources\ui\gui_tripwire.ui'
+# Form implementation generated from reading ui file 'resources/ui/gui_tripwire.ui'
 #
-# Created: Tue Oct 04 22:22:06 2016
-#      by: pyside-uic 0.2.15 running on PySide 1.2.4
+# Created: Sat Oct 13 10:43:18 2018
+#      by: pyside-uic 0.2.15 running on PySide 1.2.2
 #
 # WARNING! All changes made in this file will be lost!
 
