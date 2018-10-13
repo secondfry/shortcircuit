@@ -6,7 +6,7 @@ Short Circuit (previously known as Pathfinder) is a desktop application which is
 **Features:**
 
 1. Ability to add wormhole connections from [Tripwire](https://tripwire.eve-apps.com/)
-2. CREST authentication for reading the player location and setting the destination in-game
+2. ESI authentication for reading the player location and setting the destination in-game
 3. Avoidance list
 4. Wormhole restrictions for: size, life, mass, last updated
 5. Instructions specify the signature and type of the wormhole (makes navigation easier)
@@ -32,10 +32,10 @@ yaourt -S shortcircuit
 ## Releases
 Binaries (executables) can be downloaded from [here](https://github.com/farshield/shortcircuit/releases)
 
-## About CREST
-Using CREST is optional, but it provides features like getting current player location or setting in-game destination automatically.
+## About ESI
+Using ESI is optional, but it provides features like getting current player location or setting in-game destination automatically.
 
-Short Circuit uses almost the same CREST model as PyFa. You can find more about it [here](https://github.com/pyfa-org/Pyfa/wiki/CREST). Implicit mode only allows for a 20 minutes session, after that you have to relog. If you don't want to use the "implicit" mode, you can create your own keys at this [location](https://developers.eveonline.com/applications). This will permit you to stay logged in for a longer period of time. Application form should look something like [this](http://i.imgur.com/qhIPG6r.png). Of course you can give it a different name and description, but you have to type in the correct callback URL `http://127.0.0.1:7444` and select the correct scopes (`characterLocationRead` and `characterNavigationWrite`).
+Short Circuit uses implicit mode which only allows for a 20 minutes session, after that you have to relog. If you don't want to use the "implicit" mode, you will have to port back using your own keys feature.
 
 ## Eve-Scout
 ![TripwireConfig](http://i.imgur.com/GiJ2zc3.png)
