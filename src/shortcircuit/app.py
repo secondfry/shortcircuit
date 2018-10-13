@@ -709,7 +709,7 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 
             if ret == QtGui.QMessageBox.AcceptRole:
                 QtGui.QDesktopServices.openUrl(
-                    QtCore.QUrl("https://github.com/farshield/shortcircuit/releases/tag/{}".format(version))
+                    QtCore.QUrl("https://github.com/secondfry/shortcircuit/releases/tag/{}".format(version))
                 )
 
     # event: QCloseEvent
