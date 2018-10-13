@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'resources/ui/gui_main.ui'
 #
-# Created: Sat Oct 13 10:43:18 2018
+# Created: Sat Oct 13 11:07:05 2018
 #      by: pyside-uic 0.2.15 running on PySide 1.2.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -436,7 +436,7 @@ class Ui_MainWindow(object):
         self.label_4.setText(QtGui.QApplication.translate("MainWindow", "hours ago", None, QtGui.QApplication.UnicodeUTF8))
         self.groupBox_security.setTitle(QtGui.QApplication.translate("MainWindow", "Security prioritization", None, QtGui.QApplication.UnicodeUTF8))
         self.label_6.setText(QtGui.QApplication.translate("MainWindow", "NS:", None, QtGui.QApplication.UnicodeUTF8))
-        self.label_10.setText(QtGui.QApplication.translate("MainWindow", "<html><head/><body><p><a href=\"https://github.com/farshield/shortcircuit/blob/master/README.md#security-prioritization\"><span style=\" text-decoration: underline; color:#0000ff;\">[?]</span></a></p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
+        self.label_10.setText(QtGui.QApplication.translate("MainWindow", "<html><head/><body><p><a href=\"https://github.com/secondfry/shortcircuit/blob/master/README.md#security-prioritization\"><span style=\" text-decoration: underline; color:#0000ff;\">[?]</span></a></p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
         self.label_7.setText(QtGui.QApplication.translate("MainWindow", "HS:", None, QtGui.QApplication.UnicodeUTF8))
         self.label_8.setText(QtGui.QApplication.translate("MainWindow", "LS:", None, QtGui.QApplication.UnicodeUTF8))
         self.label_9.setText(QtGui.QApplication.translate("MainWindow", "WH:", None, QtGui.QApplication.UnicodeUTF8))
