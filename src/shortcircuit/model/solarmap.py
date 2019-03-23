@@ -102,59 +102,61 @@ class SolarMap:
         path = []
         size_restriction = set(size_restriction)
 
-        if source in self.systems_list and destination in self.systems_list:
-            if source == destination:
-                path = [source]
-            else:
-                queue = collections.deque()
-                visited = set([self.get_system(x) for x in avoidance_list])
-                parent = {}
+        if source not in self.systems_list or destination not in self.systems_list:
+            return []
 
-                # starting point
-                root = self.get_system(source)
-                queue.append(root)
-                visited.add(root)
+        if source == destination:
+            return [source]
 
-                while len(queue) > 0:
-                    current_sys = queue.popleft()
+        queue = collections.deque()
+        visited = set([self.get_system(x) for x in avoidance_list])
+        parent = {}
 
-                    if current_sys.get_id() == destination:
-                        # Found!
-                        path.append(destination)
-                        while True:
-                            parent_id = parent[current_sys].get_id()
-                            path.append(parent_id)
+        # starting point
+        root = self.get_system(source)
+        queue.append(root)
+        visited.add(root)
 
-                            if parent_id != source:
-                                current_sys = parent[current_sys]
-                            else:
-                                path.reverse()
-                                return path
+        while len(queue) > 0:
+            current_sys = queue.popleft()
+
+            if current_sys.get_id() == destination:
+                # Found!
+                path.append(destination)
+                while True:
+                    parent_id = parent[current_sys].get_id()
+                    path.append(parent_id)
+
+                    if parent_id != source:
+                        current_sys = parent[current_sys]
                     else:
-                        # Keep searching
-                        for neighbor in [x for x in current_sys.get_connections() if x not in visited]:
-                            # Connection check (gate or wormhole size)
-                            [con_type, con_info] = current_sys.get_weight(neighbor)
-                            if con_type == SolarMap.GATE:
-                                proceed = True
-                            elif con_type == SolarMap.WORMHOLE:
-                                proceed = True
-                                [_, _, wh_size, wh_life, wh_mass, time_elapsed] = con_info
-                                if wh_size not in size_restriction:
-                                    proceed = False
-                                elif ignore_eol and wh_life == 0:
-                                    proceed = False
-                                elif ignore_masscrit and wh_mass == 0:
-                                    proceed = False
-                                elif 0 < age_threshold < time_elapsed:
-                                    proceed = False
-                            else:
-                                proceed = False
+                        path.reverse()
+                        return path
+            else:
+                # Keep searching
+                for neighbor in [x for x in current_sys.get_connections() if x not in visited]:
+                    # Connection check (gate or wormhole size)
+                    [con_type, con_info] = current_sys.get_weight(neighbor)
+                    if con_type == SolarMap.GATE:
+                        proceed = True
+                    elif con_type == SolarMap.WORMHOLE:
+                        proceed = True
+                        [_, _, wh_size, wh_life, wh_mass, time_elapsed] = con_info
+                        if wh_size not in size_restriction:
+                            proceed = False
+                        elif ignore_eol and wh_life == 0:
+                            proceed = False
+                        elif ignore_masscrit and wh_mass == 0:
+                            proceed = False
+                        elif 0 < age_threshold < time_elapsed:
+                            proceed = False
+                    else:
+                        proceed = False
 
-                            if proceed:
-                                parent[neighbor] = current_sys
-                                visited.add(neighbor)
-                                queue.append(neighbor)
+                    if proceed:
+                        parent[neighbor] = current_sys
+                        visited.add(neighbor)
+                        queue.append(neighbor)
 
         return path
 
