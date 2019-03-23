@@ -393,7 +393,7 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
                 self.tableWidget_path.item(i, j).setBackground(color)
                 self.tableWidget_path.item(i, j).setForeground(QtGui.QColor(0, 0, 0))
 
-    def get_restrictions(self):
+    def get_restrictions_size(self):
         size_restriction = []
 
         combo_index = self.comboBox_size.currentIndex()
@@ -406,14 +406,37 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
         if combo_index < 4:
             size_restriction.append(EveDb.WHSIZE_XL)
 
-        ignore_eol = self.checkBox_eol.isChecked()
-        ignore_masscrit = self.checkBox_masscrit.isChecked()
+        return size_restriction
+
+    def get_restrictions_age(self):
+        age_threshold = 0
+
         if self.checkBox_ignore_old.isChecked():
             age_threshold = self.doubleSpinBox_hours.value()
-        else:
-            age_threshold = 0
 
-        return [size_restriction, ignore_eol, ignore_masscrit, age_threshold]
+        return age_threshold
+
+    def get_restrictions_security(self):
+        security_prio = []
+
+        if self.checkBox_security_enabled.isChecked():
+            security_prio = [
+                self.spinBox_prio_hs.value(),
+                self.spinBox_prio_ls.value(),
+                self.spinBox_prio_ns.value(),
+                self.spinBox_prio_wh.value(),
+            ]
+
+        return security_prio
+
+    def get_restrictions(self):
+        size_restriction = self.get_restrictions_size()
+        ignore_eol = self.checkBox_eol.isChecked()
+        ignore_masscrit = self.checkBox_masscrit.isChecked()
+        age_threshold = self.get_restrictions_age()
+        security_prio = self.get_restrictions_security()
+
+        return [size_restriction, ignore_eol, ignore_masscrit, age_threshold, security_prio]
 
     def _clear_results(self):
         self.tableWidget_path.setRowCount(0)
@@ -427,60 +450,7 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
             self.lineEdit_destination.text().strip()
         )
 
-        if self.avoidance_enabled():
-            if dest_sys_name in self.avoidance_list():
-                self._path_message("Destination in avoidance list, dummy ;)", MainWindow.MSG_ERROR)
-                self._clear_results()
-                return
-
-        [size_restriction, ignore_eol, ignore_masscrit, age_threshold] = self.get_restrictions()
-        if self.checkBox_security_enabled.isChecked():
-            security_prio = [
-                self.spinBox_prio_hs.value(),
-                self.spinBox_prio_ls.value(),
-                self.spinBox_prio_ns.value(),
-                self.spinBox_prio_wh.value(),
-            ]
-        else:
-            security_prio = []
-
-        if source_sys_name and dest_sys_name:
-            if self.avoidance_enabled():
-                [route, short_format] = self.nav.route(
-                    source_sys_name,
-                    dest_sys_name,
-                    self.avoidance_list(),
-                    size_restriction,
-                    security_prio,
-                    ignore_eol,
-                    ignore_masscrit,
-                    age_threshold
-                )
-            else:
-                [route, short_format] = self.nav.route(
-                    source_sys_name,
-                    dest_sys_name,
-                    [],
-                    size_restriction,
-                    security_prio,
-                    ignore_eol,
-                    ignore_masscrit,
-                    age_threshold
-                )
-
-            if route:
-                route_length = len(route)
-                if route_length == 1:
-                    self._path_message("Set the same source and destination :P", MainWindow.MSG_OK)
-                else:
-                    self._path_message("Total number of jumps: {}".format(route_length - 1), MainWindow.MSG_OK)
-
-                self.add_data_to_table(route)
-                self.lineEdit_short_format.setText(short_format)
-            else:
-                self._clear_results()
-                self._path_message("No path found between the solar systems.", MainWindow.MSG_ERROR)
-        else:
+        if not source_sys_name or not dest_sys_name:
             self._clear_results()
             error_msg = []
             if not source_sys_name:
@@ -489,6 +459,46 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
                 error_msg.append("destination")
             error_msg = "Invalid system name in {}.".format(" and ".join(error_msg))
             self._path_message(error_msg, MainWindow.MSG_ERROR)
+            return
+
+        # TODO Why destination can't be in avoidance list?
+        # Should refactored
+        if self.avoidance_enabled() and dest_sys_name in self.avoidance_list():
+            self._path_message("Destination in avoidance list, dummy ;)", MainWindow.MSG_ERROR)
+            self._clear_results()
+            return
+
+        # TODO [DI of App into Navigation] Incorporate get_restrictions()
+        [size_restriction, ignore_eol, ignore_masscrit, age_threshold, security_prio] = self.get_restrictions()
+        if self.avoidance_enabled():
+            a = self.avoidance_list()
+        else:
+            a = []
+
+        [route, short_format] = self.nav.route(
+            source_sys_name,
+            dest_sys_name,
+            a,
+            size_restriction,
+            security_prio,
+            ignore_eol,
+            ignore_masscrit,
+            age_threshold
+        )
+
+        if not route:
+            self._clear_results()
+            self._path_message("No path found between the solar systems.", MainWindow.MSG_ERROR)
+            return
+
+        route_length = len(route)
+        if route_length == 1:
+            self._path_message("Set the same source and destination :P", MainWindow.MSG_OK)
+        else:
+            self._path_message("Total number of jumps: {}".format(route_length - 1), MainWindow.MSG_OK)
+
+        self.add_data_to_table(route)
+        self.lineEdit_short_format.setText(short_format)
 
     @staticmethod
     def banner_double_click(event):

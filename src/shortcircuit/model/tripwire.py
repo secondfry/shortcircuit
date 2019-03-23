@@ -78,28 +78,29 @@ class Tripwire:
                     if is_json(result.text):
                         response = result.json()
 
+        self.chain = response
         return response
 
     def augment_map(self, solar_map):
         connections = -1  # not logged in, yet
-        chain = self.get_chain()
+        self.get_chain()
 
-        if not chain:
+        if not self.chain:
             return connections
 
         # We got some sort of response so at least we're logged in
         connections = 0
 
         # Process wormholes
-        for wormholeId, wormhole in chain['wormholes'].iteritems():
+        for wormholeId, wormhole in self.chain['wormholes'].iteritems():
             try:
                 if wormhole['type'] == 'GATE':
                     continue
 
-                if wormhole['initialID'] not in chain['signatures']:
+                if wormhole['initialID'] not in self.chain['signatures']:
                     continue
 
-                if wormhole['secondaryID'] not in chain['signatures']:
+                if wormhole['secondaryID'] not in self.chain['signatures']:
                     continue
 
                 if not wormhole['parent']:
@@ -110,8 +111,8 @@ class Tripwire:
                     'initialID': 'secondaryID',
                     'secondaryID': 'initialID',
                 }.get(parent)
-                signatureIn = chain['signatures'][wormhole[parent]]
-                signatureOut = chain['signatures'][wormhole[sibling]]
+                signatureIn = self.chain['signatures'][wormhole[parent]]
+                signatureOut = self.chain['signatures'][wormhole[sibling]]
                 wh_type = wormhole['type']
 
                 systemFrom = convert_to_int(signatureIn['systemID'])
