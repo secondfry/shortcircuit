@@ -84,11 +84,33 @@ class EveDb:
     def system_name_list(self):
         return [x[0] for x in self.system_desc.values()]
 
+    def get_system_dict_pair_by_partial_name(self, part):
+        ret = [None, None]
+        matches = 0
+
+        for key, value in self.system_desc.iteritems():
+            if value[0].upper() == part.upper():
+                return [key, value]
+            if value[0].startswith(part):
+                ret = [key, value]
+                matches = matches + 1
+
+        if matches > 1:
+            return [None, None]
+
+        return ret
+
     def normalize_name(self, name):
-        for item in self.system_desc.values():
-            if name.upper() == item[0].upper():
-                return item[0]
-        return None
+        [sid, value] = self.get_system_dict_pair_by_partial_name(name)
+
+        if value is None:
+            return None
+
+        return value[0]
+
+    def name2id(self, name):
+        [sid, value] = self.get_system_dict_pair_by_partial_name(name)
+        return sid
 
     def id2name(self, idx):
         try:
@@ -96,10 +118,3 @@ class EveDb:
         except KeyError:
             sys_name = None
         return sys_name
-
-    def name2id(self, name):
-        for key, value in self.system_desc.iteritems():
-            if value[0] == name:
-                return key
-
-        return None
