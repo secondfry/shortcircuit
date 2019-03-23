@@ -429,14 +429,23 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 
         return security_prio
 
+    def get_restrictions_avoidance(self):
+        avoidance_list = []
+
+        if self.avoidance_enabled():
+            avoidance_list = self.avoidance_list()
+
+        return avoidance_list
+
     def get_restrictions(self):
         size_restriction = self.get_restrictions_size()
         ignore_eol = self.checkBox_eol.isChecked()
         ignore_masscrit = self.checkBox_masscrit.isChecked()
         age_threshold = self.get_restrictions_age()
         security_prio = self.get_restrictions_security()
+        avoidance_list = self.get_restrictions_avoidance()
 
-        return [size_restriction, ignore_eol, ignore_masscrit, age_threshold, security_prio]
+        return [size_restriction, ignore_eol, ignore_masscrit, age_threshold, security_prio, avoidance_list]
 
     def _clear_results(self):
         self.tableWidget_path.setRowCount(0)
@@ -468,22 +477,9 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
             self._clear_results()
             return
 
-        # TODO [DI of App into Navigation] Incorporate get_restrictions()
-        [size_restriction, ignore_eol, ignore_masscrit, age_threshold, security_prio] = self.get_restrictions()
-        if self.avoidance_enabled():
-            a = self.avoidance_list()
-        else:
-            a = []
-
         [route, short_format] = self.nav.route(
             source_sys_name,
-            dest_sys_name,
-            a,
-            size_restriction,
-            security_prio,
-            ignore_eol,
-            ignore_masscrit,
-            age_threshold
+            dest_sys_name
         )
 
         if not route:
