@@ -10,21 +10,22 @@ class Navigation:
     """
     Navigation
     """
-    def __init__(self, gates, system_desc, wh_codes, trip_url, trip_user, trip_pass):
+    def __init__(self, _app, gates, system_desc, wh_codes):
+        self._app = _app
         self.eve_db = EveDb(gates, system_desc, wh_codes)
         self.solar_map = self.eve_db.get_solar_map()
-        self.trip_url = None
-        self.trip_user = None
-        self.trip_pass = None
-        self.tripwire_set_login(trip_url, trip_user, trip_pass)
+
+        # TODO [DI of App into Navigation] Remove tripwire_set_login()
+        self.tripwire_set_login()
 
     def reset_chain(self):
         self.solar_map = self.eve_db.get_solar_map()
 
-    def tripwire_set_login(self, trip_url, trip_user, trip_pass):
-        self.trip_url = trip_url
-        self.trip_user = trip_user
-        self.trip_pass = trip_pass
+    # TODO [DI of App into Navigation] Remove tripwire_set_login()
+    def tripwire_set_login(self):
+        self.trip_url = self._app.tripwire_url
+        self.trip_user = self._app.tripwire_user
+        self.trip_pass = self._app.tripwire_pass
 
     def evescout_augment(self, solar_map):
         evescout = EveScout(self.eve_db)

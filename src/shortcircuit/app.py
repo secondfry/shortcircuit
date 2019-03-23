@@ -107,12 +107,10 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
         }
         wh_codes = {rows[0]: int(rows[1]) for rows in dict_from_csvqfile(":database/statics.csv")}
         self.nav = Navigation(
+            self,
             gates,
             system_desc,
-            wh_codes,
-            self.tripwire_url,
-            self.tripwire_user,
-            self.tripwire_pass
+            wh_codes
         )
 
         # Additional GUI setup
@@ -609,11 +607,7 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
             self.tripwire_url = tripwire_dialog.lineEdit_url.text()
             self.tripwire_user = tripwire_dialog.lineEdit_user.text()
             self.tripwire_pass = tripwire_dialog.lineEdit_pass.text()
-            self.nav.tripwire_set_login(
-                self.tripwire_url,
-                self.tripwire_user,
-                self.tripwire_pass
-            )
+            self.nav.tripwire_set_login()
             self.evescout_enable = tripwire_dialog.checkBox_evescout.isChecked()
             if self.evescout_enable:
                 self.label_evescout_status.setText("Eve-Scout: enabled")
