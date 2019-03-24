@@ -87,11 +87,13 @@ class EveDb:
     def get_system_dict_pair_by_partial_name(self, part):
         ret = [None, None]
         matches = 0
+        uppart = part.upper()
 
         for key, value in self.system_desc.iteritems():
-            if value[0].upper() == part.upper():
+            upval = value[0].upper()
+            if upval == uppart:
                 return [key, value]
-            if value[0].startswith(part):
+            if upval.startswith(uppart):
                 ret = [key, value]
                 matches = matches + 1
 
