@@ -113,6 +113,9 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
     self.icon_wormhole = QtGui.QIcon(":images/wh_icon.png")
 
     # Thread initial config
+    Logger.register_thread(QtCore.QThread.currentThread(), 'main')
+
+    # NavProcessor thread
     self.worker_thread = QtCore.QThread()
     Logger.register_thread(self.worker_thread, 'worker_thread / NavProcessor')
     self.nav_processor = NavProcessor(self.nav)
