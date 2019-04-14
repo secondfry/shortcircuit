@@ -30,7 +30,7 @@ yaourt -S shortcircuit
 ```
 
 ## Releases
-Binaries (executables) can be downloaded from [here](https://github.com/farshield/shortcircuit/releases)
+Binaries (executables) can be downloaded from [here](https://github.com/secondfry/shortcircuit/releases).
 
 ## About ESI
 Using ESI is optional, but it provides features like getting current player location or setting in-game destination automatically.
@@ -54,14 +54,14 @@ Security prioritization mechanism is defined by four values which represent a we
 
 Values may range from 1 to 100 and if all values are equal (ex. all equal to 1), then this function is practically disabled.
 
-![SecPrio](http://i.imgur.com/wUaSe3e.png)
+![SecPrio](https://i.imgur.com/wUaSe3e.png)
 
 In the above scenario the user specified that the effort is the same for taking gates to high-sec or low-sec and there's no need to prioritize one above the other. Compared to this, it's ten times more difficult to take gates to null-sec and three times more difficult to take any wormholes compared to high-sec/low-sec gates.
 
 For example, this may be useful when trying to avoid null-sec systems if possible, unless it shortens the path considerably, and when wormholes aren't bookmarked.
 
 ## Screenshot
-![Screenshot](http://i.imgur.com/6GuT6YY.png)
+![Screenshot](https://i.imgur.com/1NjxSP9.png)
 
 ## Video
 <a href="http://www.youtube.com/watch?feature=player_embedded&v=oM3mSKzZM0w" target="_blank"><img src="http://img.youtube.com/vi/oM3mSKzZM0w/0.jpg" alt="Short Circuit video" width="480" height="360" border="10" /></a>
@@ -102,4 +102,5 @@ mass: "Stable"
 3. Suggestions?
 
 ## Contacts
-For any questions please contact Valtyr Farshield. Contract me some Quafe. Thank you :)
+For any questions please contact Valtyr Farshield. Contract me some Quafe. Thank you :)  
+For questions regarding maintaining ShortCircuit please contact Lenai Chelien. I accept Exotic Dancers and ~~drugs~~ boosters.
