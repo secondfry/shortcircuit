@@ -150,6 +150,15 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     # noinspection PyUnresolvedReferences
     self.version_thread.started.connect(self.version_check.process)
 
+    # Farmer thread
+    self.farmer_thread = QtCore.QThread()
+    Logger.register_thread(self.farmer_thread, 'farmer_thread / Farmer')
+    self.farmer_obj = Farmer(self.nav)
+    self.farmer_obj.moveToThread(self.farmer_thread)
+    # noinspection PyUnresolvedReferences
+    self.farmer_thread.started.connect(self.farmer_obj.process)
+    self.farmer_obj.finished.connect(self.farmer_thread_done)
+
     # ESI
     self.eve_connected = False
     self.esip = ESIProcessor()
@@ -578,6 +587,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     else:
       self._trip_message("Tripwire error. Check url/user/pass.", MainWindow.MSG_ERROR)
 
+    self.farmer_thread.start()
+
+  @QtCore.Slot(int)
+  def farmer_thread_done(self):
+    self.farmer_thread.quit()
     self.pushButton_trip_get.setEnabled(True)
     self.pushButton_find_path.setEnabled(True)
 
