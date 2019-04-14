@@ -1,40 +1,47 @@
 # versioncheck.py
 
 import requests
-import logging
 from PySide import QtCore
+from logger import Logger
 
 
 class VersionCheck(QtCore.QObject):
-    """
-    Version Check on Github releases
-    """
+  """
+  Version Check on Github releases
+  """
 
-    finished = QtCore.Signal(str)
+  finished = QtCore.Signal(str)
 
-    def __init__(self, parent=None):
-        super(VersionCheck, self).__init__(parent)
+  def __init__(self, parent=None):
+    super(VersionCheck, self).__init__(parent)
 
-    def process(self):
-        version = None
+  def process(self):
+    version = None
 
-        try:
-            result = requests.get(
-                url="https://api.github.com/repos/secondfry/shortcircuit/releases/latest",
-                timeout=3.1
-            )
-        except requests.exceptions.RequestException:
-            logging.warning("Unable to get latest version tag")
-        else:
-            if result.status_code == 200:
-                version = result.json()['tag_name']
+    try:
+      result = requests.get(
+        url="https://api.github.com/repos/secondfry/shortcircuit/releases/latest",
+        timeout=3.1
+      )
+    except requests.exceptions.RequestException as e:
+      Logger.error('Exception raised while trying to get latest version info')
+      Logger.error(e)
+      self.finished.emit(None)
+      return
 
-        self.finished.emit(version)
+    if result.status_code != 200:
+      Logger.error('Result code is not 200')
+      Logger.error(result)
+      self.finished.emit(None)
+      return
+
+    version = result.json()['tag_name']
+    self.finished.emit(version)
 
 
 def main():
-    version_check = VersionCheck()
-    version_check.process()
+  version_check = VersionCheck()
+  version_check.process()
 
 if __name__ == "__main__":
-    main()
+  main()
