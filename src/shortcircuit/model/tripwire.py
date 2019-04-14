@@ -13,7 +13,7 @@ class Tripwire:
   """
   Tripwire handler
   """
-  USER_AGENT = "Short Circuit v0.3.1-beta"
+  USER_AGENT = "Short Circuit v0.3.2"
 
   def __init__(self, username, password, url):
     self.eve_db = EveDb()
