@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'resources/ui/gui_tripwire.ui'
 #
-# Created: Sat Oct 13 10:43:18 2018
+# Created: Sat Oct 13 11:07:05 2018
 #      by: pyside-uic 0.2.15 running on PySide 1.2.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -101,6 +101,6 @@ class Ui_TripwireDialog(object):
         self.label.setText(QtGui.QApplication.translate("TripwireDialog", "URL:", None, QtGui.QApplication.UnicodeUTF8))
         self.label_5.setText(QtGui.QApplication.translate("TripwireDialog", "<html><head/><body><p><a href=\"https://tripwire.eve-apps.com/\"><span style=\" text-decoration: underline; color:#0000ff;\">Don\'t have a Tripwire account, yet?</span></a></p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
         self.checkBox_evescout.setText(QtGui.QApplication.translate("TripwireDialog", "Enable Eve-Scout", None, QtGui.QApplication.UnicodeUTF8))
-        self.label_6.setText(QtGui.QApplication.translate("TripwireDialog", "<html><head/><body><p><a href=\"https://github.com/farshield/shortcircuit/blob/master/README.md#eve-scout\"><span style=\" text-decoration: underline; color:#0000ff;\">[Should I enable this?]</span></a></p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
+        self.label_6.setText(QtGui.QApplication.translate("TripwireDialog", "<html><head/><body><p><a href=\"https://github.com/secondfry/shortcircuit/blob/master/README.md#eve-scout\"><span style=\" text-decoration: underline; color:#0000ff;\">[Should I enable this?]</span></a></p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
 
 import resources_rc
