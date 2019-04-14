@@ -64,12 +64,20 @@ class Logger:
     return '[{}] [{}.{}()]  {}'.format(thread_name, caller_class_name, caller_function_name, msg)
 
   @staticmethod
+  def critical(msg, origin=None, func=None, *args, **kwargs):
+    logging.critical(Logger.prepare_message(msg, origin, func), *args, **kwargs)
+
+  @staticmethod
   def error(msg, origin=None, func=None, *args, **kwargs):
     logging.error(Logger.prepare_message(msg, origin, func), *args, **kwargs)
 
   @staticmethod
   def warning(msg, origin=None, func=None, *args, **kwargs):
     logging.warning(Logger.prepare_message(msg, origin, func), *args, **kwargs)
+
+  @staticmethod
+  def info(msg, origin=None, func=None, *args, **kwargs):
+    logging.info(Logger.prepare_message(msg, origin, func), *args, **kwargs)
 
   @staticmethod
   def debug(msg, origin=None, func=None, *args, **kwargs):
