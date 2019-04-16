@@ -1,8 +1,9 @@
 # esi_processor.py
 
 import threading
-from PySide import QtCore
-from esi.esi import ESI
+from PySide2 import QtCore
+
+from .esi.esi import ESI
 
 
 class ESIProcessor(QtCore.QObject):
@@ -33,15 +34,18 @@ class ESIProcessor(QtCore.QObject):
     location = self.esi.get_char_location()
     self.location_response.emit(location)
 
+  # TODO properly type this
   def set_destination(self, sys_id):
     server_thread = threading.Thread(target=self._set_destination, args=(sys_id, ))
     server_thread.setDaemon(True)
     server_thread.start()
 
+  # TODO properly type this
   def _set_destination(self, sys_id):
     response = self.esi.set_char_destination(sys_id)
     self.destination_response.emit(response)
 
+  # TODO properly type this
   def _login_callback(self, char_name):
     self.login_response.emit(char_name)
 

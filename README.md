@@ -89,7 +89,6 @@ mass: "Stable"
 ```
 
 ## EvE Online CREST API Challenge
-
 *Pathfinder* (now renamed to *Short Circuit*) won the EvE Online CREST API Challenge 2016!
 
 <https://community.eveonline.com/news/dev-blogs/winners-of-the-eve-online-api-challenge/>

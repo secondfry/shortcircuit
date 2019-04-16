@@ -2,11 +2,12 @@
 
 import json
 import requests
-import urlparse
-from logger import Logger
 from datetime import datetime
-from evedb import EveDb
-from solarmap import SolarMap
+
+from .evedb import EveDb
+from .logger import Logger
+from .solarmap import SolarMap
+from .utility.configuration import Configuration
 
 
 class Tripwire:
@@ -15,17 +16,18 @@ class Tripwire:
   """
   USER_AGENT = "Short Circuit v0.3.2"
 
-  def __init__(self, username, password, url):
+  def __init__(self, username: str, password: str, url: str):
     self.eve_db = EveDb()
     self.username = username
     self.password = password
     self.url = url
     self.session_requests = self.login()
+    self.chain = None
 
   def login(self):
-    response = None
+    Logger.debug('Logging in...')
 
-    login_url = urlparse.urljoin(self.url, "login.php")
+    login_url = '{}/login.php'.format(self.url)
     session_requests = requests.session()
 
     payload = {
@@ -37,12 +39,20 @@ class Tripwire:
       "Referer": login_url,
       "User-Agent": Tripwire.USER_AGENT,
     }
+    proxies = {}
+    proxy = Configuration.settings.value('proxy')
+    if proxy:
+      proxies = {
+        'http': proxy,
+        'https': proxy
+      }
 
     try:
       result = session_requests.post(
         login_url,
         data=payload,
-        headers=headers
+        headers=headers,
+        proxies=proxies
       )
     except requests.exceptions.RequestException as e:
       Logger.error('Exception raised while trying to login')
@@ -58,14 +68,12 @@ class Tripwire:
     return response
 
   def fetch_api_refresh(self, system_id="30000142"):
-    print 'Getting {}'.format(system_id)
-
-    response = None
+    Logger.debug('Getting {}...'.format(system_id))
 
     if not self.session_requests:
       return None
 
-    refresh_url = urlparse.urljoin(self.url, "refresh.php")
+    refresh_url = '{}/refresh.php'.format(self.url)
     payload = {
       "mode": "init",
       "systemID": system_id
@@ -74,12 +82,20 @@ class Tripwire:
       "Referer": refresh_url,
       "User-Agent": Tripwire.USER_AGENT,
     }
+    proxies = {}
+    proxy = Configuration.settings.value('proxy')
+    if proxy:
+      proxies = {
+        'http': proxy,
+        'https': proxy
+      }
 
     try:
       result = self.session_requests.get(
         refresh_url,
         params=payload,
-        headers=headers
+        headers=headers,
+        proxies=proxies
       )
     except requests.exceptions.RequestException as e:
       Logger.error('Exception raised while trying to refresh')
@@ -100,21 +116,28 @@ class Tripwire:
     return response
 
   def get_chain(self, system_id="30000142"):
+    """
+    :param system_id: str Numerical solar system ID
+    :return: Raw Tripwire chain (JSON object)
+    """
     self.chain = self.fetch_api_refresh(system_id)
     return self.chain
 
-  def augment_map(self, solar_map):
-    connections = -1  # not logged in, yet
+  def augment_map(self, solar_map: SolarMap):
+    """
+    :param solar_map: SolarMap
+    :return: Number of connections in case of success, -1 in case of failure
+    """
     self.get_chain()
 
     if not self.chain:
-      return connections
+      return -1
 
     # We got some sort of response so at least we're logged in
     connections = 0
 
     # Process wormholes
-    for wormholeId, wormhole in self.chain['wormholes'].iteritems():
+    for wormholeId, wormhole in self.chain['wormholes'].items():
       try:
         if wormhole['type'] == 'GATE':
           continue
@@ -133,14 +156,14 @@ class Tripwire:
           'initialID': 'secondaryID',
           'secondaryID': 'initialID',
         }.get(parent)
-        signatureIn = self.chain['signatures'][wormhole[parent]]
-        signatureOut = self.chain['signatures'][wormhole[sibling]]
+        signature_in = self.chain['signatures'][wormhole[parent]]
+        signature_out = self.chain['signatures'][wormhole[sibling]]
         wh_type = wormhole['type']
 
-        systemFrom = convert_to_int(signatureIn['systemID'])
-        systemTo = convert_to_int(signatureOut['systemID'])
+        system_from = convert_to_int(signature_in['systemID'])
+        system_to = convert_to_int(signature_out['systemID'])
 
-        if systemFrom == 0 or systemFrom < 10000 or systemTo == 0 or systemTo < 10000:
+        if system_from == 0 or system_from < 10000 or system_to == 0 or system_to < 10000:
           continue
 
         connections += 1
@@ -157,7 +180,7 @@ class Tripwire:
         }.get(wormhole['mass'], 0)
 
         # Compute time elapsed from this moment to when the signature was updated
-        last_modified = datetime.strptime(signatureIn['modifiedTime'], "%Y-%m-%d %H:%M:%S")
+        last_modified = datetime.strptime(signature_in['modifiedTime'], "%Y-%m-%d %H:%M:%S")
         delta = datetime.utcnow() - last_modified
         time_elapsed = round(delta.total_seconds() / 3600.0, 1)
 
@@ -167,17 +190,17 @@ class Tripwire:
           wh_size = self.eve_db.get_whsize_by_code(wormhole['type'])
         if wh_size not in [0, 1, 2, 3]:
           # Wormhole codes are unknown => determine size based on class of wormholes
-          wh_size = self.eve_db.get_whsize_by_system(systemFrom, systemTo)
+          wh_size = self.eve_db.get_whsize_by_system(system_from, system_to)
 
-        # Add wormhole conection to solar system
+        # Add wormhole connection to solar system
         solar_map.add_connection(
-          systemFrom,
-          systemTo,
+          system_from,
+          system_to,
           SolarMap.WORMHOLE,
           [
-            signatureIn['signatureID'],
+            signature_in['signatureID'],
             wh_type,
-            signatureOut['signatureID'],
+            signature_out['signatureID'],
             'K162',
             wh_size,
             wh_life,
@@ -186,28 +209,29 @@ class Tripwire:
           ],
         )
       except Exception as e:
+        Logger.error('pepega', exc_info=e)
         pass
 
     return connections
 
 
-def is_json(response):
+def is_json(data: str):
   """
-  Check if the response parameter is a valid JSON string
-  :param response:
-  :return:
+  :param data: str
+  :return: True if the response parameter is a valid JSON string, False if else
   """
   try:
-    json.loads(response)
+    json.loads(data)
   except ValueError:
     return False
   return True
 
 
-def convert_to_int(s):
+def convert_to_int(s: str):
   """
   Convert string to integer
-  :param s: Input string
+
+  :param s: str Input string
   :return: Interpreted value if successful, 0 otherwise
   """
   try:

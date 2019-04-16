@@ -1,31 +1,28 @@
 # evedb.py
 
 import csv
-import StringIO
-from PySide import QtCore
-from utility.singleton import Singleton
-from solarmap import SolarMap
+import os
+
+from .utility.singleton import Singleton
 
 
-def dict_from_csvqfile(file_path):
-  reader = None
-
-  qfile = QtCore.QFile(file_path)
-  if qfile.open(QtCore.QIODevice.ReadOnly | QtCore.QIODevice.Text):
-    text = qfile.readAll()
-    f = StringIO.StringIO(text)
-    reader = csv.reader(f, delimiter=';')
+def dict_from_csvqfile(file_path: str):
+  path = file_path.split('/')
+  path.insert(0, 'resources')
+  path.insert(0, '..')
+  path = os.sep.join(path)
+  f = open(path, 'r')
+  reader = csv.reader(f, delimiter=';')
 
   return reader
 
 
-class EveDb:
+class EveDb(metaclass=Singleton):
   """
   Eve Database Handler
   """
 
-  __metaclass__ = Singleton
-
+  # FIXME refactor into enum
   WHSIZE_S = 0
   WHSIZE_M = 1
   WHSIZE_L = 2
@@ -45,13 +42,14 @@ class EveDb:
   )
 
   def __init__(self):
-    self.gates = [[int(rows[0]), int(rows[1])] for rows in dict_from_csvqfile(":database/system_jumps.csv")]
+    self.gates = [[int(rows[0]), int(rows[1])] for rows in dict_from_csvqfile("database/system_jumps.csv")]
     self.system_desc = {
       int(rows[0]): [rows[1], rows[2], float(rows[3])]
-      for rows in dict_from_csvqfile(":database/system_description.csv")
+      for rows in dict_from_csvqfile("database/system_description.csv")
     }
-    self.wh_codes = {rows[0]: int(rows[1]) for rows in dict_from_csvqfile(":database/statics.csv")}
+    self.wh_codes = {rows[0]: int(rows[1]) for rows in dict_from_csvqfile("database/statics.csv")}
 
+  # TODO properly type this
   def get_whsize_by_code(self, code):
     whsize = None
     code = code.upper()
@@ -60,6 +58,7 @@ class EveDb:
 
     return whsize
 
+  # TODO properly type this
   def get_class(self, system_id):
     if system_id not in self.system_desc:
       return "Unknown"
@@ -73,12 +72,14 @@ class EveDb:
       sys_class = db_class
     return sys_class
 
+  # TODO properly type this
   def system_type(self, system_id):
     """
     0 - highsec
     1 - lowsec
     2 - nullsec or unknown
     3 - wspace
+
     :param system_id:
     :return: Possbile values: 0-3
     """
@@ -93,27 +94,25 @@ class EveDb:
       system_type_id = 3
     return system_type_id
 
+  # TODO properly type this
   def get_whsize_by_system(self, source_id, dest_id):
     source_class = self.get_class(source_id)
     dest_class = self.get_class(dest_id)
     return EveDb.SIZE_MATRIX[source_class][dest_class]
 
-  def get_solar_map(self):
-    solar_map = SolarMap(self)
-    for row in self.gates:
-      solar_map.add_connection(row[0], row[1], SolarMap.GATE)
-
-    return solar_map
-
   def system_name_list(self):
     return [x[0] for x in self.system_desc.values()]
 
+  # TODO properly type this
   def get_system_dict_pair_by_partial_name(self, part):
+    if not part:
+      return [None, None]
+
     ret = [None, None]
     matches = 0
     uppart = part.upper()
 
-    for key, value in self.system_desc.iteritems():
+    for key, value in self.system_desc.items():
       upval = value[0].upper()
       if upval == uppart:
         return [key, value]
@@ -126,18 +125,21 @@ class EveDb:
 
     return ret
 
+  # TODO properly type this
   def normalize_name(self, name):
-    [sid, value] = self.get_system_dict_pair_by_partial_name(name)
+    [_, value] = self.get_system_dict_pair_by_partial_name(name)
 
     if value is None:
       return None
 
     return value[0]
 
+  # TODO properly type this
   def name2id(self, name):
-    [sid, value] = self.get_system_dict_pair_by_partial_name(name)
+    [sid, _] = self.get_system_dict_pair_by_partial_name(name)
     return sid
 
+  # TODO properly type this
   def id2name(self, idx):
     try:
       sys_name = self.system_desc[idx][0]

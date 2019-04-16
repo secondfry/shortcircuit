@@ -2,8 +2,10 @@
 
 import requests
 from datetime import datetime
-from solarmap import SolarMap
-from logger import Logger
+
+from .evedb import EveDb
+from .solarmap import SolarMap
+from .logger import Logger
 
 
 class EveScout:
@@ -12,12 +14,15 @@ class EveScout:
   """
   TIMEOUT = 2
 
-  def __init__(self, eve_db, url="https://www.eve-scout.com/api/wormholes"):
-    self.eve_db = eve_db
+  def __init__(self, url: str = 'https://www.eve-scout.com/api/wormholes'):
+    self.eve_db = EveDb()
     self.evescout_url = url
 
-  def augment_map(self, solar_map):
-    connections = -1
+  def augment_map(self, solar_map: SolarMap):
+    """
+    :param solar_map: SolarMap
+    :return: Number of connections in case of success, -1 in case of failure
+    """
     headers = {
       "User-Agent": "Short Circuit v0.3.2"
     }
@@ -85,11 +90,3 @@ class EveScout:
         )
 
     return connections
-
-
-def main():
-  evescout = EveScout(None)
-  evescout.augment_map(None)
-
-if __name__ == "__main__":
-  main()

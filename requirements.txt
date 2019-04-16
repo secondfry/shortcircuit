@@ -1,2 +1,5 @@
-requests>=2.5.1
-PySide==1.2.4
+requests>=2.21.0
+requests[socks]>=2.21.0
+PySide2>=5.12.2
+python-dateutil>=2.7.3
+semver>=2.8.1

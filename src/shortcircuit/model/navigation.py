@@ -1,19 +1,19 @@
 # navigation.py
 
-from evedb import EveDb
-from solarmap import SolarMap
-from evescout import EveScout
-from tripwire import Tripwire
+from .evedb import EveDb
+from .evescout import EveScout
+from .solarmap import SolarMap
+from .tripwire import Tripwire
 
 
 class Navigation:
   """
   Navigation
   """
-  def __init__(self, app_obj):
+  def __init__(self, app_obj: 'MainWindow'):
     self.app_obj = app_obj
     self.eve_db = EveDb()
-    self.solar_map = self.eve_db.get_solar_map()
+    self.solar_map = SolarMap()
     self.tripwire_obj = None
 
     self.tripwire_url = self.app_obj.tripwire_url
@@ -21,9 +21,10 @@ class Navigation:
     self.tripwire_password = self.app_obj.tripwire_pass
 
   def reset_chain(self):
-    self.solar_map = self.eve_db.get_solar_map()
+    self.solar_map = SolarMap()
+    return self.solar_map
 
-  def tripwire_set_login(self, url=None, user=None, password=None):
+  def tripwire_set_login(self, url: str = None, user: str = None, password: str = None):
     if not url:
       url = self.app_obj.tripwire_url
     self.tripwire_url = url
@@ -36,15 +37,17 @@ class Navigation:
       password = self.app_obj.tripwire_pass
     self.tripwire_password = password
 
-  def evescout_augment(self, solar_map):
-    evescout = EveScout(self.eve_db)
+  # TODO move this augment_map somewhere
+  def evescout_augment(self, solar_map: SolarMap):
+    evescout = EveScout()
     return evescout.augment_map(solar_map)
 
-  def tripwire_augment(self, solar_map):
+  def tripwire_augment(self, solar_map: SolarMap):
     self.tripwire_obj = Tripwire(self.tripwire_user, self.tripwire_password, self.tripwire_url)
     connections = self.tripwire_obj.augment_map(solar_map)
     return connections
 
+  # FIXME refactor neighbor info - weights
   @staticmethod
   def _get_instructions(weight):
     if weight:
@@ -60,6 +63,7 @@ class Navigation:
 
     return instructions
 
+  # FIXME refactor neighbor info - weights
   @staticmethod
   def _get_additional_info(weight, weight_back):
     info = ""
@@ -106,8 +110,8 @@ class Navigation:
 
   def route(
       self,
-      source,
-      destination
+      source: str,
+      destination: str
   ):
     [size_restriction, ignore_eol, ignore_masscrit, age_threshold, security_prio, avoidance_list] = self.app_obj.get_restrictions()
 

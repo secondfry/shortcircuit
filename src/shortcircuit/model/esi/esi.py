@@ -1,12 +1,11 @@
 # esi.py
 
-import json
 import requests
 import threading
 import uuid
 import webbrowser
 
-from server import StoppableHTTPServer, AuthHandler
+from .server import StoppableHTTPServer, AuthHandler
 from shortcircuit.model.logger import Logger
 
 
@@ -50,7 +49,7 @@ class ESI:
       Logger.debug('Starting server')
       self.httpd = StoppableHTTPServer(
         server_address=('127.0.0.1', 7444),
-        RequestHandlerClass=AuthHandler,
+        request_handler_class=AuthHandler,
         timeout_callback=self.timeout_server
       )
       server_thread = threading.Thread(target=self.httpd.serve, args=(self.handle_login, ))
@@ -151,11 +150,11 @@ class ESI:
 
 
 def login_cb(char_name):
-  print 'Welcome, {}'.format(char_name)
+  print('Welcome, {}'.format(char_name))
 
 
 def logout_cb():
-  print 'Session expired'
+  print('Session expired')
 
 
 def main():
@@ -166,11 +165,12 @@ def main():
   client_secret = ''
 
   esi = ESI(login_cb, logout_cb)
-  print esi.start_server()
+  print(esi.start_server())
   gvars = globals().copy()
   gvars.update(locals())
   shell = code.InteractiveConsole(gvars)
   shell.interact()
+
 
 if __name__ == '__main__':
   main()
