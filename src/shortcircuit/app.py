@@ -2,20 +2,21 @@
 
 import sys
 import time
+from PySide2 import QtCore, QtGui, QtWidgets
+
 from . import __appname__, __version__
-from PySide import QtGui, QtCore
-from view.gui_main import Ui_MainWindow
-from view.gui_tripwire import Ui_TripwireDialog
-from view.gui_about import Ui_AboutDialog
-from model.logger import Logger
-from model.navigation import Navigation
-from model.navprocessor import NavProcessor
-from model.evedb import EveDb
-from model.esi_processor import ESIProcessor
-from model.versioncheck import VersionCheck
+from .model.logger import Logger
+from .model.navigation import Navigation
+from .model.navprocessor import NavProcessor
+from .model.evedb import EveDb
+from .model.esi_processor import ESIProcessor
+from .model.versioncheck import VersionCheck
+from .view.gui_main import Ui_MainWindow
+from .view.gui_tripwire import Ui_TripwireDialog
+from .view.gui_about import Ui_AboutDialog
 
 
-class TripwireDialog(QtGui.QDialog, Ui_TripwireDialog):
+class TripwireDialog(QtWidgets.QDialog, Ui_TripwireDialog):
   """
   Tripwire Configuration Window
   """
@@ -31,10 +32,10 @@ class TripwireDialog(QtGui.QDialog, Ui_TripwireDialog):
   @staticmethod
   def logo_double_click(event):
     event.accept()
-    QtGui.QDesktopServices.openUrl(QtCore.QUrl("https://www.eve-scout.com/"))
+    QtGui.QDesktopServices.openUrl(url=QtCore.QUrl("https://www.eve-scout.com/"))
 
 
-class AboutDialog(QtGui.QDialog, Ui_AboutDialog):
+class AboutDialog(QtWidgets.QDialog, Ui_AboutDialog):
   """
   Tripwire Configuration Window
   """
@@ -49,10 +50,10 @@ class AboutDialog(QtGui.QDialog, Ui_AboutDialog):
   @staticmethod
   def icon_double_click(event):
     event.accept()
-    QtGui.QDesktopServices.openUrl(QtCore.QUrl("https://github.com/secondfry/shortcircuit"))
+    QtGui.QDesktopServices.openUrl(url=QtCore.QUrl("https://github.com/secondfry/shortcircuit"))
 
 
-class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
+class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
   """
   Main Window GUI
   """
@@ -102,7 +103,7 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 
     # Additional GUI setup
     self.additional_gui_setup()
-    self.label_status_bar = QtGui.QLabel("Not connected to EvE")
+    self.label_status_bar = QtWidgets.QLabel("Not connected to EvE")
     self.statusBar().addWidget(self.label_status_bar, 1)
     if self.evescout_enable:
       self.label_evescout_status.setText("Eve-Scout: enabled")
@@ -149,7 +150,7 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
     # Additional GUI setup
     self.graphicsView_banner.mouseDoubleClickEvent = MainWindow.banner_double_click
     self.setWindowTitle(__appname__)
-    self.scene_banner = QtGui.QGraphicsScene()
+    self.scene_banner = QtWidgets.QGraphicsScene()
     self.graphicsView_banner.setScene(self.scene_banner)
     self.scene_banner.addPixmap(QtGui.QPixmap(":images/banner.png"))
     self._path_message("", MainWindow.MSG_OK)
@@ -164,7 +165,7 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
       self.lineEdit_avoid_name,
       self.lineEdit_set_dest,
     ]:
-      completer = QtGui.QCompleter(system_list, self)
+      completer = QtWidgets.QCompleter(system_list, self)
       completer.setCaseSensitivity(QtCore.Qt.CaseInsensitive)
       line_edit_field.setCompleter(completer)
 
@@ -309,7 +310,7 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
     self.settings.endGroup()
 
   def _message_box(self, title, text):
-    msg_box = QtGui.QMessageBox(self)
+    msg_box = QtWidgets.QMessageBox(self)
     msg_box.setWindowTitle(title)
     msg_box.setText(text)
     return msg_box.exec_()
@@ -341,14 +342,14 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 
   def avoidance_list(self):
     items = []
-    for index in xrange(self.listWidget_avoid.count()):
+    for index in range(self.listWidget_avoid.count()):
       items.append(self.listWidget_avoid.item(index))
     return [i.text() for i in items]
 
   def _avoid_system_name(self, sys_name):
     if sys_name:
       if sys_name not in self.avoidance_list():
-        QtGui.QListWidgetItem(sys_name, self.listWidget_avoid)
+        QtWidgets.QListWidgetItem(sys_name, self.listWidget_avoid)
         self._avoid_message("Added", MainWindow.MSG_OK)
       else:
         self._avoid_message("Already in list!", MainWindow.MSG_ERROR)
@@ -365,7 +366,7 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
     self.tableWidget_path.setRowCount(len(route))
     for i, row in enumerate(route):
       for j, col in enumerate(row):
-        item = QtGui.QTableWidgetItem("{}".format(col))
+        item = QtWidgets.QTableWidgetItem("{}".format(col))
         self.tableWidget_path.setItem(i, j, item)
 
         if j in [1, 2]:
@@ -637,14 +638,14 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 
   @QtCore.Slot()
   def btn_reset_clicked(self):
-    msg_box = QtGui.QMessageBox(self)
+    msg_box = QtWidgets.QMessageBox(self)
     msg_box.setWindowTitle("Reset chain")
     msg_box.setText("Are you sure you want to clear all Tripwire data?")
-    msg_box.setStandardButtons(QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
-    msg_box.setDefaultButton(QtGui.QMessageBox.No)
+    msg_box.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+    msg_box.setDefaultButton(QtWidgets.QMessageBox.No)
     ret = msg_box.exec_()
 
-    if ret == QtGui.QMessageBox.Yes:
+    if ret == QtWidgets.QMessageBox.Yes:
       self.nav.reset_chain()
       self._trip_message("Not connected to Tripwire, yet", MainWindow.MSG_INFO)
 
@@ -690,18 +691,18 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
     self.version_thread.quit()
 
     if version and __version__ != version:
-      version_box = QtGui.QMessageBox(self)
+      version_box = QtWidgets.QMessageBox(self)
       version_box.setWindowTitle("New version available!")
       version_box.setText(
         "You have version '{}', but there's a new version available: '{}'.".format(__version__, version)
       )
-      version_box.addButton("Download now", QtGui.QMessageBox.AcceptRole)
-      version_box.addButton("Remind me later", QtGui.QMessageBox.RejectRole)
+      version_box.addButton("Download now", QtWidgets.QMessageBox.AcceptRole)
+      version_box.addButton("Remind me later", QtWidgets.QMessageBox.RejectRole)
       ret = version_box.exec_()
 
-      if ret == QtGui.QMessageBox.AcceptRole:
+      if ret == QtWidgets.QMessageBox.AcceptRole:
         QtGui.QDesktopServices.openUrl(
-          QtCore.QUrl("https://github.com/secondfry/shortcircuit/releases/tag/{}".format(version))
+          url=QtCore.QUrl("https://github.com/secondfry/shortcircuit/releases/tag/{}".format(version))
         )
 
   # event: QCloseEvent
@@ -711,7 +712,7 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 
 
 def run():
-  appl = QtGui.QApplication(sys.argv)
+  appl = QtWidgets.QApplication(sys.argv)
   form = MainWindow()
   form.show()
   appl.exec_()

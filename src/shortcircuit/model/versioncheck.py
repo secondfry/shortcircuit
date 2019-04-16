@@ -1,8 +1,9 @@
 # versioncheck.py
 
 import requests
-from PySide import QtCore
-from logger import Logger
+from PySide2 import QtCore
+
+from .logger import Logger
 
 
 class VersionCheck(QtCore.QObject):
@@ -16,11 +17,13 @@ class VersionCheck(QtCore.QObject):
     super(VersionCheck, self).__init__(parent)
 
   def process(self):
-    version = None
+    """
+    Emits latest version string
+    """
 
     try:
       result = requests.get(
-        url="https://api.github.com/repos/secondfry/shortcircuit/releases/latest",
+        url='https://api.github.com/repos/secondfry/shortcircuit/releases/latest',
         timeout=3.1
       )
     except requests.exceptions.RequestException as e:
@@ -42,6 +45,7 @@ class VersionCheck(QtCore.QObject):
 def main():
   version_check = VersionCheck()
   version_check.process()
+
 
 if __name__ == "__main__":
   main()

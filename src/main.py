@@ -1,5 +1,6 @@
-# main.py
-
+__version__ = '0.4.0'
+__date__ = '2019-04-16'
+__appname__ = 'Short Circuit'
 
 def main():
   import sys
@@ -8,6 +9,7 @@ def main():
 
   Logger()
   sys.exit(app.run())
+
 
 if __name__ == "__main__":
   main()

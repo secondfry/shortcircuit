@@ -1,9 +1,9 @@
 # server.py
 
-import BaseHTTPServer
-import urlparse
+import http.server
 import socket
-import threading
+import urllib.parse
+
 from shortcircuit.model.logger import Logger
 
 
@@ -55,15 +55,15 @@ else {
 
 
 # Reference: https://github.com/fuzzysteve/CREST-Market-Downloader/
-class AuthHandler(BaseHTTPServer.BaseHTTPRequestHandler):
+class AuthHandler(http.server.BaseHTTPRequestHandler):
   def do_GET(self):
     if self.path == "/favicon.ico":
       return
-    parsed_path = urlparse.urlparse(self.path)
-    parts = urlparse.parse_qs(parsed_path.query)
+    parsed_path = urllib.parse.urlparse(self.path)
+    parts = urllib.parse.parse_qs(parsed_path.query)
     self.send_response(200)
     self.end_headers()
-    self.wfile.write(HTML)
+    self.wfile.write(HTML.encode())
     self.server.callback(parts)
 
   def log_message(self, format, *args):
@@ -71,19 +71,19 @@ class AuthHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
 
 # Reference: http://code.activestate.com/recipes/425210-simple-stoppable-server-using-socket-timeout/
-class StoppableHTTPServer(BaseHTTPServer.HTTPServer):
+class StoppableHTTPServer(http.server.HTTPServer):
 
   WAIT_TIMEOUT = 90
 
-  def __init__(self, server_address, RequestHandlerClass, timeout_callback=None):
-    BaseHTTPServer.HTTPServer.__init__(self, server_address, RequestHandlerClass)
+  def __init__(self, server_address, request_handler_class, timeout_callback=None):
+    http.server.HTTPServer.__init__(self, server_address, request_handler_class)
     self.timeout_callback = timeout_callback
 
   def server_bind(self):
-    BaseHTTPServer.HTTPServer.server_bind(self)
+    http.server.HTTPServer.server_bind(self)
 
     # Allow listening for x seconds
-    Logger.debug('Running server for {} seconds'.format(StoppableHTTPServer.WAIT_TIMEOUT))
+    Logger.info('Running server for {} seconds'.format(StoppableHTTPServer.WAIT_TIMEOUT))
 
     self.socket.settimeout(0.5)
     self.max_tries = StoppableHTTPServer.WAIT_TIMEOUT / self.socket.gettimeout()
@@ -107,7 +107,7 @@ class StoppableHTTPServer(BaseHTTPServer.HTTPServer):
     if self.tries == self.max_tries:
       if self.timeout_callback:
         self.timeout_callback()
-      Logger.debug('Server timed out waiting for connection')
+      Logger.warning('Server timed out waiting for connection')
       self.stop()
 
   def serve(self, callback):
@@ -118,23 +118,3 @@ class StoppableHTTPServer(BaseHTTPServer.HTTPServer):
       except TypeError:
         pass
     self.server_close()
-
-
-def handle_login(message):
-  """
-  Development purposes
-  :param message:
-  :return:
-  """
-  Logger.debug("Message: {}".format(message))
-
-
-def main():
-  httpd = StoppableHTTPServer(('', 7444), AuthHandler)
-  threading.Thread(target=httpd.serve, args=(handle_login, )).start()
-  raw_input("Press <RETURN> to stop server\n")
-  httpd.stop()
-
-
-if __name__ == "__main__":
-  main()

@@ -3,17 +3,20 @@
 import collections
 import heapq
 
+from .evedb import EveDb
+
 
 class SolarSystem:
   """
   Solar system handler
   """
 
-  def __init__(self, key):
+  def __init__(self, key: int):
     self.id = key
     self.connected_to = {}
 
-  def add_neighbor(self, neighbor, weight):
+  # FIXME refactor neighbor info
+  def add_neighbor(self, neighbor, weight: list):
     self.connected_to[neighbor] = weight
 
   def get_connections(self):
@@ -22,6 +25,7 @@ class SolarSystem:
   def get_id(self):
     return self.id
 
+  # FIXME refactor neighbor info
   def get_weight(self, neighbor):
     return self.connected_to[neighbor]
 
@@ -31,21 +35,25 @@ class SolarMap:
   Solar map handler
   """
 
+  # FIXME refactor into enum
   GATE = 0
   WORMHOLE = 1
 
-  def __init__(self, eve_db):
-    self.eve_db = eve_db
+  def __init__(self):
     self.systems_list = {}
     self.total_systems = 0
 
-  def add_system(self, key):
+    self.eve_db = EveDb()
+    for row in self.eve_db.gates:
+      self.add_connection(row[0], row[1], SolarMap.GATE)
+
+  def add_system(self, key: int):
     self.total_systems += 1
     new_system = SolarSystem(key)
     self.systems_list[key] = new_system
     return new_system
 
-  def get_system(self, key):
+  def get_system(self, key: int):
     if key in self.systems_list:
       return self.systems_list[key]
     else:
@@ -56,10 +64,10 @@ class SolarMap:
 
   def add_connection(
       self,
-      source,
-      destination,
-      con_type,
-      con_info=None,
+      source: int,
+      destination: int,
+      con_type: int,
+      con_info: list = None,
   ):
     if source not in self.systems_list:
       self.add_system(source)
@@ -81,18 +89,21 @@ class SolarMap:
       )
     else:
       # you shouldn't be here
+      # TODO raise exception
       pass
 
+  # TODO properly type this
   def __contains__(self, item):
     return item in self.systems_list
 
   def __iter__(self):
     return iter(self.systems_list.values())
 
+  # TODO properly type this
   def shortest_path(
       self,
-      source,
-      destination,
+      source: int,
+      destination: int,
       avoidance_list,
       size_restriction,
       ignore_eol,
@@ -160,10 +171,11 @@ class SolarMap:
 
     return path
 
+  # TODO properly type this
   def shortest_path_weighted(
       self,
-      source,
-      destination,
+      source: int,
+      destination: int,
       avoidance_list,
       size_restriction,
       security_prio,
@@ -188,10 +200,10 @@ class SolarMap:
     # starting point
     root = self.get_system(source)
     distance[root] = 0
-    heapq.heappush(priority_queue, (distance[root], root))
+    heapq.heappush(priority_queue, (distance[root], id(root), root))
 
     while len(priority_queue) > 0:
-      (_, current_sys) = heapq.heappop(priority_queue)
+      (_, _, current_sys) = heapq.heappop(priority_queue)
       visited.add(current_sys)
 
       if current_sys.get_id() == destination:
@@ -234,7 +246,7 @@ class SolarMap:
               distance[neighbor] = float('inf')
             if distance[neighbor] > distance[current_sys] + risk:
               distance[neighbor] = distance[current_sys] + risk
-              heapq.heappush(priority_queue, (distance[neighbor], neighbor))
+              heapq.heappush(priority_queue, (distance[neighbor], id(neighbor), neighbor))
               parent[neighbor] = current_sys
 
     return path
