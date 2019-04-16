@@ -5,7 +5,7 @@ import time
 from functools import partial
 from PySide2 import QtCore, QtGui, QtWidgets
 
-from . import __appname__, __version__
+from . import __appname__, __version__, __date__ as last_update
 from .model.logger import Logger
 from .model.navigation import Navigation
 from .model.navprocessor import NavProcessor
@@ -40,10 +40,10 @@ class AboutDialog(QtWidgets.QDialog, Ui_AboutDialog):
   """
   Tripwire Configuration Window
   """
-  def __init__(self, version, parent=None):
+  def __init__(self, parent=None):
     super(AboutDialog, self).__init__(parent)
     self.setupUi(self)
-    self.label_title.setText("Short Circuit {}".format(version))
+    self.label_title.setText('{} v{} ({})'.format(__appname__, __version__, last_update))
     # noinspection PyUnresolvedReferences
     self.pushButton_o7.clicked.connect(self.close)
     self.label_icon.mouseReleaseEvent = AboutDialog.icon_click
@@ -149,7 +149,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
   # noinspection PyUnresolvedReferences
   def additional_gui_setup(self):
     # Additional GUI setup
-    self.setWindowTitle(__appname__)
+    self.setWindowTitle('{} v{} ({})'.format(__appname__, __version__, last_update))
     self.banner_image.mouseReleaseEvent = MainWindow.banner_click
     self.banner_button.mouseReleaseEvent = MainWindow.banner_click
     self._path_message("", MainWindow.MSG_OK)
@@ -492,7 +492,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
   @staticmethod
   def banner_click(event):
     event.accept()
-    AboutDialog(__version__).exec_()
+    AboutDialog().exec_()
 
   def short_format_click(self, event):
     event.accept()
