@@ -3,7 +3,7 @@
 # Form implementation generated from reading ui file 'resources\ui\gui_main.ui',
 # licensing of 'resources\ui\gui_main.ui' applies.
 #
-# Created: Tue Apr 16 09:13:17 2019
+# Created: Tue Apr 16 11:47:32 2019
 #      by: pyside2-uic  running on PySide2 5.12.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -13,19 +13,15 @@ from PySide2 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(673, 905)
+        MainWindow.resize(858, 905)
         font = QtGui.QFont()
         font.setFamily("Segoe UI")
-        font.setPointSize(10)
+        font.setPointSize(9)
         MainWindow.setFont(font)
         icon = QtGui.QIcon()
         icon.addPixmap(QtGui.QPixmap(":/images/app_icon.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         MainWindow.setWindowIcon(icon)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
-        font = QtGui.QFont()
-        font.setFamily("Segoe UI")
-        font.setPointSize(10)
-        self.centralwidget.setFont(font)
         self.centralwidget.setObjectName("centralwidget")
         self.verticalLayout = QtWidgets.QVBoxLayout(self.centralwidget)
         self.verticalLayout.setObjectName("verticalLayout")
@@ -63,10 +59,6 @@ class Ui_MainWindow(object):
         self.groupBox = QtWidgets.QGroupBox(self.centralwidget)
         self.groupBox.setMinimumSize(QtCore.QSize(330, 0))
         self.groupBox.setMaximumSize(QtCore.QSize(16777215, 16777215))
-        font = QtGui.QFont()
-        font.setFamily("Segoe UI")
-        font.setPointSize(10)
-        self.groupBox.setFont(font)
         self.groupBox.setObjectName("groupBox")
         self.verticalLayout_2 = QtWidgets.QVBoxLayout(self.groupBox)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
@@ -150,8 +142,8 @@ class Ui_MainWindow(object):
         self.verticalLayout_2.addLayout(self.gridLayout_3)
         self.horizontalLayout.addWidget(self.groupBox)
         self.groupBox__options = QtWidgets.QGroupBox(self.centralwidget)
-        self.groupBox__options.setMinimumSize(QtCore.QSize(317, 0))
-        self.groupBox__options.setMaximumSize(QtCore.QSize(317, 16777215))
+        self.groupBox__options.setMinimumSize(QtCore.QSize(290, 0))
+        self.groupBox__options.setMaximumSize(QtCore.QSize(290, 16777215))
         self.groupBox__options.setObjectName("groupBox__options")
         self.verticalLayout_3 = QtWidgets.QVBoxLayout(self.groupBox__options)
         self.verticalLayout_3.setObjectName("verticalLayout_3")
@@ -429,7 +421,7 @@ class Ui_MainWindow(object):
         self.verticalLayout.addLayout(self.horizontalLayout)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 673, 21))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 858, 21))
         self.menubar.setObjectName("menubar")
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QtWidgets.QStatusBar(MainWindow)

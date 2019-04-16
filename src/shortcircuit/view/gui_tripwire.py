@@ -3,7 +3,7 @@
 # Form implementation generated from reading ui file 'resources\ui\gui_tripwire.ui',
 # licensing of 'resources\ui\gui_tripwire.ui' applies.
 #
-# Created: Tue Apr 16 09:13:17 2019
+# Created: Tue Apr 16 11:47:33 2019
 #      by: pyside2-uic  running on PySide2 5.12.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -23,7 +23,7 @@ class Ui_TripwireDialog(object):
         TripwireDialog.setMaximumSize(QtCore.QSize(400, 300))
         font = QtGui.QFont()
         font.setFamily("Segoe UI")
-        font.setPointSize(10)
+        font.setPointSize(9)
         TripwireDialog.setFont(font)
         icon = QtGui.QIcon()
         icon.addPixmap(QtGui.QPixmap(":/images/app_icon.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)

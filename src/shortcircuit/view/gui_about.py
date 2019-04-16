@@ -3,7 +3,7 @@
 # Form implementation generated from reading ui file 'resources\ui\gui_about.ui',
 # licensing of 'resources\ui\gui_about.ui' applies.
 #
-# Created: Tue Apr 16 09:13:17 2019
+# Created: Tue Apr 16 11:47:33 2019
 #      by: pyside2-uic  running on PySide2 5.12.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -13,16 +13,16 @@ from PySide2 import QtCore, QtGui, QtWidgets
 class Ui_AboutDialog(object):
     def setupUi(self, AboutDialog):
         AboutDialog.setObjectName("AboutDialog")
-        AboutDialog.resize(500, 400)
+        AboutDialog.resize(400, 380)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(AboutDialog.sizePolicy().hasHeightForWidth())
         AboutDialog.setSizePolicy(sizePolicy)
-        AboutDialog.setMinimumSize(QtCore.QSize(500, 400))
+        AboutDialog.setMinimumSize(QtCore.QSize(400, 380))
         font = QtGui.QFont()
         font.setFamily("Segoe UI")
-        font.setPointSize(10)
+        font.setPointSize(9)
         AboutDialog.setFont(font)
         icon = QtGui.QIcon()
         icon.addPixmap(QtGui.QPixmap(":/images/app_icon.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
