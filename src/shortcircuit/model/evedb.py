@@ -18,12 +18,10 @@ def dict_from_csvqfile(file_path: str):
   return reader
 
 
-class EveDb:
+class EveDb(metaclass=Singleton):
   """
   Eve Database Handler
   """
-
-  __metaclass__ = Singleton
 
   # FIXME refactor into enum
   WHSIZE_S = 0

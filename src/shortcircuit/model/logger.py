@@ -8,9 +8,7 @@ from PySide2 import QtCore
 from .utility.singleton import Singleton
 
 
-class Logger:
-  __metaclass__ = Singleton
-
+class Logger(metaclass=Singleton):
   def __init__(self):
     log_formatter = logging.Formatter("%(asctime)s [%(levelname)-5.5s] %(message)s")
     root_logger = logging.getLogger()
