@@ -274,37 +274,26 @@ class Farmer(QtCore.QObject):
   def generate_report(self):
     with open(self.filename_report, 'w') as f:
       f.write('')
-    self.report_world_chunk('## Most Sansha relics', self.world_accessable_get_sansha_relics())
-    self.report_world_chunk('## Most Ghost sites', self.world_accessable_get_ghost_sites())
-    self.report_world_chunk('## Most Sleeper caches', self.world_accessable_get_sleeper_caches())
+    self.report_world_chunk('## Most Sansha relics', self.world_accessable_get_complex_type('sansha_relic'))
+    self.report_world_chunk('## Most Ghost sites', self.world_accessable_get_complex_type('ghost_site'))
+    self.report_world_chunk('## Most Sleeper caches', self.world_accessable_get_complex_type('sleeper_cache'))
+    self.report_world_chunk('## Most relics', self.world_accessable_get_complex_type('relic'))
     self.report_world_chunk('## Most recent', self.world_accessable_get_recent())
     self.report_world_chunk('## Shortest route', self.world_accessable_get_closest())
-    self.report_world_chunk('## Most named sites', self.world_accessable_get_named())
-
-  def world_accessable_get_sansha_relics(self):
-    return self.world_accessable_get_complex_type('sansha_relic')
-
-  def world_accessable_get_ghost_sites(self):
-    return self.world_accessable_get_complex_type('ghost_site')
-
-  def world_accessable_get_sleeper_caches(self):
-    return self.world_accessable_get_complex_type('sleeper_cache')
-
-  def world_accessable_get_named(self):
-    return self.world_accessable_get_complex_type('named')
+    self.report_world_chunk('## Most named sites', self.world_accessable_get_complex_type('named'))
 
   def world_accessable_get_complex_type(self, site_type):
-    ret = [kv for kv in list(self.world_accessable.items()) if kv[1]['complexes'][site_type] > 0]
+    ret = [kv for kv in self.world_accessable.items() if kv[1]['complexes'][site_type] > 0]
     ret = sorted(ret, key=lambda kv: (kv[1]['complexes'][site_type], kv[1]['timestamp']), reverse=True)
     return ret
 
   def world_accessable_get_closest(self):
-    ret = [kv for kv in list(self.world_accessable.items()) if kv[1]['route_jumps'] > 0]
+    ret = [kv for kv in self.world_accessable.items() if kv[1]['route_jumps'] > 0]
     ret = sorted(ret, key=lambda kv: (-kv[1]['route_jumps'], kv[1]['timestamp']), reverse=True)
     return ret
 
   def world_accessable_get_recent(self):
-    ret = sorted(list(self.world_accessable.items()), key=lambda kv: kv[1]['timestamp'], reverse=True)
+    ret = sorted(self.world_accessable.items(), key=lambda kv: kv[1]['timestamp'], reverse=True)
     return ret
 
   def report_world_chunk(self, title, data, count=5):
