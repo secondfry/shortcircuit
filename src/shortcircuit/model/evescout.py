@@ -6,6 +6,7 @@ from datetime import datetime
 from .evedb import EveDb
 from .solarmap import SolarMap
 from .logger import Logger
+from shortcircuit import USER_AGENT
 
 
 class EveScout:
@@ -24,7 +25,7 @@ class EveScout:
     :return: Number of connections in case of success, -1 in case of failure
     """
     headers = {
-      "User-Agent": "Short Circuit v0.3.2"
+      'User-Agent': USER_AGENT
     }
     try:
       result = requests.get(
