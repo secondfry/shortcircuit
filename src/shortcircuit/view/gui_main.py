@@ -3,7 +3,7 @@
 # Form implementation generated from reading ui file 'resources\ui\gui_main.ui',
 # licensing of 'resources\ui\gui_main.ui' applies.
 #
-# Created: Tue Apr 16 11:47:32 2019
+# Created: Tue Apr 16 13:46:02 2019
 #      by: pyside2-uic  running on PySide2 5.12.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -136,6 +136,7 @@ class Ui_MainWindow(object):
         self.label_2.setObjectName("label_2")
         self.gridLayout_3.addWidget(self.label_2, 1, 0, 1, 1)
         self.lineEdit_short_format = QtWidgets.QLineEdit(self.groupBox)
+        self.lineEdit_short_format.setCursor(QtCore.Qt.PointingHandCursor)
         self.lineEdit_short_format.setReadOnly(True)
         self.lineEdit_short_format.setObjectName("lineEdit_short_format")
         self.gridLayout_3.addWidget(self.lineEdit_short_format, 1, 1, 1, 1)
