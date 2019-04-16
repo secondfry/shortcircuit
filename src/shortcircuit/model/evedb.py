@@ -7,7 +7,6 @@ from .utility.singleton import Singleton
 
 
 def dict_from_csvqfile(file_path: str):
-  print(os.path.abspath(os.curdir))
   path = file_path.split('/')
   path.insert(0, 'resources')
   path.insert(0, '..')
