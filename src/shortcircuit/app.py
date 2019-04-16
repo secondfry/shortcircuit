@@ -13,6 +13,7 @@ from . import __date__ as last_update
 from . import __version__
 from .model.esi_processor import ESIProcessor
 from .model.evedb import EveDb, Restrictions, SpaceType, WormholeSize
+from .model.farmer import Farmer
 from .model.logger import Logger
 from .model.navigation import Navigation
 from .model.navprocessor import NavProcessor

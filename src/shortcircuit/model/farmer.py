@@ -4,11 +4,11 @@ import json
 from datetime import datetime, timedelta
 from dateutil import parser, relativedelta
 from dateutil.tz import tzutc, tzlocal
-from PySide import QtCore
+from PySide2 import QtCore
 from time import sleep
 
-from logger import Logger
-from evedb import EveDb
+from .logger import Logger
+from .evedb import EveDb
 
 
 # https://gist.github.com/wladston/5640961
@@ -137,7 +137,7 @@ class Farmer(QtCore.QObject):
     if not data:
       data = self.tripwire_obj.chain
 
-    for sig_id, sig in data['signatures'].iteritems():
+    for sig_id, sig in data['signatures'].items():
       if sig['type'] not in ['relic', 'data']:
         continue
 
@@ -224,7 +224,7 @@ class Farmer(QtCore.QObject):
 
     parsed = {}
 
-    for sig_id, sig in data['signatures'].iteritems():
+    for sig_id, sig in data['signatures'].items():
       if 'systemID' not in sig:
         continue
 
@@ -265,7 +265,7 @@ class Farmer(QtCore.QObject):
 
   def filter_world(self):
     self.world_accessable = {}
-    for system_id, system in self.world['data'].iteritems():
+    for system_id, system in self.world['data'].items():
       if not system['accessable']:
         continue
 
@@ -294,28 +294,28 @@ class Farmer(QtCore.QObject):
     return self.world_accessable_get_complex_type('named')
 
   def world_accessable_get_complex_type(self, site_type):
-    ret = filter(lambda kv: kv[1]['complexes'][site_type] > 0, self.world_accessable.items())
+    ret = [kv for kv in list(self.world_accessable.items()) if kv[1]['complexes'][site_type] > 0]
     ret = sorted(ret, key=lambda kv: (kv[1]['complexes'][site_type], kv[1]['timestamp']), reverse=True)
     return ret
 
   def world_accessable_get_closest(self):
-    ret = filter(lambda kv: kv[1]['route_jumps'] > 0, self.world_accessable.items())
+    ret = [kv for kv in list(self.world_accessable.items()) if kv[1]['route_jumps'] > 0]
     ret = sorted(ret, key=lambda kv: (-kv[1]['route_jumps'], kv[1]['timestamp']), reverse=True)
     return ret
 
   def world_accessable_get_recent(self):
-    ret = sorted(self.world_accessable.items(), key=lambda kv: kv[1]['timestamp'], reverse=True)
+    ret = sorted(list(self.world_accessable.items()), key=lambda kv: kv[1]['timestamp'], reverse=True)
     return ret
 
   def report_world_chunk(self, title, data, count=5):
     data = self.get_world_chunk_info(title, data, count)
-    print data
+    print(data)
     with open(self.filename_report, 'a') as f:
       f.write(data)
       f.write('\n')
 
   def print_world_chunk(self, title, data, count=5):
-    print self.get_world_chunk_info(title, data, count)
+    print(self.get_world_chunk_info(title, data, count))
 
   def get_world_chunk_info(self, title, data, count=5):
     ret = title
@@ -327,7 +327,7 @@ class Farmer(QtCore.QObject):
     return ret
 
   def print_system(self, system):
-    print self.get_system_info(system)
+    print(self.get_system_info(system))
 
   def get_system_info(self, system):
     ret = '# {} # [A {}][N {}][D {}][G {}][R {}][S {}]'.format(
@@ -344,7 +344,7 @@ class Farmer(QtCore.QObject):
       system['route_jumps'],
       system['route_str']
     )
-    for [sig_id, signature] in sorted(system['signatures'].items(), key=lambda kv: kv[1]['name']):
+    for [sig_id, signature] in sorted(list(system['signatures'].items()), key=lambda kv: kv[1]['name']):
       ret = '{}\n -> [T {}][RT {:>13}][S {}] {} # {}'.format(
         ret,
         signature['modifiedTime'],
