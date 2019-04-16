@@ -7,6 +7,7 @@ from datetime import datetime
 from .evedb import EveDb
 from .logger import Logger
 from .solarmap import SolarMap
+from .utility.configuration import Configuration
 
 
 class Tripwire:
@@ -38,12 +39,20 @@ class Tripwire:
       "Referer": login_url,
       "User-Agent": Tripwire.USER_AGENT,
     }
+    proxies = {}
+    proxy = Configuration.settings.value('proxy')
+    if proxy:
+      proxies = {
+        'http': proxy,
+        'https': proxy
+      }
 
     try:
       result = session_requests.post(
         login_url,
         data=payload,
-        headers=headers
+        headers=headers,
+        proxies=proxies
       )
     except requests.exceptions.RequestException as e:
       Logger.error('Exception raised while trying to login')
@@ -73,12 +82,20 @@ class Tripwire:
       "Referer": refresh_url,
       "User-Agent": Tripwire.USER_AGENT,
     }
+    proxies = {}
+    proxy = Configuration.settings.value('proxy')
+    if proxy:
+      proxies = {
+        'http': proxy,
+        'https': proxy
+      }
 
     try:
       result = self.session_requests.get(
         refresh_url,
         params=payload,
-        headers=headers
+        headers=headers,
+        proxies=proxies
       )
     except requests.exceptions.RequestException as e:
       Logger.error('Exception raised while trying to refresh')

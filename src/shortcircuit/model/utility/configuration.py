@@ -2,13 +2,20 @@ import json
 import semver
 from datetime import datetime
 from dateutil.tz import tzutc
+from PySide2 import QtCore
 
-from shortcircuit import __version__
+from shortcircuit import __appname__, __version__
 from shortcircuit.model.logger import Logger
 from shortcircuit.model.utility.singleton import Singleton
 
 
 class Configuration(metaclass=Singleton):
+  settings = QtCore.QSettings(
+    QtCore.QSettings.IniFormat,
+    QtCore.QSettings.UserScope,
+    __appname__
+  )
+
   def __init__(self):
     self.state = {
       'version': __version__
