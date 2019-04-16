@@ -3,11 +3,8 @@ import json
 import sys
 import time
 from functools import partial
-
-import semver
 from PySide2 import QtCore, QtGui, QtWidgets
 
-from shortcircuit.model.utility.configuration import Configuration
 from . import __appname__, __version__, __date__ as last_update
 from .model.logger import Logger
 from .model.navigation import Navigation

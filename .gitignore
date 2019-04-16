@@ -184,4 +184,3 @@ $RECYCLE.BIN/
 .idea
 resources/database/universeDataDx.db
 shortcircuit.log*
-config.json

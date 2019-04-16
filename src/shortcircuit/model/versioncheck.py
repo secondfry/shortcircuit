@@ -78,19 +78,21 @@ class VersionCheck(QtCore.QObject):
     datetime_now = datetime.now(tzutc())
     datetime_now_string = datetime_now.strftime('%Y-%m-%dT%H:%M:%SZ')
 
-    saved_version = Configuration.get('version_github')
+    saved_version = Configuration.settings.value('updates/version')
+    Logger.debug('Latest remote version saved is – v{}'.format(saved_version))
     if not saved_version or semver.compare(github_version, saved_version) != 0:
-      Configuration.set('version_github', github_version)
-      Configuration.set('version_github_timestamp', datetime_now_string)
+      Configuration.settings.setValue('updates/version', github_version)
+      Configuration.settings.setValue('updates/ping_timestamp', datetime_now_string)
       return True
 
-    saved_version_timestamp = Configuration.get('version_github_timestamp')
+    saved_version_timestamp = Configuration.settings.value('updates/ping_timestamp')
+    Logger.debug('Last time user was notified about update was – {}'.format(saved_version_timestamp))
     if not saved_version_timestamp:
-      Configuration.set('version_github_timestamp', datetime_now_string)
+      Configuration.settings.setValue('updates/ping_timestamp', datetime_now_string)
       return True
 
     if datetime_now - parser.parse(timestr=saved_version_timestamp) > timedelta(days=7):
-      Configuration.set('version_github_timestamp', datetime_now_string)
+      Configuration.settings.setValue('updates/ping_timestamp', datetime_now_string)
       return True
 
     return False
