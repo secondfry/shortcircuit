@@ -2,6 +2,7 @@
 
 import sys
 import time
+from functools import partial
 from PySide2 import QtCore, QtGui, QtWidgets
 
 from . import __appname__, __version__
@@ -27,12 +28,12 @@ class TripwireDialog(QtWidgets.QDialog, Ui_TripwireDialog):
     self.lineEdit_user.setText(trip_user)
     self.lineEdit_pass.setText(trip_pass)
     self.checkBox_evescout.setChecked(evescout_enable)
-    self.label_evescout_logo.mouseDoubleClickEvent = TripwireDialog.logo_double_click
+    self.label_evescout_logo.mouseReleaseEvent = TripwireDialog.logo_click
 
   @staticmethod
-  def logo_double_click(event):
+  def logo_click(event):
     event.accept()
-    QtGui.QDesktopServices.openUrl(url=QtCore.QUrl("https://www.eve-scout.com/"))
+    QtGui.QDesktopServices.openUrl(QtCore.QUrl("https://www.eve-scout.com/"))
 
 
 class AboutDialog(QtWidgets.QDialog, Ui_AboutDialog):
@@ -45,12 +46,12 @@ class AboutDialog(QtWidgets.QDialog, Ui_AboutDialog):
     self.label_title.setText("Short Circuit {}".format(version))
     # noinspection PyUnresolvedReferences
     self.pushButton_o7.clicked.connect(self.close)
-    self.label_icon.mouseDoubleClickEvent = AboutDialog.icon_double_click
+    self.label_icon.mouseReleaseEvent = AboutDialog.icon_click
 
   @staticmethod
-  def icon_double_click(event):
+  def icon_click(event):
     event.accept()
-    QtGui.QDesktopServices.openUrl(url=QtCore.QUrl("https://github.com/secondfry/shortcircuit"))
+    QtGui.QDesktopServices.openUrl(QtCore.QUrl("https://github.com/secondfry/shortcircuit"))
 
 
 class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
@@ -148,14 +149,13 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
   # noinspection PyUnresolvedReferences
   def additional_gui_setup(self):
     # Additional GUI setup
-    self.graphicsView_banner.mouseDoubleClickEvent = MainWindow.banner_double_click
     self.setWindowTitle(__appname__)
-    self.scene_banner = QtWidgets.QGraphicsScene()
-    self.graphicsView_banner.setScene(self.scene_banner)
-    self.scene_banner.addPixmap(QtGui.QPixmap(":images/banner.png"))
+    self.banner_image.mouseReleaseEvent = MainWindow.banner_click
+    self.banner_button.mouseReleaseEvent = MainWindow.banner_click
     self._path_message("", MainWindow.MSG_OK)
     self._avoid_message("", MainWindow.MSG_OK)
     self.lineEdit_source.setFocus()
+    self.lineEdit_short_format.mousePressEvent = partial(MainWindow.short_format_click, self)
 
     # Auto-completion
     system_list = self.nav.eve_db.system_name_list()
@@ -490,9 +490,17 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     self.lineEdit_short_format.setText(short_format)
 
   @staticmethod
-  def banner_double_click(event):
+  def banner_click(event):
     event.accept()
     AboutDialog(__version__).exec_()
+
+  def short_format_click(self, event):
+    event.accept()
+    if not self.lineEdit_short_format.text():
+      return
+    self.lineEdit_short_format.selectAll()
+    self.lineEdit_short_format.copy()
+    self._statusbar_message("Copied travel info to clipboard!", MainWindow.MSG_INFO)
 
   @QtCore.Slot(str)
   def login_handler(self, char_name):
@@ -702,7 +710,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
       if ret == QtWidgets.QMessageBox.AcceptRole:
         QtGui.QDesktopServices.openUrl(
-          url=QtCore.QUrl("https://github.com/secondfry/shortcircuit/releases/tag/{}".format(version))
+          QtCore.QUrl("https://github.com/secondfry/shortcircuit/releases/tag/{}".format(version))
         )
 
   # event: QCloseEvent
