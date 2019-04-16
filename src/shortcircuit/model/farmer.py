@@ -344,7 +344,7 @@ class Farmer(QtCore.QObject):
       system['route_jumps'],
       system['route_str']
     )
-    for [sig_id, signature] in sorted(list(system['signatures'].items()), key=lambda kv: kv[1]['name']):
+    for [sig_id, signature] in sorted(list(system['signatures'].items()), key=lambda kv: str(kv[1]['name'])):
       ret = '{}\n -> [T {}][RT {:>13}][S {}] {} # {}'.format(
         ret,
         signature['modifiedTime'],
