@@ -1,9 +1,15 @@
 # versioncheck.py
-
+import json
 import requests
+import semver
+from datetime import datetime, timedelta
+from dateutil import parser
+from dateutil.tz import tzutc
 from PySide2 import QtCore
 
 from .logger import Logger
+from .utility.configuration import Configuration
+from shortcircuit import __version__ as app_version
 
 
 class VersionCheck(QtCore.QObject):
@@ -22,7 +28,7 @@ class VersionCheck(QtCore.QObject):
     """
 
     try:
-      result = requests.get(
+      response = requests.get(
         url='https://api.github.com/repos/secondfry/shortcircuit/releases/latest',
         timeout=3.1
       )
@@ -32,14 +38,62 @@ class VersionCheck(QtCore.QObject):
       self.finished.emit(None)
       return
 
-    if result.status_code != 200:
-      Logger.error('Result code is not 200')
-      Logger.error(result)
+    if not VersionCheck.should_emit_response(response):
       self.finished.emit(None)
       return
 
-    version = result.json()['tag_name']
-    self.finished.emit(version)
+    self.finished.emit(response.text)
+
+  @staticmethod
+  def should_emit_response(response):
+    if response.status_code != 200:
+      Logger.error('Response code is not 200')
+      Logger.error(response)
+      return False
+
+    try:
+      github_data = json.loads(response.text)
+    except:
+      Logger.error('Response was not json')
+      Logger.error(response)
+      return False
+
+    if 'tag_name' not in github_data:
+      Logger.error('tag_name is missing from response')
+      Logger.error(response)
+      return False
+
+    github_version = github_data['tag_name'].split('v')[-1]
+    try:
+      if semver.compare(github_version, app_version) != 1:
+        Logger.debug('GitHub version is not newer')
+        return False
+    except ValueError:
+      Logger.error('semver.compare(\'{}\', \'{}\')'.format(github_version, app_version))
+      return False
+    except Exception as e:
+      Logger.error('Something is really wrong', exc_info=e)
+      return False
+
+    datetime_now = datetime.now(tzutc())
+    datetime_now_string = datetime_now.strftime('%Y-%m-%dT%H:%M:%SZ')
+
+    saved_version = Configuration.get('version_github')
+    if not saved_version or semver.compare(github_version, saved_version) != 0:
+      Configuration.set('version_github', github_version)
+      Configuration.set('version_github_timestamp', datetime_now_string)
+      return True
+
+    saved_version_timestamp = Configuration.get('version_github_timestamp')
+    if not saved_version_timestamp:
+      Configuration.set('version_github_timestamp', datetime_now_string)
+      return True
+
+    if datetime_now - parser.parse(timestr=saved_version_timestamp) > timedelta(days=7):
+      Configuration.set('version_github_timestamp', datetime_now_string)
+      return True
+
+    return False
 
 
 def main():

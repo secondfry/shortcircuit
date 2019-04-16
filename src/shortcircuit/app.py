@@ -1,10 +1,13 @@
 # app.py
-
+import json
 import sys
 import time
 from functools import partial
+
+import semver
 from PySide2 import QtCore, QtGui, QtWidgets
 
+from shortcircuit.model.utility.configuration import Configuration
 from . import __appname__, __version__, __date__ as last_update
 from .model.logger import Logger
 from .model.navigation import Navigation
@@ -695,23 +698,41 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
       self.lineEdit_set_dest.setText(selection[0].text())
 
   @QtCore.Slot(str)
-  def version_check_done(self, version):
+  def version_check_done(self, latest):
     self.version_thread.quit()
 
-    if version and __version__ != version:
-      version_box = QtWidgets.QMessageBox(self)
-      version_box.setWindowTitle("New version available!")
-      version_box.setText(
-        "You have version '{}', but there's a new version available: '{}'.".format(__version__, version)
-      )
-      version_box.addButton("Download now", QtWidgets.QMessageBox.AcceptRole)
-      version_box.addButton("Remind me later", QtWidgets.QMessageBox.RejectRole)
-      ret = version_box.exec_()
+    if not latest:
+      return
 
-      if ret == QtWidgets.QMessageBox.AcceptRole:
-        QtGui.QDesktopServices.openUrl(
-          QtCore.QUrl("https://github.com/secondfry/shortcircuit/releases/tag/{}".format(version))
-        )
+    latest = json.loads(latest)
+    version = latest['tag_name'].split('v')[-1]
+    changelog = latest['body']
+    if len(latest['body']) > 1200:
+      changelog = latest['body'][0:1200].split(' ')
+      del changelog[-1]
+      changelog = ' '.join(changelog)
+
+    version_box = QtWidgets.QMessageBox(self)
+    version_box.setWindowTitle('New version available!')
+    version_box.setText(
+      'Your version: v{} ({}).\nGitHub latest release: v{} ({}).\n\n{}'.format(
+        __version__,
+        last_update,
+        version,
+        latest['published_at'],
+        changelog
+      )
+    )
+    version_box.addButton('Download now', QtWidgets.QMessageBox.AcceptRole)
+    version_box.addButton('Remind me later', QtWidgets.QMessageBox.RejectRole)
+    ret = version_box.exec_()
+
+    if ret != QtWidgets.QMessageBox.AcceptRole:
+      return
+
+    QtGui.QDesktopServices.openUrl(
+      QtCore.QUrl('https://github.com/secondfry/shortcircuit/releases/tag/{}'.format(latest['tag_name']))
+    )
 
   # event: QCloseEvent
   def closeEvent(self, event):
