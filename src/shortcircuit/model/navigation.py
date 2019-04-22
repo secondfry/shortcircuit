@@ -204,6 +204,6 @@ class Navigation:
       short_format.extend(['...', '-->'])
     short_format.append(route[-1]['name'])
 
-    short_format = ' '.join(short_format)
+    short_format = 'Short Circuit: `{}`'.format(' '.join(short_format))
 
     return [route, short_format]
