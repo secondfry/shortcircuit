@@ -93,8 +93,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     # Table configuration
     self.tableWidget_path.setColumnCount(5)
     self.tableWidget_path.setHorizontalHeaderLabels(
-      ["System name", "Class", "Security", "Instructions", "Additional information"]
+      ["System", "Cls", "Sec", "Instructions", "Additional information"]
     )
+    header: QtWidgets.QHeaderView = self.tableWidget_path.horizontalHeader()
+    header.setSectionResizeMode(QtWidgets.QHeaderView.ResizeToContents)
     self.tableWidget_path.horizontalHeader().setStretchLastSection(True)
 
     # Read stored settings
@@ -411,6 +413,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
           self.tableWidget_path.item(i, j).setIcon(self.icon_wormhole)
         self.tableWidget_path.item(i, j).setBackground(color)
         self.tableWidget_path.item(i, j).setForeground(QtGui.QColor(0, 0, 0))
+    self.tableWidget_path.resizeRowsToContents()
 
   def get_restrictions_size(self):
     size_restriction = []
