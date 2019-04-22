@@ -58,7 +58,7 @@ class Navigation:
 
     if weight[0] == SolarMap.WORMHOLE:
       [wh_sig, wh_code, _, _, _, _] = weight[1]
-      return "Jump wormhole {}[{}]".format(wh_sig, wh_code)
+      return "Jump wormhole\n{} [{}]".format(wh_sig, wh_code)
 
     return "Instructions unclear, initiate self-destruct"
 
@@ -99,7 +99,7 @@ class Navigation:
       wh_mass_text = "Critical"
 
     # Return signature
-    return "Return sig: {}[{}], Size: {}, Life: {}, Mass: {}, Updated: {}h ago".format(
+    return "Return sig: {0} [{1}], Updated: {5}h ago\nSize: {2}, Life: {3}, Mass: {4}".format(
       wh_sig,
       wh_code,
       wh_size_text,
