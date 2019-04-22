@@ -50,63 +50,63 @@ class Navigation:
   # FIXME refactor neighbor info - weights
   @staticmethod
   def _get_instructions(weight):
-    if weight:
-      if weight[0] == SolarMap.GATE:
-        instructions = "Jump gate"
-      elif weight[0] == SolarMap.WORMHOLE:
-        [wh_sig, wh_code, _, _, _, _] = weight[1]
-        instructions = "Jump wormhole {}[{}]".format(wh_sig, wh_code)
-      else:
-        instructions = "Instructions unclear, initiate self-destruct"
-    else:
-      instructions = "Destination reached"
+    if not weight:
+      return "Destination reached"
 
-    return instructions
+    if weight[0] == SolarMap.GATE:
+      return "Jump gate"
+
+    if weight[0] == SolarMap.WORMHOLE:
+      [wh_sig, wh_code, _, _, _, _] = weight[1]
+      return "Jump wormhole {}[{}]".format(wh_sig, wh_code)
+
+    return "Instructions unclear, initiate self-destruct"
 
   # FIXME refactor neighbor info - weights
   @staticmethod
   def _get_additional_info(weight, weight_back):
-    info = ""
-    if weight and weight_back:
-      if weight_back[0] == SolarMap.WORMHOLE:
-        [wh_sig, wh_code, wh_size, wh_life, wh_mass, time_elapsed] = weight_back[1]
-        # Wormhole size
-        if wh_size == 0:
-          wh_size_text = "Small"
-        elif wh_size == 1:
-          wh_size_text = "Medium"
-        elif wh_size == 2:
-          wh_size_text = "Large"
-        elif wh_size == 3:
-          wh_size_text = "X-large"
-        else:
-          wh_size_text = "Unknown"
+    if not weight or not weight_back:
+      return
 
-        # Wormhole life
-        if wh_life == 1:
-          wh_life_text = "Stable"
-        else:
-          wh_life_text = "Critical"
+    if weight_back[0] != SolarMap.WORMHOLE:
+      return
 
-        # Wormhole mass
-        if wh_mass == 2:
-          wh_mass_text = "Stable"
-        elif wh_mass == 1:
-          wh_mass_text = "Destab"
-        else:
-          wh_mass_text = "Critical"
+    [wh_sig, wh_code, wh_size, wh_life, wh_mass, time_elapsed] = weight_back[1]
+    # Wormhole size
+    if wh_size == 0:
+      wh_size_text = "Small"
+    elif wh_size == 1:
+      wh_size_text = "Medium"
+    elif wh_size == 2:
+      wh_size_text = "Large"
+    elif wh_size == 3:
+      wh_size_text = "X-large"
+    else:
+      wh_size_text = "Unknown"
 
-        # Return signature
-        info = "Return sig: {}[{}], Size: {}, Life: {}, Mass: {}, Updated: {}h ago".format(
-          wh_sig,
-          wh_code,
-          wh_size_text,
-          wh_life_text,
-          wh_mass_text,
-          time_elapsed
-        )
+    # Wormhole life
+    if wh_life == 1:
+      wh_life_text = "Stable"
+    else:
+      wh_life_text = "Critical"
 
-    return info
+    # Wormhole mass
+    if wh_mass == 2:
+      wh_mass_text = "Stable"
+    elif wh_mass == 1:
+      wh_mass_text = "Destab"
+    else:
+      wh_mass_text = "Critical"
+
+    # Return signature
+    return "Return sig: {}[{}], Size: {}, Life: {}, Mass: {}, Updated: {}h ago".format(
+      wh_sig,
+      wh_code,
+      wh_size_text,
+      wh_life_text,
+      wh_mass_text,
+      time_elapsed
+    )
 
   def route(
       self,
