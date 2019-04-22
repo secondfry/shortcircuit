@@ -390,29 +390,40 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     )
     self._avoid_system_name(sys_name)
 
+  @staticmethod
+  def get_system_class_color(sclass):
+    return {
+      'HS': QtGui.QColor(223, 240, 216),
+      'LS': QtGui.QColor(252, 248, 227),
+      'NS': QtGui.QColor(242, 222, 222)
+    }.get(sclass, QtGui.QColor(210, 226, 242))
+
   def add_data_to_table(self, route):
     self.tableWidget_path.setRowCount(len(route))
-    for i, row in enumerate(route):
-      for j, col in enumerate(row):
-        item = QtWidgets.QTableWidgetItem("{}".format(col))
-        self.tableWidget_path.setItem(i, j, item)
 
-        if j in [1, 2]:
-          self.tableWidget_path.item(i, j).setTextAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
+    for route_step_id, route_step in enumerate(route):
+      color = self.get_system_class_color(route_step['class'])
+      ui_col_id = 0
+      for col_id in [
+        'name',
+        'class',
+        'security',
+        'path_action',
+        'path_info'
+      ]:
+        text = str(route_step[col_id])
+        item = QtWidgets.QTableWidgetItem(text)
 
-        if row[1] == "HS":
-          color = QtGui.QColor(223, 240, 216)
-        elif row[1] == "LS":
-          color = QtGui.QColor(252, 248, 227)
-        elif row[1] == "NS":
-          color = QtGui.QColor(242, 222, 222)
-        else:
-          color = QtGui.QColor(210, 226, 242)
+        if col_id in ['class', 'security']:
+          item.setTextAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
 
-        if j == 3 and "wormhole" in col:
-          self.tableWidget_path.item(i, j).setIcon(self.icon_wormhole)
-        self.tableWidget_path.item(i, j).setBackground(color)
-        self.tableWidget_path.item(i, j).setForeground(QtGui.QColor(0, 0, 0))
+        if col_id == 'path_action' and 'wormhole' in text:
+          item.setIcon(self.icon_wormhole)
+
+        item.setBackground(color)
+        self.tableWidget_path.setItem(route_step_id, ui_col_id, item)
+        ui_col_id += 1
+
     self.tableWidget_path.resizeRowsToContents()
 
   def get_restrictions_size(self):

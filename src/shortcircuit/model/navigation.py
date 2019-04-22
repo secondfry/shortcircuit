@@ -141,47 +141,69 @@ class Navigation:
         age_threshold
       )
 
+    # Construct route
     route = []
-    short_format = ""
-    prev_gate = None  # Previous gate - will be the system ID of the previous system if connection was a gate
-
     for idx, x in enumerate(path):
-      # Construct route
-      if idx < len(path) - 1:
+      if idx == len(path) - 1:
+        weight = None
+        weight_back = None
+      else:
         source = self.solar_map.get_system(x)
         dest = self.solar_map.get_system(path[idx + 1])
         weight = source.get_weight(dest)
         weight_back = dest.get_weight(source)
-      else:
-        weight = None
-        weight_back = None
-      system_description = list(self.eve_db.system_desc[x])
-      system_description.append(Navigation._get_instructions(weight))
-      system_description.append(Navigation._get_additional_info(weight, weight_back))
-      route.append(system_description)
 
-      # Build short format message (travelling between multiple consecutive gates will be denoted as '...')
-      if not weight:
-        # destination reached
-        if prev_gate:
-          if prev_gate != path[idx - 1]:
-            short_format += "...-->"
-        short_format += system_description[0]
-      else:
-        # keep looking
-        if weight[0] == SolarMap.WORMHOLE:
-          if prev_gate:
-            if prev_gate != path[idx - 1]:
-              short_format += "...-->"
-          [wh_sig, _, _, _, _, _] = weight[1]
-          short_format += system_description[0] + "[{}]~~>".format(wh_sig)
-          prev_gate = None
-        elif weight[0] == SolarMap.GATE:
-          if not prev_gate:
-            short_format += system_description[0] + "-->"
-            prev_gate = path[idx]
-        else:
-          # Not supposed to be here
-          short_format += "Where am I?-->"
+      route_step = self.eve_db.system_desc[x]
+      route_step['path_action'] = Navigation._get_instructions(weight)
+      route_step['path_info'] = Navigation._get_additional_info(weight, weight_back)
+      route_step['path_data'] = weight
+      route.append(route_step)
+
+    # Construct short format
+    short_format = list()
+    flag_gate = 0
+    for rsid, route_step in enumerate(route):
+      # We are adding systems in backwards manner, so skip first one
+      if rsid == 0:
+        continue
+
+      prev_route_step = route[rsid - 1]
+
+      # We jumped to this system via wormhole
+      if prev_route_step['path_data'][0] == SolarMap.WORMHOLE:
+        # ...in case of multiple previous gate jumps, indicate that
+        if flag_gate > 1:
+          short_format.extend(['...', '-->'])
+
+        # Add previous system to route
+        short_format.extend([
+          '{} [{}]'.format(
+            prev_route_step['name'],
+            prev_route_step['path_data'][1][0]  # FIXME my eyes are bleeding, this gets signature from weight param
+          ),
+          '~~>'
+        ])
+        flag_gate = 0
+        continue
+
+      # We are skipping multiple gate jumps
+      if flag_gate:
+        flag_gate += 1
+        continue
+
+      # Add previous system to route
+      short_format.extend([
+        prev_route_step['name'],
+        '-->'
+      ])
+      flag_gate += 1
+
+    # Add last system
+    # ...in case of multiple previous gate jumps, indicate that
+    if flag_gate > 1:
+      short_format.extend(['...', '-->'])
+    short_format.append(route[-1]['name'])
+
+    short_format = ' '.join(short_format)
 
     return [route, short_format]

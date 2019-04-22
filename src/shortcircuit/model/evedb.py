@@ -1,8 +1,6 @@
 # evedb.py
 
 import csv
-import io
-import os
 from PySide2 import QtCore
 
 from .utility.singleton import Singleton
@@ -57,7 +55,12 @@ class EveDb(metaclass=Singleton):
   def __init__(self):
     self.gates = [[int(rows[0]), int(rows[1])] for rows in FileReader.get_dict_from_csv_qfile(':database/system_jumps.csv')]
     self.system_desc = {
-      int(rows[0]): [rows[1], rows[2], float(rows[3])]
+      int(rows[0]): {
+        'id': int(rows[0]),
+        'name': rows[1],
+        'class': rows[2],
+        'security': float(rows[3])
+      }
       for rows in FileReader.get_dict_from_csv_qfile(':database/system_description.csv')
     }
     self.wh_codes = {rows[0]: int(rows[1]) for rows in FileReader.get_dict_from_csv_qfile(':database/statics.csv')}
@@ -76,7 +79,7 @@ class EveDb(metaclass=Singleton):
     if system_id not in self.system_desc:
       return "Unknown"
 
-    db_class = self.system_desc[system_id][1]
+    db_class = self.system_desc[system_id]['class']
     if db_class in ["HS", "LS", "NS", "Unknown"]:
       sys_class = "kspace"
     elif db_class in ["C14", "C15", "C16", "C17", "C18"]:
@@ -96,16 +99,13 @@ class EveDb(metaclass=Singleton):
     :param system_id:
     :return: Possbile values: 0-3
     """
-    db_class = self.system_desc[system_id][1]
-    if db_class == "HS":
-      system_type_id = 0
-    elif db_class == "LS":
-      system_type_id = 1
-    elif db_class == "NS" or db_class == "WH":
-      system_type_id = 2
-    else:
-      system_type_id = 3
-    return system_type_id
+    db_class = self.system_desc[system_id]['class']
+    return {
+      'HS': 0,
+      'LS': 1,
+      'NS': 2,
+      'WH': 3
+    }.get(db_class, 2)
 
   # TODO properly type this
   def get_whsize_by_system(self, source_id, dest_id):
@@ -114,7 +114,7 @@ class EveDb(metaclass=Singleton):
     return EveDb.SIZE_MATRIX[source_class][dest_class]
 
   def system_name_list(self):
-    return [x[0] for x in self.system_desc.values()]
+    return [x['name'] for x in self.system_desc.values()]
 
   # TODO properly type this
   def get_system_dict_pair_by_partial_name(self, part):
@@ -123,14 +123,14 @@ class EveDb(metaclass=Singleton):
 
     ret = [None, None]
     matches = 0
-    uppart = part.upper()
+    part_upper = part.upper()
 
-    for key, value in self.system_desc.items():
-      upval = value[0].upper()
-      if upval == uppart:
-        return [key, value]
-      if upval.startswith(uppart):
-        ret = [key, value]
+    for sid, system in self.system_desc.items():
+      name_upper = system['name'].upper()
+      if name_upper == part_upper:
+        return [sid, system]
+      if name_upper.startswith(part_upper):
+        ret = [sid, system]
         matches = matches + 1
 
     if matches > 1:
@@ -140,12 +140,12 @@ class EveDb(metaclass=Singleton):
 
   # TODO properly type this
   def normalize_name(self, name):
-    [_, value] = self.get_system_dict_pair_by_partial_name(name)
+    [_, system] = self.get_system_dict_pair_by_partial_name(name)
 
-    if value is None:
+    if system is None:
       return None
 
-    return value[0]
+    return system['name']
 
   # TODO properly type this
   def name2id(self, name):
@@ -153,9 +153,9 @@ class EveDb(metaclass=Singleton):
     return sid
 
   # TODO properly type this
-  def id2name(self, idx):
+  def id2name(self, sid):
     try:
-      sys_name = self.system_desc[idx][0]
+      sys_name = self.system_desc[sid]['name']
     except KeyError:
       sys_name = None
     return sys_name
