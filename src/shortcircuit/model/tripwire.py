@@ -16,6 +16,9 @@ class Tripwire:
   Tripwire handler
   """
 
+  WTYPE_UNKNOWN = '----'
+  SIG_UNKNOWN = '-------'
+
   def __init__(self, username: str, password: str, url: str):
     self.eve_db = EveDb()
     self.username = username
@@ -148,17 +151,16 @@ class Tripwire:
         if wormhole['secondaryID'] not in self.chain['signatures']:
           continue
 
-        if not wormhole['parent']:
-          parent = 'initialID'
-        else:
-          parent = wormhole['parent'] + 'ID'
-        sibling = {
-          'initialID': 'secondaryID',
-          'secondaryID': 'initialID',
-        }.get(parent)
+        parent = 'initialID' if not wormhole['parent'] else wormhole['parent'] + 'ID'
+        sibling = 'secondaryID' if parent == 'initialID' else 'initialID'
         signature_in = self.chain['signatures'][wormhole[parent]]
         signature_out = self.chain['signatures'][wormhole[sibling]]
-        wh_type = wormhole['type']
+
+        sig_id_in = self.format_tripwire_signature(signature_in['signatureID'])
+        sig_id_out = self.format_tripwire_signature(signature_out['signatureID'])
+
+        wh_type_in = Tripwire.WTYPE_UNKNOWN if not wormhole['type'] or wormhole['type'] == '' else wormhole['type']
+        wh_type_out = Tripwire.WTYPE_UNKNOWN if wh_type_in == Tripwire.WTYPE_UNKNOWN else 'K162'
 
         system_from = convert_to_int(signature_in['systemID'])
         system_to = convert_to_int(signature_out['systemID'])
@@ -198,10 +200,10 @@ class Tripwire:
           system_to,
           SolarMap.WORMHOLE,
           [
-            signature_in['signatureID'],
-            wh_type,
-            signature_out['signatureID'],
-            'K162',
+            sig_id_in,
+            wh_type_in,
+            sig_id_out,
+            wh_type_out,
             wh_size,
             wh_life,
             wh_mass,
@@ -213,6 +215,25 @@ class Tripwire:
         pass
 
     return connections
+
+  @staticmethod
+  def format_tripwire_wormhole_type(wtype):
+    if not wtype or wtype == '' or wtype == '????':
+      return Tripwire.WTYPE_UNKNOWN
+
+    return wtype
+
+  @staticmethod
+  def format_tripwire_signature(sig):
+    if not sig or sig == '' or sig == '???':
+      return Tripwire.SIG_UNKNOWN
+
+    letters = sig[0:3].upper()
+    numbers = sig[3:]
+    if not numbers.isnumeric():
+      numbers = '---'
+
+    return '{}-{}'.format(letters, numbers)
 
 
 def is_json(data: str):
