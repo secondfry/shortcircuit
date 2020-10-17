@@ -23,7 +23,7 @@ def resource_path(relative_path):
 def get_dict_from_csv_qfile(file_path: str):
   path = resource_path(file_path)
   Logger.info(path)
-  f = open(path, 'r')
+  f = open(path, 'r', encoding='utf-8')
   reader = csv.reader(f, delimiter=';')
 
   return reader
@@ -53,18 +53,27 @@ class EveDb(metaclass=Singleton):
     drifter={"kspace": 2, "C1": 1, "C2": 2, "C3": 2, "C4": 2, "C5": 2, "C6": 2, "C12": 2, "C13": 0, "drifter": 2},
   )
 
+  TRIGLAVIAN_REGION_ID: int = 10000070
+
   def __init__(self):
     self.gates = [[int(rows[0]), int(rows[1])] for rows in get_dict_from_csv_qfile('database/system_jumps.csv')]
     self.system_desc = {
-      int(rows[0]): {
-        'id': int(rows[0]),
-        'name': rows[1],
-        'class': rows[2],
-        'security': float(rows[3])
+      int(rows[1]): {
+        'region_id': int(rows[0]),
+        'id': int(rows[1]),
+        'name': rows[2],
+        'class': rows[3],
+        'security': float(rows[4]),
+        'flags': {
+          'triglavian': self.is_triglavian(int(rows[0]))
+        }
       }
       for rows in get_dict_from_csv_qfile('database/system_description.csv')
     }
     self.wh_codes = {rows[0]: int(rows[1]) for rows in get_dict_from_csv_qfile('database/statics.csv')}
+
+  def is_triglavian(self, region_id: int):
+    return region_id == self.TRIGLAVIAN_REGION_ID
 
   # TODO properly type this
   def get_whsize_by_code(self, code):
@@ -81,7 +90,8 @@ class EveDb(metaclass=Singleton):
       return "Unknown"
 
     db_class = self.system_desc[system_id]['class']
-    if db_class in ["HS", "LS", "NS", "Unknown"]:
+    # FIXME learn about triglavian wormhole sizes
+    if db_class in ["HS", "LS", "NS", "▲", "Unknown"]:
       sys_class = "kspace"
     elif db_class in ["C14", "C15", "C16", "C17", "C18"]:
       sys_class = "drifter"

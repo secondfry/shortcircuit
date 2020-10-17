@@ -17,6 +17,11 @@ class SolarSystem:
 
   # FIXME refactor neighbor info
   def add_neighbor(self, neighbor, weight: list):
+    # Ignoring unspecified GATE connections between systems
+    # FIXME this will ignore wormhole connections between gate-neighbors
+    if neighbor in self.connected_to:
+      return
+
     self.connected_to[neighbor] = weight
 
   def get_connections(self):
@@ -40,10 +45,10 @@ class SolarMap:
   WORMHOLE = 1
 
   def __init__(self):
-    self.systems_list = {}
-    self.total_systems = 0
+    self.systems_list: dict[int, SolarSystem] = {}
+    self.total_systems: int = 0
 
-    self.eve_db = EveDb()
+    self.eve_db: EveDb = EveDb()
     for row in self.eve_db.gates:
       self.add_connection(row[0], row[1], SolarMap.GATE)
 
@@ -54,10 +59,7 @@ class SolarMap:
     return new_system
 
   def get_system(self, key: int):
-    if key in self.systems_list:
-      return self.systems_list[key]
-    else:
-      return None
+    return self.systems_list.get(key, None)
 
   def get_all_systems(self):
     return self.systems_list.keys()
@@ -92,9 +94,8 @@ class SolarMap:
       # TODO raise exception
       pass
 
-  # TODO properly type this
-  def __contains__(self, item):
-    return item in self.systems_list
+  def __contains__(self, system_id: int):
+    return system_id in self.systems_list
 
   def __iter__(self):
     return iter(self.systems_list.values())
