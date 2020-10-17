@@ -1,8 +1,10 @@
-def main():
-  import sys
-  from shortcircuit.model.logger import Logger
-  from shortcircuit import app
+import sys
 
+from shortcircuit import app
+from shortcircuit.model.logger import Logger
+
+
+def main():
   Logger()
   sys.exit(app.run())
 

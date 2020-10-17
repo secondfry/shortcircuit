@@ -1,31 +1,32 @@
 # evedb.py
 
 import csv
-from PySide2 import QtCore
+import os
+import sys
 
+from .logger import Logger
 from .utility.singleton import Singleton
 
 
-class FileReader:
-  def __init__(self, file_path: str):
-    self.reader = None
-    self.qfile = QtCore.QFile(file_path)
-    self.status = self.qfile.open(QtCore.QIODevice.ReadOnly | QtCore.QIODevice.Text)
+# https://stackoverflow.com/questions/7674790/bundling-data-files-with-pyinstaller-onefile
+def resource_path(relative_path):
+  """ Get absolute path to resource, works for dev and for PyInstaller """
+  try:
+    # PyInstaller creates a temp folder and stores path in _MEIPASS
+    base_path = sys._MEIPASS
+  except Exception:
+    base_path = os.path.join(os.path.abspath("."), '../resources')
 
-  def __iter__(self):
-    return self
+  return os.path.join(base_path, relative_path)
 
-  def __next__(self):
-    if self.qfile.atEnd():
-      raise StopIteration
-    ret = self.qfile.decodeName(self.qfile.readLine())  # I'm kinda sorry, but not at all
-    if not ret:
-      raise StopIteration
-    return ret
 
-  @staticmethod
-  def get_dict_from_csv_qfile(file_path: str):
-    return csv.reader(FileReader(file_path), delimiter=';')
+def get_dict_from_csv_qfile(file_path: str):
+  path = resource_path(file_path)
+  Logger.info(path)
+  f = open(path, 'r')
+  reader = csv.reader(f, delimiter=';')
+
+  return reader
 
 
 class EveDb(metaclass=Singleton):
@@ -53,7 +54,7 @@ class EveDb(metaclass=Singleton):
   )
 
   def __init__(self):
-    self.gates = [[int(rows[0]), int(rows[1])] for rows in FileReader.get_dict_from_csv_qfile(':database/system_jumps.csv')]
+    self.gates = [[int(rows[0]), int(rows[1])] for rows in get_dict_from_csv_qfile('database/system_jumps.csv')]
     self.system_desc = {
       int(rows[0]): {
         'id': int(rows[0]),
@@ -61,9 +62,9 @@ class EveDb(metaclass=Singleton):
         'class': rows[2],
         'security': float(rows[3])
       }
-      for rows in FileReader.get_dict_from_csv_qfile(':database/system_description.csv')
+      for rows in get_dict_from_csv_qfile('database/system_description.csv')
     }
-    self.wh_codes = {rows[0]: int(rows[1]) for rows in FileReader.get_dict_from_csv_qfile(':database/statics.csv')}
+    self.wh_codes = {rows[0]: int(rows[1]) for rows in get_dict_from_csv_qfile('database/statics.csv')}
 
   # TODO properly type this
   def get_whsize_by_code(self, code):
