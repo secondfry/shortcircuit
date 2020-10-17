@@ -281,7 +281,11 @@ class Farmer(QtCore.QObject):
       if not system['accessable']:
         continue
 
-      self.world_accessable[system_id] = self.check_route_to(system)
+      system = self.check_route_to(system)
+      if not system['accessable']:
+        continue
+
+      self.world_accessable[system_id] = system
 
   def generate_report(self):
     with open(self.filename_report, 'w') as f:
