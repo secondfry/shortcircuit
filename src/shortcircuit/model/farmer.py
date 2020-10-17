@@ -120,7 +120,12 @@ class Farmer(QtCore.QObject):
     if 'count' not in world:
       Logger.warning('World state file malformed. \'count\' field is not present')
       return
-    self.world = world
+
+    self.world['count'] = world['count']
+    self.world['timestamp'] = world['timestamp']
+
+    for sid, data in world['data'].items():
+      self.world['data'][int(sid)] = data
 
   def save_world(self):
     with open(self.filename_world, 'w') as file:
