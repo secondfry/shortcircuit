@@ -104,7 +104,13 @@ class Farmer(QtCore.QObject):
       Logger.error(e)
       return
 
-    world = json.load(file)
+    try:
+      world = json.load(file)
+    except json.decoder.JSONDecodeError as e:
+      Logger.warning('World state file malformed')
+      Logger.warning(e)
+      return
+
     if 'data' not in world:
       Logger.warning('World state file malformed. \'data\' field is not present')
       return
