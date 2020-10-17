@@ -396,8 +396,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     return {
       'HS': QtGui.QColor(223, 240, 216),
       'LS': QtGui.QColor(252, 248, 227),
-      'NS': QtGui.QColor(242, 222, 222)
-    }.get(sclass, QtGui.QColor(210, 226, 242))
+      'NS': QtGui.QColor(242, 222, 222),
+      'WH': QtGui.QColor(210, 226, 242),
+      '▲': QtGui.QColor(242, 212, 212),
+    }.get(sclass, QtGui.QColor(220, 220, 220))
 
   def add_data_to_table(self, route):
     self.tableWidget_path.setRowCount(len(route))
