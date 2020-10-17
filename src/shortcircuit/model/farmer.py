@@ -254,6 +254,7 @@ class Farmer(QtCore.QObject):
       self.process_chain_into_world(next_data)
 
       parsed[system_id] = True
+      Logger.info('Processed {1} [#{0}]'.format(system_id, self.eve_db.id2name(system_id)))
 
       sleep(0.5)
 
