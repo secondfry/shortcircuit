@@ -6,6 +6,6 @@
 
 
 __appname__ = 'Short Circuit'
-__version__ = '0.4.1'
-__date__ = '2019-04-22'
+__version__ = '0.5.0'
+__date__ = '2020-10-17'
 USER_AGENT = '{} v{} ({})'.format(__appname__, __version__, __date__)
