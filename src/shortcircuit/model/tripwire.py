@@ -156,17 +156,17 @@ class Tripwire:
         signature_in = self.chain['signatures'][wormhole[parent]]
         signature_out = self.chain['signatures'][wormhole[sibling]]
 
-        sig_id_in = self.format_tripwire_signature(signature_in['signatureID'])
-        sig_id_out = self.format_tripwire_signature(signature_out['signatureID'])
-
-        wh_type_in = Tripwire.WTYPE_UNKNOWN if not wormhole['type'] or wormhole['type'] == '' else wormhole['type']
-        wh_type_out = Tripwire.WTYPE_UNKNOWN if wh_type_in == Tripwire.WTYPE_UNKNOWN else 'K162'
-
         system_from = convert_to_int(signature_in['systemID'])
         system_to = convert_to_int(signature_out['systemID'])
 
         if system_from == 0 or system_from < 10000 or system_to == 0 or system_to < 10000:
           continue
+
+        sig_id_in = self.format_tripwire_signature(signature_in['signatureID'])
+        sig_id_out = self.format_tripwire_signature(signature_out['signatureID'])
+
+        wh_type_in = Tripwire.WTYPE_UNKNOWN if not wormhole['type'] or wormhole['type'] == '' else wormhole['type']
+        wh_type_out = Tripwire.WTYPE_UNKNOWN if wh_type_in == Tripwire.WTYPE_UNKNOWN else 'K162'
 
         connections += 1
 
