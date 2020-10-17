@@ -616,13 +616,13 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         MainWindow.MSG_ERROR
       )
 
+    self.pushButton_find_path.setEnabled(True)
     self.farmer_thread.start()
 
   @QtCore.Slot(int)
   def farmer_thread_done(self):
     self.farmer_thread.quit()
     self.pushButton_trip_get.setEnabled(True)
-    self.pushButton_find_path.setEnabled(True)
 
   @QtCore.Slot()
   def btn_eve_login_clicked(self):
