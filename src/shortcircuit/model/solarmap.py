@@ -17,6 +17,11 @@ class SolarSystem:
 
   # FIXME refactor neighbor info
   def add_neighbor(self, neighbor, weight: list):
+    # Ignoring unspecified GATE connections between systems
+    # FIXME this will ignore wormhole connections between gate-neighbors
+    if neighbor in self.connected_to:
+      return
+
     self.connected_to[neighbor] = weight
 
   def get_connections(self):
