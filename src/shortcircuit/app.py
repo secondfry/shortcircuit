@@ -3,18 +3,19 @@ import json
 import sys
 import time
 from functools import partial
+
 from PySide2 import QtCore, QtGui, QtWidgets
 
 from . import __appname__, __version__, __date__ as last_update
+from .model.esi_processor import ESIProcessor
+from .model.evedb import EveDb
 from .model.logger import Logger
 from .model.navigation import Navigation
 from .model.navprocessor import NavProcessor
-from .model.evedb import EveDb
-from .model.esi_processor import ESIProcessor
 from .model.versioncheck import VersionCheck
+from .view.gui_about import Ui_AboutDialog
 from .view.gui_main import Ui_MainWindow
 from .view.gui_tripwire import Ui_TripwireDialog
-from .view.gui_about import Ui_AboutDialog
 
 
 class TripwireDialog(QtWidgets.QDialog, Ui_TripwireDialog):
