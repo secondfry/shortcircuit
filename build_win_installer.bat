@@ -8,4 +8,5 @@ python -O -m PyInstaller ^
     --add-data "resources\database\statics.csv;database" ^
     --add-data "resources\database\system_description.csv;database" ^
     --add-data "resources\database\system_jumps.csv;database" ^
+    --paths "build\libs" ^
     --noupx
