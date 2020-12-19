@@ -1,14 +1,15 @@
 # tripwire.py
 
 import json
-import requests
 from datetime import datetime
 
+import requests
+
+from shortcircuit import USER_AGENT
 from .evedb import EveDb
 from .logger import Logger
 from .solarmap import SolarMap
 from .utility.configuration import Configuration
-from shortcircuit import USER_AGENT
 
 
 class Tripwire:

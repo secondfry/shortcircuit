@@ -6,7 +6,6 @@ import urllib.parse
 
 from shortcircuit.model.logger import Logger
 
-
 HTML = '''
 <!DOCTYPE html>
 <html>

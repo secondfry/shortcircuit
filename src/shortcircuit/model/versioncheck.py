@@ -1,15 +1,16 @@
 # versioncheck.py
 import json
+from datetime import datetime, timedelta
+
 import requests
 import semver
-from datetime import datetime, timedelta
+from PySide2 import QtCore
 from dateutil import parser
 from dateutil.tz import tzutc
-from PySide2 import QtCore
 
+from shortcircuit import __version__ as app_version
 from .logger import Logger
 from .utility.configuration import Configuration
-from shortcircuit import __version__ as app_version
 
 
 class VersionCheck(QtCore.QObject):
