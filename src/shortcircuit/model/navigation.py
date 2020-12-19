@@ -37,11 +37,6 @@ class Navigation:
       password = self.app_obj.tripwire_pass
     self.tripwire_password = password
 
-  # TODO move this augment_map somewhere
-  def evescout_augment(self, solar_map: SolarMap):
-    evescout = EveScout()
-    return evescout.augment_map(solar_map)
-
   def tripwire_augment(self, solar_map: SolarMap):
     self.tripwire_obj = Tripwire(self.tripwire_user, self.tripwire_password, self.tripwire_url)
     connections = self.tripwire_obj.augment_map(solar_map)
@@ -210,3 +205,9 @@ class Navigation:
     short_format = 'Short Circuit: `{}`'.format(' '.join(short_format))
 
     return [route, short_format]
+
+
+# TODO move this augment_map somewhere
+def evescout_augment(solar_map: SolarMap):
+  evescout = EveScout()
+  return evescout.augment_map(solar_map)
