@@ -60,7 +60,7 @@ def main():
           if system_class in [1, 2, 3, 4, 5, 6, 12, 13, 14, 15, 16, 17, 18]:
             system_class = "C{}".format(system_class)
           else:
-            if 0.45 <= security:
+            if security >= 0.45:
               system_class = "HS"
             elif 0 <= security < 0.45:
               system_class = "LS"

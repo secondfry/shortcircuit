@@ -20,9 +20,6 @@ class VersionCheck(QtCore.QObject):
 
   finished = QtCore.Signal(str)
 
-  def __init__(self, parent=None):
-    super().__init__(parent)
-
   def process(self):
     """
     Emits latest version string

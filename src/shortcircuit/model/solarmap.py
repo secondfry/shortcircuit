@@ -122,7 +122,7 @@ class SolarMap:
       return [source]
 
     queue = collections.deque()
-    visited = set([self.get_system(x) for x in avoidance_list])
+    visited = {self.get_system(x) for x in avoidance_list}
     parent = {}
 
     # starting point
@@ -195,7 +195,7 @@ class SolarMap:
       return [source]
 
     priority_queue = []
-    visited = set([self.get_system(x) for x in avoidance_list])
+    visited = {self.get_system(x) for x in avoidance_list}
     distance = {}
     parent = {}
 
