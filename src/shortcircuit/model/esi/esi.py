@@ -1,12 +1,13 @@
 # esi.py
 
-import requests
 import threading
 import uuid
 import webbrowser
 
-from .server import StoppableHTTPServer, AuthHandler
+import requests
+
 from shortcircuit.model.logger import Logger
+from .server import StoppableHTTPServer, AuthHandler
 
 
 class ESI:
