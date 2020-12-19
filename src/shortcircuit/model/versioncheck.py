@@ -21,7 +21,7 @@ class VersionCheck(QtCore.QObject):
   finished = QtCore.Signal(str)
 
   def __init__(self, parent=None):
-    super(VersionCheck, self).__init__(parent)
+    super().__init__(parent)
 
   def process(self):
     """
