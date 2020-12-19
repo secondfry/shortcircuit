@@ -1,23 +1,21 @@
 # evedb.py
 
 import csv
-import os
 import sys
+from os import path
 
 from .logger import Logger
 from .utility.singleton import Singleton
 
 
-# https://stackoverflow.com/questions/7674790/bundling-data-files-with-pyinstaller-onefile
+# https://pyinstaller.readthedocs.io/en/stable/runtime-information.html
 def resource_path(relative_path):
   """ Get absolute path to resource, works for dev and for PyInstaller """
-  try:
-    # PyInstaller creates a temp folder and stores path in _MEIPASS
-    base_path = sys._MEIPASS
-  except Exception:
-    base_path = os.path.join(os.path.abspath("."), '../resources')
+  current = path.dirname(__file__)
+  resources = path.abspath(path.join(current, '../../../resources'))
+  base_path = getattr(sys, '_MEIPASS', resources)
 
-  return os.path.join(base_path, relative_path)
+  return path.join(base_path, relative_path)
 
 
 def get_dict_from_csv_qfile(file_path: str):
