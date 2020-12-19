@@ -23,7 +23,7 @@ class TripwireDialog(QtWidgets.QDialog, Ui_TripwireDialog):
   Tripwire Configuration Window
   """
   def __init__(self, trip_url, trip_user, trip_pass, proxy, evescout_enabled, parent=None):
-    super(TripwireDialog, self).__init__(parent)
+    super().__init__(parent)
     self.setupUi(self)
     self.lineEdit_url.setText(trip_url)
     self.lineEdit_user.setText(trip_user)
@@ -43,7 +43,7 @@ class AboutDialog(QtWidgets.QDialog, Ui_AboutDialog):
   Tripwire Configuration Window
   """
   def __init__(self, parent=None):
-    super(AboutDialog, self).__init__(parent)
+    super().__init__(parent)
     self.setupUi(self)
     self.label_title.setText('{} v{} ({})'.format(__appname__, __version__, last_update))
     # noinspection PyUnresolvedReferences
@@ -77,7 +77,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     return ret
 
   def __init__(self, parent=None):
-    super(MainWindow, self).__init__(parent)
+    super().__init__(parent)
     self.setupUi(self)
     self.settings = QtCore.QSettings(
       QtCore.QSettings.IniFormat,

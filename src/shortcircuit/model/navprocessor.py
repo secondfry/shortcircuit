@@ -13,7 +13,7 @@ class NavProcessor(QtCore.QObject):
   finished = QtCore.Signal(int, int)
 
   def __init__(self, nav: Navigation, parent=None):
-    super(NavProcessor, self).__init__(parent)
+    super().__init__(parent)
     self.evescout_enable = False
     self.nav = nav
 

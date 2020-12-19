@@ -17,7 +17,7 @@ class ESIProcessor(QtCore.QObject):
   destination_response = QtCore.Signal(bool)
 
   def __init__(self, parent=None):
-    super(ESIProcessor, self).__init__(parent)
+    super().__init__(parent)
     self.esi = ESI(self._login_callback, self._logout_callback)
 
   def login(self):
