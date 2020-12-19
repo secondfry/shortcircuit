@@ -37,11 +37,6 @@ class Navigation:
       password = self.app_obj.tripwire_pass
     self.tripwire_password = password
 
-  # TODO move this augment_map somewhere
-  def evescout_augment(self, solar_map: SolarMap):
-    evescout = EveScout()
-    return evescout.augment_map(solar_map)
-
   def tripwire_augment(self, solar_map: SolarMap):
     self.tripwire_obj = Tripwire(self.tripwire_user, self.tripwire_password, self.tripwire_url)
     connections = self.tripwire_obj.augment_map(solar_map)
@@ -113,7 +108,14 @@ class Navigation:
       source: str,
       destination: str
   ):
-    [size_restriction, ignore_eol, ignore_masscrit, age_threshold, security_prio, avoidance_list] = self.app_obj.get_restrictions()
+    [
+      size_restriction,
+      ignore_eol,
+      ignore_masscrit,
+      age_threshold,
+      security_prio,
+      avoidance_list
+    ] = self.app_obj.get_restrictions()
 
     source_id = self.eve_db.name2id(source)
     dest_id = self.eve_db.name2id(destination)
@@ -159,7 +161,7 @@ class Navigation:
       route_step['path_data'] = weight
       route.append(route_step)
 
-    if not len(route):
+    if route:
       return [[], 'Path is not found']
 
     # Construct short format
@@ -210,3 +212,9 @@ class Navigation:
     short_format = 'Short Circuit: `{}`'.format(' '.join(short_format))
 
     return [route, short_format]
+
+
+# TODO move this augment_map somewhere
+def evescout_augment(solar_map: SolarMap):
+  evescout = EveScout()
+  return evescout.augment_map(solar_map)

@@ -1,14 +1,15 @@
 # tripwire.py
 
 import json
-import requests
 from datetime import datetime
 
+import requests
+
+from shortcircuit import USER_AGENT
 from .evedb import EveDb
 from .logger import Logger
 from .solarmap import SolarMap
 from .utility.configuration import Configuration
-from shortcircuit import USER_AGENT
 
 
 class Tripwire:
@@ -140,7 +141,7 @@ class Tripwire:
     connections = 0
 
     # Process wormholes
-    for wormholeId, wormhole in self.chain['wormholes'].items():
+    for _, wormhole in self.chain['wormholes'].items():
       try:
         if wormhole['type'] == 'GATE':
           continue
@@ -212,7 +213,6 @@ class Tripwire:
         )
       except Exception as e:
         Logger.error('pepega', exc_info=e)
-        pass
 
     return connections
 

@@ -2,6 +2,7 @@
 
 import collections
 import heapq
+from typing import Dict
 
 from .evedb import EveDb
 
@@ -45,7 +46,7 @@ class SolarMap:
   WORMHOLE = 1
 
   def __init__(self):
-    self.systems_list: dict[int, SolarSystem] = {}
+    self.systems_list: Dict[int, SolarSystem] = {}
     self.total_systems: int = 0
 
     self.eve_db: EveDb = EveDb()
@@ -121,7 +122,7 @@ class SolarMap:
       return [source]
 
     queue = collections.deque()
-    visited = set([self.get_system(x) for x in avoidance_list])
+    visited = {self.get_system(x) for x in avoidance_list}
     parent = {}
 
     # starting point
@@ -194,7 +195,7 @@ class SolarMap:
       return [source]
 
     priority_queue = []
-    visited = set([self.get_system(x) for x in avoidance_list])
+    visited = {self.get_system(x) for x in avoidance_list}
     distance = {}
     parent = {}
 

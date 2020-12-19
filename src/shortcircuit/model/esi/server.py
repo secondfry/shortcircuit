@@ -6,7 +6,6 @@ import urllib.parse
 
 from shortcircuit.model.logger import Logger
 
-
 HTML = '''
 <!DOCTYPE html>
 <html>
@@ -66,7 +65,7 @@ class AuthHandler(http.server.BaseHTTPRequestHandler):
     self.wfile.write(HTML.encode())
     self.server.callback(parts)
 
-  def log_message(self, format, *args):
+  def log_message(self, fmt, *args):
     return
 
 

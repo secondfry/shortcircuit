@@ -3,6 +3,7 @@
 import logging
 import sys
 from logging.handlers import RotatingFileHandler
+
 from PySide2 import QtCore
 
 from .utility.singleton import Singleton

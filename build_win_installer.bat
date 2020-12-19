@@ -2,7 +2,6 @@ python -O -m PyInstaller ^
     --clean ^
     --onefile ^
     --windowed ^
-    --clean ^
     --icon resources\images\app_icon.ico ^
     --name shortcircuit src\main.py ^
     --add-data "resources\database\statics.csv;database" ^

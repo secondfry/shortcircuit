@@ -11,6 +11,7 @@ semver = "*"
 python-dateutil = "*"
 pyinstaller = "*"
 pyside2 = "*"
+pylint = "*"
 
 [requires]
 python_version = "3.9"

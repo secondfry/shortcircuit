@@ -1,12 +1,13 @@
 # evescout.py
 
-import requests
 from datetime import datetime
 
-from .evedb import EveDb
-from .solarmap import SolarMap
-from .logger import Logger
+import requests
+
 from shortcircuit import USER_AGENT
+from .evedb import EveDb
+from .logger import Logger
+from .solarmap import SolarMap
 
 
 class EveScout:
