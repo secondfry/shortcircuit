@@ -20,7 +20,7 @@ jobs:
           python -m pipenv install
 
       - name: Build
-        run: python -m pipenv run ./build_win_installer.bat
+        run: python -m pipenv run build_win_installer.bat
 
       - name: Upload a Build Artifact
         uses: actions/upload-artifact@v2
