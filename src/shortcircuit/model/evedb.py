@@ -19,9 +19,9 @@ def resource_path(relative_path):
 
 
 def get_dict_from_csv_qfile(file_path: str):
-  path = resource_path(file_path)
-  Logger.info(path)
-  f = open(path, 'r', encoding='utf-8')
+  result_path = resource_path(file_path)
+  Logger.info(result_path)
+  f = open(result_path, 'r', encoding='utf-8')
   reader = csv.reader(f, delimiter=';')
 
   return reader

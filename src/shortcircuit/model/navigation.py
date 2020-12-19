@@ -108,7 +108,14 @@ class Navigation:
       source: str,
       destination: str
   ):
-    [size_restriction, ignore_eol, ignore_masscrit, age_threshold, security_prio, avoidance_list] = self.app_obj.get_restrictions()
+    [
+      size_restriction,
+      ignore_eol,
+      ignore_masscrit,
+      age_threshold,
+      security_prio,
+      avoidance_list
+    ] = self.app_obj.get_restrictions()
 
     source_id = self.eve_db.name2id(source)
     dest_id = self.eve_db.name2id(destination)
@@ -154,7 +161,7 @@ class Navigation:
       route_step['path_data'] = weight
       route.append(route_step)
 
-    if not len(route):
+    if route:
       return [[], 'Path is not found']
 
     # Construct short format

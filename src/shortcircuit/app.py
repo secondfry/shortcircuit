@@ -206,7 +206,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     self.settings.remove('MainWindow/tripwire_user')
     self.settings.remove('MainWindow/tripwire_pass')
     self.settings.remove('MainWindow/evescout_enable')
-  
+
   def read_settings_tripwire(self):
     self.global_proxy = self.settings.value('proxy')
     self.settings.beginGroup('Tripwire')
@@ -234,9 +234,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
       self.tableWidget_path.setColumnWidth(col_idx, int(column_width))
 
     # Avoidance list
-    self.checkBox_avoid_enabled.setChecked(
-      True if self.settings.value("avoidance_enabled", "false") == "true" else False
-    )
+    self.checkBox_avoid_enabled.setChecked(self.settings.value("avoidance_enabled", "false") == "true")
     for sys_name in self.settings.value("avoidance_list", "").split(','):
       if sys_name != "":
         self._avoid_system_name(sys_name)
@@ -245,23 +243,15 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     self.comboBox_size.setCurrentIndex(
       int(self.settings.value("restrictions_whsize", "0"))
     )
-    self.checkBox_eol.setChecked(
-      True if self.settings.value("restriction_eol", "false") == "true" else False
-    )
-    self.checkBox_masscrit.setChecked(
-      True if self.settings.value("restriction_masscrit", "false") == "true" else False
-    )
-    self.checkBox_ignore_old.setChecked(
-      True if self.settings.value("restriction_ignore_old", "false") == "true" else False
-    )
+    self.checkBox_eol.setChecked(self.settings.value("restriction_eol", "false") == "true")
+    self.checkBox_masscrit.setChecked(self.settings.value("restriction_masscrit", "false") == "true")
+    self.checkBox_ignore_old.setChecked(self.settings.value("restriction_ignore_old", "false") == "true")
     self.doubleSpinBox_hours.setValue(
       float(self.settings.value("restriction_hours", "16.0"))
     )
 
     # Security prioritization
-    self.checkBox_security_enabled.setChecked(
-      True if self.settings.value("security_enabled", "false") == "true" else False
-    )
+    self.checkBox_security_enabled.setChecked(self.settings.value("security_enabled", "false") == "true")
     self.spinBox_prio_hs.setValue(int(self.settings.value("prio_hs", "1")))
     self.spinBox_prio_ls.setValue(int(self.settings.value("prio_ls", "1")))
     self.spinBox_prio_ns.setValue(int(self.settings.value("prio_ns", "1")))
