@@ -2,7 +2,7 @@
 
 from PySide2 import QtCore
 
-from .navigation import Navigation
+from .navigation import Navigation, evescout_augment
 
 
 class NavProcessor(QtCore.QObject):
@@ -22,7 +22,7 @@ class NavProcessor(QtCore.QObject):
     connections = self.nav.tripwire_augment(solar_map)
     evescout_connections = 0
     if self.evescout_enable:
-      evescout_connections = self.nav.evescout_augment(solar_map)
+      evescout_connections = evescout_augment(solar_map)
     if connections > 0 or evescout_connections > 0:
       self.nav.solar_map = solar_map
     self.finished.emit(connections, evescout_connections)
