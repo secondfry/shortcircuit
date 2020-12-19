@@ -2,6 +2,7 @@
 
 import collections
 import heapq
+from typing import Dict
 
 from .evedb import EveDb
 
@@ -45,7 +46,7 @@ class SolarMap:
   WORMHOLE = 1
 
   def __init__(self):
-    self.systems_list: dict[int, SolarSystem] = {}
+    self.systems_list: Dict[int, SolarSystem] = {}
     self.total_systems: int = 0
 
     self.eve_db: EveDb = EveDb()
