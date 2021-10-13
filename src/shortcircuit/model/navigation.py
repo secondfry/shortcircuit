@@ -161,7 +161,7 @@ class Navigation:
       route_step['path_data'] = weight
       route.append(route_step)
 
-    if route:
+    if not route:
       return [[], 'Path is not found']
 
     # Construct short format
