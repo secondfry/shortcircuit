@@ -54,7 +54,11 @@ class EveDb(metaclass=Singleton):
   TRIGLAVIAN_REGION_ID: int = 10000070
 
   def __init__(self):
-    self.gates = [[int(rows[0]), int(rows[1])] for rows in get_dict_from_csv_qfile('database/system_jumps.csv')]
+    filepath_gates = path.join('database', 'system_jumps.csv')
+    filepath_descriptions = path.join('database', 'system_description.csv')
+    filepath_statics = path.join('database', 'statics.csv')
+
+    self.gates = [[int(rows[0]), int(rows[1])] for rows in get_dict_from_csv_qfile(filepath_gates)]
     self.system_desc = {
       int(rows[1]): {
         'region_id': int(rows[0]),
@@ -66,9 +70,9 @@ class EveDb(metaclass=Singleton):
           'triglavian': self.is_triglavian(int(rows[0]))
         }
       }
-      for rows in get_dict_from_csv_qfile('database/system_description.csv')
+      for rows in get_dict_from_csv_qfile(filepath_descriptions)
     }
-    self.wh_codes = {rows[0]: int(rows[1]) for rows in get_dict_from_csv_qfile('database/statics.csv')}
+    self.wh_codes = {rows[0]: int(rows[1]) for rows in get_dict_from_csv_qfile(filepath_statics)}
 
   def is_triglavian(self, region_id: int):
     return region_id == self.TRIGLAVIAN_REGION_ID
