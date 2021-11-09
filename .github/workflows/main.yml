@@ -20,6 +20,19 @@ jobs:
 
       - uses: actions/checkout@v2
 
+      - name: Download UPX
+        uses: i3h/download-release-asset@v1.3.2
+        with:
+          owner: upx
+          repo: upx
+          tag: v3.96
+          file: upx-3.96-win64.zip
+
+      - name: Extract UPX
+        run: |
+          7z x upx-3.96-win64.zip
+          copy upx-3.96-win64\upx.exe upx.exe
+
       - name: Prepare
         run: |
           python -m pip install --upgrade pip
