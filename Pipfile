@@ -12,6 +12,7 @@ python-dateutil = "*"
 pyinstaller = "*"
 pyside2 = "*"
 pylint = "*"
+yapf = "*"
 
 [requires]
 python_version = "3.8"
