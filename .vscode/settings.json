@@ -1,3 +1,5 @@
 {
-    "python.pythonPath": ".venv\\Scripts\\python.exe"
+    "python.pythonPath": ".venv\\Scripts\\python.exe",
+    "python.formatting.provider": "yapf",
+    "python.formatting.yapfArgs": ["--style={coalesce_brackets: True, column_limit: 120, continuation_indent_width: 2, dedent_closing_brackets: True, indent_width: 2, split_complex_comprehension: True}"]
 }
