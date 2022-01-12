@@ -5,9 +5,9 @@ import uuid
 import webbrowser
 
 import requests
-
 from shortcircuit.model.logger import Logger
-from .server import StoppableHTTPServer, AuthHandler
+
+from .server import AuthHandler, StoppableHTTPServer
 
 
 class ESI:
@@ -52,7 +52,7 @@ class ESI:
       self.httpd = StoppableHTTPServer(
         server_address=('127.0.0.1', 7444),
         request_handler_class=AuthHandler,
-        timeout_callback=self.timeout_server
+        timeout_callback=self.timeout_server,
       )
       server_thread = threading.Thread(target=self.httpd.serve, args=(self.handle_login, ))
       server_thread.setDaemon(True)
@@ -107,7 +107,7 @@ class ESI:
 
   def _get_headers(self):
     return {
-      'User-Agent': 'Short Circuit (minimally maintained by @Second_Fry), secondfry@gmail.com',
+      'User-Agent': 'Short Circuit (minimally maintained by @SecondFry), secondfry@gmail.com',
       'Authorization': 'Bearer {}'.format(self.token),
     }
 
@@ -136,7 +136,7 @@ class ESI:
     r = requests.post(
       '{}?add_to_beginning=false&clear_other_waypoints=true&destination_id={}'.format(
         ESI.ENDPOINT_ESI_UI_WAYPOINT,
-        sys_id
+        sys_id,
       ),
       headers=self._get_headers()
     )

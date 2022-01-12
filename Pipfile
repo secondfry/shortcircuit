@@ -4,15 +4,19 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
+pyinstaller = "*"
+pylint = "*"
+yapf = "*"
+pytest = "*"
+pipenv-setup = "*"
+tox = "*"
 
 [packages]
 requests = {extras = ["socks"], version = "*"}
 semver = "*"
 python-dateutil = "*"
-pyinstaller = "*"
 pyside2 = "*"
-pylint = "*"
-yapf = "*"
+typing-extensions = "*"
 
 [requires]
 python_version = "3.8"

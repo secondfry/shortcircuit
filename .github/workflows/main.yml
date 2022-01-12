@@ -33,11 +33,14 @@ jobs:
           7z x upx-3.96-win64.zip
           copy upx-3.96-win64\upx.exe upx.exe
 
-      - name: Prepare
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           python -m pip install pipenv
           python -m pipenv install
+
+      - name: Test
+        run: python -m pipenv run tox
 
       - name: Build
         run: python -m pipenv run build_win_installer.bat

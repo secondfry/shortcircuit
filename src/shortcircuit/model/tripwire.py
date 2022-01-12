@@ -4,11 +4,11 @@ import json
 from datetime import datetime
 
 import requests
-
 from shortcircuit import USER_AGENT
-from .evedb import EveDb
+
+from .evedb import EveDb, WormholeSize, WormholeMassspan, WormholeTimespan
 from .logger import Logger
-from .solarmap import SolarMap
+from .solarmap import ConnectionType, SolarMap
 from .utility.configuration import Configuration
 
 
@@ -48,7 +48,7 @@ class Tripwire:
     if proxy:
       proxies = {
         'http': proxy,
-        'https': proxy
+        'https': proxy,
       }
 
     try:
@@ -56,7 +56,7 @@ class Tripwire:
         login_url,
         data=payload,
         headers=headers,
-        proxies=proxies
+        proxies=proxies,
       )
     except requests.exceptions.RequestException as e:
       Logger.error('Exception raised while trying to login')
@@ -80,7 +80,7 @@ class Tripwire:
     refresh_url = '{}/refresh.php'.format(self.url)
     payload = {
       'mode': 'init',
-      'systemID': system_id
+      'systemID': system_id,
     }
     headers = {
       'Referer': refresh_url,
@@ -91,7 +91,7 @@ class Tripwire:
     if proxy:
       proxies = {
         'http': proxy,
-        'https': proxy
+        'https': proxy,
       }
 
     try:
@@ -99,7 +99,7 @@ class Tripwire:
         refresh_url,
         params=payload,
         headers=headers,
-        proxies=proxies
+        proxies=proxies,
       )
     except requests.exceptions.RequestException as e:
       Logger.error('Exception raised while trying to refresh')
@@ -172,15 +172,15 @@ class Tripwire:
         connections += 1
 
         wh_life = {
-          'stable': 1,
-          'critical': 0,
-        }.get(wormhole['life'], 0)
+          'stable': WormholeTimespan.STABLE,
+          'critical': WormholeTimespan.CRITICAL,
+        }.get(wormhole['life'], WormholeTimespan.CRITICAL)
 
         wh_mass = {
-          'stable': 2,
-          'destab': 1,
-          'critical': 0,
-        }.get(wormhole['mass'], 0)
+          'stable': WormholeMassspan.STABLE,
+          'destab': WormholeMassspan.DESTAB,
+          'critical': WormholeMassspan.CRITICAL,
+        }.get(wormhole['mass'], WormholeMassspan.CRITICAL)
 
         # Compute time elapsed from this moment to when the signature was updated
         last_modified = datetime.strptime(signature_in['modifiedTime'], "%Y-%m-%d %H:%M:%S")
@@ -188,10 +188,10 @@ class Tripwire:
         time_elapsed = round(delta.total_seconds() / 3600.0, 1)
 
         # Determine wormhole size
-        wh_size = -1
+        wh_size = WormholeSize.UNKNOWN
         if wormhole['type']:
           wh_size = self.eve_db.get_whsize_by_code(wormhole['type'])
-        if wh_size not in [0, 1, 2, 3]:
+        if wh_size not in [WormholeSize.SMALL, WormholeSize.MEDIUM, WormholeSize.LARGE, WormholeSize.XLARGE]:
           # Wormhole codes are unknown => determine size based on class of wormholes
           wh_size = self.eve_db.get_whsize_by_system(system_from, system_to)
 
@@ -199,7 +199,7 @@ class Tripwire:
         solar_map.add_connection(
           system_from,
           system_to,
-          SolarMap.WORMHOLE,
+          ConnectionType.WORMHOLE,
           [
             sig_id_in,
             wh_type_in,
@@ -208,7 +208,7 @@ class Tripwire:
             wh_size,
             wh_life,
             wh_mass,
-            time_elapsed
+            time_elapsed,
           ],
         )
       except Exception as e:

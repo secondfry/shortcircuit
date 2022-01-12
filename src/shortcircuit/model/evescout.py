@@ -3,11 +3,11 @@
 from datetime import datetime
 
 import requests
-
 from shortcircuit import USER_AGENT
-from .evedb import EveDb
+
+from .evedb import EveDb, WormholeSize, WormholeMassspan, WormholeTimespan
 from .logger import Logger
-from .solarmap import SolarMap
+from .solarmap import ConnectionType, SolarMap
 
 
 class EveScout:
@@ -25,15 +25,9 @@ class EveScout:
     :param solar_map: SolarMap
     :return: Number of connections in case of success, -1 in case of failure
     """
-    headers = {
-      'User-Agent': USER_AGENT
-    }
+    headers = {'User-Agent': USER_AGENT}
     try:
-      result = requests.get(
-        url=self.evescout_url,
-        headers=headers,
-        timeout=EveScout.TIMEOUT
-      )
+      result = requests.get(url=self.evescout_url, headers=headers, timeout=EveScout.TIMEOUT)
     except requests.exceptions.RequestException as e:
       Logger.error('Exception raised while trying to get eve-scout chain info')
       Logger.error(e)
@@ -57,15 +51,15 @@ class EveScout:
       sig_dest = row['wormholeDestinationSignatureId']
       code_dest = row['destinationWormholeType']['name']
       if row['wormholeEol'] == 'stable':
-        wh_life = 1
+        wh_life = WormholeTimespan.STABLE
       else:
-        wh_life = 0
+        wh_life = WormholeTimespan.CRITICAL
       if row['wormholeEol'] == 'stable':
-        wh_mass = 2
+        wh_mass = WormholeMassspan.STABLE
       elif row['wormholeEol'] == 'destab':
-        wh_mass = 1
+        wh_mass = WormholeMassspan.DESTAB
       else:
-        wh_mass = 0
+        wh_mass = WormholeMassspan.CRITICAL
 
       # Compute time elapsed from this moment to when the signature was updated
       last_modified = datetime.strptime(row['updatedAt'][:-5], "%Y-%m-%dT%H:%M:%S")
@@ -76,9 +70,9 @@ class EveScout:
         # Determine wormhole size
         size_result1 = self.eve_db.get_whsize_by_code(code_source)
         size_result2 = self.eve_db.get_whsize_by_code(code_dest)
-        if size_result1 in [0, 1, 2, 3]:
+        if size_result1 in [WormholeSize.SMALL, WormholeSize.MEDIUM, WormholeSize.LARGE, WormholeSize.XLARGE]:
           wh_size = size_result1
-        elif size_result2 in [0, 1, 2, 3]:
+        elif size_result2 in [WormholeSize.SMALL, WormholeSize.MEDIUM, WormholeSize.LARGE, WormholeSize.XLARGE]:
           wh_size = size_result2
         else:
           # Wormhole codes are unknown => determine size based on class of wormholes
@@ -87,7 +81,7 @@ class EveScout:
         solar_map.add_connection(
           source,
           dest,
-          SolarMap.WORMHOLE,
+          ConnectionType.WORMHOLE,
           [sig_source, code_source, sig_dest, code_dest, wh_size, wh_life, wh_mass, time_elapsed],
         )
 

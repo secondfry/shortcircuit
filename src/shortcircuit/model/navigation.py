@@ -1,8 +1,10 @@
 # navigation.py
 
-from .evedb import EveDb
+from shortcircuit.app import MainWindow
+
+from .evedb import EveDb, WormholeMassspan, WormholeTimespan
 from .evescout import EveScout
-from .solarmap import SolarMap
+from .solarmap import ConnectionType, SolarMap
 from .tripwire import Tripwire
 
 
@@ -10,9 +12,11 @@ class Navigation:
   """
   Navigation
   """
-  def __init__(self, app_obj: 'MainWindow'):
+
+  def __init__(self, app_obj: MainWindow, eve_db: EveDb):
     self.app_obj = app_obj
-    self.eve_db = EveDb()
+    self.eve_db = eve_db
+
     self.solar_map = SolarMap()
     self.tripwire_obj = None
 
@@ -48,10 +52,10 @@ class Navigation:
     if not weight:
       return "Destination reached"
 
-    if weight[0] == SolarMap.GATE:
+    if weight[0] == ConnectionType.GATE:
       return "Jump gate"
 
-    if weight[0] == SolarMap.WORMHOLE:
+    if weight[0] == ConnectionType.WORMHOLE:
       [wh_sig, wh_code, _, _, _, _] = weight[1]
       return "Jump wormhole\n{} [{}]".format(wh_sig, wh_code)
 
@@ -63,7 +67,7 @@ class Navigation:
     if not weight or not weight_back:
       return
 
-    if weight_back[0] != SolarMap.WORMHOLE:
+    if weight_back[0] != ConnectionType.WORMHOLE:
       return
 
     [wh_sig, wh_code, wh_size, wh_life, wh_mass, time_elapsed] = weight_back[1]
@@ -80,68 +84,28 @@ class Navigation:
       wh_size_text = "Unknown"
 
     # Wormhole life
-    if wh_life == 1:
+    wh_life_text = "Timespan unknown"
+    if wh_life == WormholeTimespan.STABLE:
       wh_life_text = "Stable"
-    else:
+    if wh_life == WormholeTimespan.CRITICAL:
       wh_life_text = "Critical"
 
     # Wormhole mass
-    if wh_mass == 2:
+    wh_mass_text = "Massspan unknown"
+    if wh_mass == WormholeMassspan.STABLE:
       wh_mass_text = "Stable"
-    elif wh_mass == 1:
+    if wh_mass == WormholeMassspan.DESTAB:
       wh_mass_text = "Destab"
-    else:
+    if wh_mass == WormholeMassspan.CRITICAL:
       wh_mass_text = "Critical"
 
     # Return signature
     return "Return sig: {0} [{1}], Updated: {5}h ago\nSize: {2}, Life: {3}, Mass: {4}".format(
-      wh_sig,
-      wh_code,
-      wh_size_text,
-      wh_life_text,
-      wh_mass_text,
-      time_elapsed
+      wh_sig, wh_code, wh_size_text, wh_life_text, wh_mass_text, time_elapsed
     )
 
-  def route(
-      self,
-      source: str,
-      destination: str
-  ):
-    [
-      size_restriction,
-      ignore_eol,
-      ignore_masscrit,
-      age_threshold,
-      security_prio,
-      avoidance_list
-    ] = self.app_obj.get_restrictions()
-
-    source_id = self.eve_db.name2id(source)
-    dest_id = self.eve_db.name2id(destination)
-    avoidance_list_ids = [self.eve_db.name2id(x) for x in avoidance_list]
-
-    if security_prio:
-      path = self.solar_map.shortest_path_weighted(
-        source_id,
-        dest_id,
-        avoidance_list_ids,
-        size_restriction,
-        security_prio,
-        ignore_eol,
-        ignore_masscrit,
-        age_threshold
-      )
-    else:
-      path = self.solar_map.shortest_path(
-        source_id,
-        dest_id,
-        avoidance_list_ids,
-        size_restriction,
-        ignore_eol,
-        ignore_masscrit,
-        age_threshold
-      )
+  def route(self, source: int, destination: int):
+    path = self.solar_map.shortest_path(source, destination, self.app_obj.get_restrictions())
 
     # Construct route
     route = []
@@ -175,7 +139,7 @@ class Navigation:
       prev_route_step = route[rsid - 1]
 
       # We jumped to this system via wormhole
-      if prev_route_step['path_data'][0] == SolarMap.WORMHOLE:
+      if prev_route_step['path_data'][0] == ConnectionType.WORMHOLE:
         # ...in case of multiple previous gate jumps, indicate that
         if flag_gate > 1:
           short_format.extend(['...', '-->'])
@@ -197,10 +161,7 @@ class Navigation:
         continue
 
       # Add previous system to route
-      short_format.extend([
-        prev_route_step['name'],
-        '-->'
-      ])
+      short_format.extend([prev_route_step['name'], '-->'])
       flag_gate += 1
 
     # Add last system
