@@ -1,11 +1,14 @@
 # navigation.py
 
-from shortcircuit.app import MainWindow
+from typing import TYPE_CHECKING
 
 from .evedb import EveDb, WormholeMassspan, WormholeTimespan
 from .evescout import EveScout
 from .solarmap import ConnectionType, SolarMap
 from .tripwire import Tripwire
+
+if TYPE_CHECKING:
+  from shortcircuit.app import MainWindow
 
 
 class Navigation:
@@ -13,11 +16,11 @@ class Navigation:
   Navigation
   """
 
-  def __init__(self, app_obj: MainWindow, eve_db: EveDb):
+  def __init__(self, app_obj: 'MainWindow', eve_db: EveDb):
     self.app_obj = app_obj
     self.eve_db = eve_db
 
-    self.solar_map = SolarMap()
+    self.solar_map = SolarMap(self.eve_db)
     self.tripwire_obj = None
 
     self.tripwire_url = self.app_obj.tripwire_url
@@ -25,7 +28,7 @@ class Navigation:
     self.tripwire_password = self.app_obj.tripwire_pass
 
   def reset_chain(self):
-    self.solar_map = SolarMap()
+    self.solar_map = SolarMap(self.eve_db)
     return self.solar_map
 
   def tripwire_set_login(self, url: str = None, user: str = None, password: str = None):
