@@ -2,7 +2,9 @@
 
 import csv
 import sys
+from enum import Enum
 from os import path
+from typing import Dict, List, TypedDict
 
 from .logger import Logger
 from .utility.singleton import Singleton
@@ -27,28 +29,167 @@ def get_dict_from_csv_qfile(file_path: str):
   return reader
 
 
+class WormholeSize(Enum):
+  UNKNOWN = 0
+  SMALL = 1
+  MEDIUM = 2
+  LARGE = 3
+  XLARGE = 4
+
+
+class WormholeTimespan(Enum):
+  STABLE = 1
+  CRITICAL = 2
+
+
+class WormholeMassspan(Enum):
+  STABLE = 1
+  DESTAB = 2
+  CRITICAL = 3
+
+
+class SpaceType(Enum):
+  HS = 1,
+  LS = 2,
+  NS = 3,
+  WH = 4
+
+
+class Restrictions(TypedDict):
+  size_restriction: Dict[WormholeSize, bool]
+  ignore_eol: bool
+  ignore_masscrit: bool
+  age_threshold: float
+  security_prio: Dict[SpaceType, float]
+  avoidance_list: List[int]
+
+
 class EveDb(metaclass=Singleton):
   """
   Eve Database Handler
   """
 
-  # FIXME refactor into enum
-  WHSIZE_S = 0
-  WHSIZE_M = 1
-  WHSIZE_L = 2
-  WHSIZE_XL = 3
-
-  SIZE_MATRIX = dict(
-    kspace={"kspace": 3, "C1": 1, "C2": 2, "C3": 2, "C4": 2, "C5": 3, "C6": 3, "C12": 2, "C13": 0, "drifter": 2},
-    C1={"kspace": 1, "C1": 1, "C2": 1, "C3": 1, "C4": 1, "C5": 1, "C6": 1, "C12": 1, "C13": 0, "drifter": 1},
-    C2={"kspace": 2, "C1": 1, "C2": 2, "C3": 2, "C4": 2, "C5": 2, "C6": 2, "C12": 2, "C13": 0, "drifter": 2},
-    C3={"kspace": 2, "C1": 1, "C2": 2, "C3": 2, "C4": 2, "C5": 2, "C6": 2, "C12": 2, "C13": 0, "drifter": 2},
-    C4={"kspace": 2, "C1": 1, "C2": 2, "C3": 2, "C4": 2, "C5": 2, "C6": 2, "C12": 2, "C13": 0, "drifter": 2},
-    C5={"kspace": 3, "C1": 1, "C2": 2, "C3": 2, "C4": 2, "C5": 3, "C6": 3, "C12": 2, "C13": 0, "drifter": 2},
-    C6={"kspace": 3, "C1": 1, "C2": 2, "C3": 2, "C4": 2, "C5": 3, "C6": 3, "C12": 2, "C13": 0, "drifter": 2},
-    C12={"kspace": 2, "C1": 1, "C2": 2, "C3": 2, "C4": 2, "C5": 2, "C6": 2, "C12": 2, "C13": 0, "drifter": 2},
-    C13={"kspace": 0, "C1": 0, "C2": 0, "C3": 0, "C4": 0, "C5": 0, "C6": 0, "C12": 0, "C13": 0, "drifter": 0},
-    drifter={"kspace": 2, "C1": 1, "C2": 2, "C3": 2, "C4": 2, "C5": 2, "C6": 2, "C12": 2, "C13": 0, "drifter": 2},
+  SIZE_MATRIX: Dict[str, Dict[str, WormholeSize]] = dict(
+    kspace={
+      "kspace": 4,
+      "C2": 2,
+      "C3": 3,
+      "C4": 3,
+      "C4": 3,
+      "C5": 4,
+      "C6": 4,
+      "C23": 3,
+      "C24": 1,
+      "drifter": 3,
+    },
+    C1={
+      "kspace": 2,
+      "C2": 2,
+      "C3": 2,
+      "C4": 2,
+      "C4": 2,
+      "C5": 2,
+      "C6": 2,
+      "C23": 2,
+      "C24": 1,
+      "drifter": 2,
+    },
+    C2={
+      "kspace": 3,
+      "C2": 2,
+      "C3": 3,
+      "C4": 3,
+      "C4": 3,
+      "C5": 3,
+      "C6": 3,
+      "C23": 3,
+      "C24": 1,
+      "drifter": 3,
+    },
+    C3={
+      "kspace": 3,
+      "C2": 2,
+      "C3": 3,
+      "C4": 3,
+      "C4": 3,
+      "C5": 3,
+      "C6": 3,
+      "C23": 3,
+      "C24": 1,
+      "drifter": 3,
+    },
+    C4={
+      "kspace": 3,
+      "C2": 2,
+      "C3": 3,
+      "C4": 3,
+      "C4": 3,
+      "C5": 3,
+      "C6": 3,
+      "C23": 3,
+      "C24": 1,
+      "drifter": 3,
+    },
+    C5={
+      "kspace": 4,
+      "C2": 2,
+      "C3": 3,
+      "C4": 3,
+      "C4": 3,
+      "C5": 4,
+      "C6": 4,
+      "C23": 3,
+      "C24": 1,
+      "drifter": 3,
+    },
+    C6={
+      "kspace": 4,
+      "C2": 2,
+      "C3": 3,
+      "C4": 3,
+      "C4": 3,
+      "C5": 4,
+      "C6": 4,
+      "C23": 3,
+      "C24": 1,
+      "drifter": 3,
+    },
+    C12={
+      "kspace": 3,
+      "C2": 2,
+      "C3": 3,
+      "C4": 3,
+      "C4": 3,
+      "C5": 3,
+      "C6": 3,
+      "C23": 3,
+      "C24": 1,
+      "drifter": 3,
+    },
+    C13={
+      "kspace": 1,
+      "C2": 1,
+      "C3": 1,
+      "C4": 1,
+      "C4": 1,
+      "C5": 1,
+      "C6": 1,
+      "C23": 1,
+      "C24": 1,
+      "drifter": 1,
+    },
+    drifter={
+      "kspace": 3,
+      "C2": 2,
+      "C3": 3,
+      "C4": 3,
+      "C4": 3,
+      "C5": 3,
+      "C6": 3,
+      "C23": 3,
+      "C24": 1,
+      "drifter": 3,
+    },
   )
 
   TRIGLAVIAN_REGION_ID: int = 10000070
@@ -72,22 +213,15 @@ class EveDb(metaclass=Singleton):
       }
       for rows in get_dict_from_csv_qfile(filepath_descriptions)
     }
-    self.wh_codes = {rows[0]: int(rows[1]) for rows in get_dict_from_csv_qfile(filepath_statics)}
+    self.wh_codes: Dict[str, WormholeSize] = {rows[0]: int(rows[1]) for rows in get_dict_from_csv_qfile(filepath_statics)}
 
   def is_triglavian(self, region_id: int):
     return region_id == self.TRIGLAVIAN_REGION_ID
 
-  # TODO properly type this
-  def get_whsize_by_code(self, code):
-    whsize = None
-    code = code.upper()
-    if code in self.wh_codes.keys():
-      whsize = self.wh_codes[code]
+  def get_whsize_by_code(self, code: str) -> WormholeSize:
+    return self.wh_codes.get(code.upper(), WormholeSize.UNKNOWN)
 
-    return whsize
-
-  # TODO properly type this
-  def get_class(self, system_id):
+  def get_class(self, system_id: int):
     if system_id not in self.system_desc:
       return "Unknown"
 
@@ -101,27 +235,12 @@ class EveDb(metaclass=Singleton):
       sys_class = db_class
     return sys_class
 
-  # TODO properly type this
-  def system_type(self, system_id):
-    """
-    0 - highsec
-    1 - lowsec
-    2 - nullsec or unknown
-    3 - wspace
-
-    :param system_id:
-    :return: Possbile values: 0-3
-    """
+  def system_type(self, system_id: int) -> SpaceType:
     db_class = self.system_desc[system_id]['class']
-    return {
-      'HS': 0,
-      'LS': 1,
-      'NS': 2,
-      'WH': 3
-    }.get(db_class, 2)
 
-  # TODO properly type this
-  def get_whsize_by_system(self, source_id, dest_id):
+    return {'HS': SpaceType.HS, 'LS': SpaceType.LS, 'NS': SpaceType.NS, 'WH': SpaceType.WH}.get(db_class, SpaceType.NS)
+
+  def get_whsize_by_system(self, source_id: int, dest_id: int) -> WormholeSize:
     source_class = self.get_class(source_id)
     dest_class = self.get_class(dest_id)
     return EveDb.SIZE_MATRIX[source_class][dest_class]

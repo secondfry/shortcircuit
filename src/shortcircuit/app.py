@@ -1,14 +1,18 @@
 # app.py
+
 import json
 import sys
 import time
 from functools import partial
+from typing import Dict, List
 
 from PySide2 import QtCore, QtGui, QtWidgets
 
-from . import __appname__, __version__, __date__ as last_update
+from . import __appname__
+from . import __date__ as last_update
+from . import __version__
 from .model.esi_processor import ESIProcessor
-from .model.evedb import EveDb
+from .model.evedb import EveDb, Restrictions, SpaceType, WormholeSize
 from .model.logger import Logger
 from .model.navigation import Navigation
 from .model.navprocessor import NavProcessor
@@ -22,6 +26,7 @@ class TripwireDialog(QtWidgets.QDialog, Ui_TripwireDialog):
   """
   Tripwire Configuration Window
   """
+
   def __init__(self, trip_url, trip_user, trip_pass, proxy, evescout_enabled, parent=None):
     super().__init__(parent)
     self.setupUi(self)
@@ -42,6 +47,7 @@ class AboutDialog(QtWidgets.QDialog, Ui_AboutDialog):
   """
   Tripwire Configuration Window
   """
+
   def __init__(self, parent=None):
     super().__init__(parent)
     self.setupUi(self)
@@ -82,7 +88,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     self.settings = QtCore.QSettings(
       QtCore.QSettings.IniFormat,
       QtCore.QSettings.UserScope,
-      __appname__
+      __appname__,
     )
 
     self.tripwire_url = None
@@ -93,9 +99,13 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
     # Table configuration
     self.tableWidget_path.setColumnCount(5)
-    self.tableWidget_path.setHorizontalHeaderLabels(
-      ["System", "Cls", "Sec", "Instructions", "Additional information"]
-    )
+    self.tableWidget_path.setHorizontalHeaderLabels([
+      "System",
+      "Cls",
+      "Sec",
+      "Instructions",
+      "Additional information",
+    ])
     header: QtWidgets.QHeaderView = self.tableWidget_path.horizontalHeader()
     header.setSectionResizeMode(QtWidgets.QHeaderView.ResizeToContents)
     self.tableWidget_path.horizontalHeader().setStretchLastSection(True)
@@ -104,7 +114,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     self.read_settings()
 
     # Read resources
-    self.nav = Navigation(self)
+    self.eve_db = EveDb()
+    self.nav = Navigation(self, self.eve_db)
 
     # Additional GUI setup
     self.additional_gui_setup()
@@ -240,15 +251,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self._avoid_system_name(sys_name)
 
     # Restrictions
-    self.comboBox_size.setCurrentIndex(
-      int(self.settings.value("restrictions_whsize", "0"))
-    )
+    self.comboBox_size.setCurrentIndex(int(self.settings.value("restrictions_whsize", "0")))
     self.checkBox_eol.setChecked(self.settings.value("restriction_eol", "false") == "true")
     self.checkBox_masscrit.setChecked(self.settings.value("restriction_masscrit", "false") == "true")
     self.checkBox_ignore_old.setChecked(self.settings.value("restriction_ignore_old", "false") == "true")
-    self.doubleSpinBox_hours.setValue(
-      float(self.settings.value("restriction_hours", "16.0"))
-    )
+    self.doubleSpinBox_hours.setValue(float(self.settings.value("restriction_hours", "16.0")))
 
     # Security prioritization
     self.checkBox_security_enabled.setChecked(self.settings.value("security_enabled", "false") == "true")
@@ -276,51 +283,30 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     # Window state
     self.settings.setValue("win_geometry", self.saveGeometry())
     self.settings.setValue("win_state", self.saveState())
-    self.settings.setValue("table_widths", ",".join([
-      str(self.tableWidget_path.columnWidth(0)),
-      str(self.tableWidget_path.columnWidth(1)),
-      str(self.tableWidget_path.columnWidth(2)),
-      str(self.tableWidget_path.columnWidth(3)),
-    ]))
+    self.settings.setValue(
+      "table_widths",
+      ",".join([
+        str(self.tableWidget_path.columnWidth(0)),
+        str(self.tableWidget_path.columnWidth(1)),
+        str(self.tableWidget_path.columnWidth(2)),
+        str(self.tableWidget_path.columnWidth(3)),
+      ]),
+    )
 
     # Avoidance list
-    self.settings.setValue(
-      "avoidance_enabled",
-      self.checkBox_avoid_enabled.isChecked()
-    )
+    self.settings.setValue("avoidance_enabled", self.checkBox_avoid_enabled.isChecked())
     avoidance_list_string = ",".join(self.avoidance_list())
-    self.settings.setValue(
-      "avoidance_list",
-      avoidance_list_string
-    )
+    self.settings.setValue("avoidance_list", avoidance_list_string)
 
     # Restrictions
-    self.settings.setValue(
-      "restrictions_whsize",
-      self.comboBox_size.currentIndex()
-    )
-    self.settings.setValue(
-      "restriction_eol",
-      self.checkBox_eol.isChecked()
-    )
-    self.settings.setValue(
-      "restriction_masscrit",
-      self.checkBox_masscrit.isChecked()
-    )
-    self.settings.setValue(
-      "restriction_ignore_old",
-      self.checkBox_ignore_old.isChecked()
-    )
-    self.settings.setValue(
-      "restriction_hours",
-      self.doubleSpinBox_hours.value()
-    )
+    self.settings.setValue("restrictions_whsize", self.comboBox_size.currentIndex())
+    self.settings.setValue("restriction_eol", self.checkBox_eol.isChecked())
+    self.settings.setValue("restriction_masscrit", self.checkBox_masscrit.isChecked())
+    self.settings.setValue("restriction_ignore_old", self.checkBox_ignore_old.isChecked())
+    self.settings.setValue("restriction_hours", self.doubleSpinBox_hours.value())
 
     # Security prioritization
-    self.settings.setValue(
-      "security_enabled",
-      self.checkBox_security_enabled.isChecked()
-    )
+    self.settings.setValue("security_enabled", self.checkBox_security_enabled.isChecked())
     self.settings.setValue("prio_hs", self.spinBox_prio_hs.value())
     self.settings.setValue("prio_ls", self.spinBox_prio_ls.value())
     self.settings.setValue("prio_ns", self.spinBox_prio_ns.value())
@@ -356,11 +342,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
   def _statusbar_message(self, message, message_type):
     MainWindow._label_message(self.label_status_bar, message, message_type)
 
-  def avoidance_enabled(self):
+  def avoidance_enabled(self) -> bool:
     return self.checkBox_avoid_enabled.isChecked()
 
-  def avoidance_list(self):
-    items = []
+  def avoidance_list(self) -> List[str]:
+    items: List[QtWidgets.QListWidgetItem] = []
     for index in range(self.listWidget_avoid.count()):
       items.append(self.listWidget_avoid.item(index))
     return [i.text() for i in items]
@@ -376,9 +362,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
       self._avoid_message("Invalid system name :(", MainWindow.MSG_ERROR)
 
   def avoid_system(self):
-    sys_name = self.nav.eve_db.normalize_name(
-      self.lineEdit_avoid_name.text()
-    )
+    sys_name = self.nav.eve_db.normalize_name(self.lineEdit_avoid_name.text())
     self._avoid_system_name(sys_name)
 
   @staticmethod
@@ -402,7 +386,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         'class',
         'security',
         'path_action',
-        'path_info'
+        'path_info',
       ]:
         text = str(route_step[col_id])
         item = QtWidgets.QTableWidgetItem(text)
@@ -419,51 +403,59 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
     self.tableWidget_path.resizeRowsToContents()
 
-  def get_restrictions_size(self):
-    size_restriction = []
+  def get_restrictions_size(self) -> Dict[WormholeSize, bool]:
+    size_restriction = {
+      WormholeSize.SMALL: True,
+      WormholeSize.MEDIUM: True,
+      WormholeSize.LARGE: True,
+      WormholeSize.XLARGE: True,
+    }
 
     combo_index = self.comboBox_size.currentIndex()
     if combo_index < 1:
-      size_restriction.append(EveDb.WHSIZE_S)
+      size_restriction[WormholeSize.SMALL] = False
     if combo_index < 2:
-      size_restriction.append(EveDb.WHSIZE_M)
+      size_restriction[WormholeSize.MEDIUM] = False
     if combo_index < 3:
-      size_restriction.append(EveDb.WHSIZE_L)
+      size_restriction[WormholeSize.LARGE] = False
     if combo_index < 4:
-      size_restriction.append(EveDb.WHSIZE_XL)
+      size_restriction[WormholeSize.XLARGE] = False
 
     return size_restriction
 
-  def get_restrictions_age(self):
-    age_threshold = 0
+  def get_restrictions_age(self) -> float:
+    age_threshold = float('inf')
 
     if self.checkBox_ignore_old.isChecked():
       age_threshold = self.doubleSpinBox_hours.value()
 
     return age_threshold
 
-  def get_restrictions_security(self):
-    security_prio = []
+  def get_restrictions_security(self) -> Dict[SpaceType, int]:
+    security_prio = {
+      SpaceType.HS: 1,
+      SpaceType.LS: 1,
+      SpaceType.NS: 1,
+      SpaceType.WH: 1,
+    }
 
     if self.checkBox_security_enabled.isChecked():
-      security_prio = [
-        self.spinBox_prio_hs.value(),
-        self.spinBox_prio_ls.value(),
-        self.spinBox_prio_ns.value(),
-        self.spinBox_prio_wh.value(),
-      ]
+      security_prio[SpaceType.HS] = self.spinBox_prio_hs.value()
+      security_prio[SpaceType.LS] = self.spinBox_prio_ls.value()
+      security_prio[SpaceType.NS] = self.spinBox_prio_ns.value()
+      security_prio[SpaceType.WH] = self.spinBox_prio_wh.value()
 
     return security_prio
 
-  def get_restrictions_avoidance(self):
-    avoidance_list = []
+  def get_restrictions_avoidance(self) -> List[int]:
+    avoidance_list: List[str] = []
 
     if self.avoidance_enabled():
       avoidance_list = self.avoidance_list()
 
-    return avoidance_list
+    return [self.eve_db.name2id(x) for x in avoidance_list]
 
-  def get_restrictions(self):
+  def get_restrictions(self) -> Restrictions:
     size_restriction = self.get_restrictions_size()
     ignore_eol = self.checkBox_eol.isChecked()
     ignore_masscrit = self.checkBox_masscrit.isChecked()
@@ -471,19 +463,22 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     security_prio = self.get_restrictions_security()
     avoidance_list = self.get_restrictions_avoidance()
 
-    return [size_restriction, ignore_eol, ignore_masscrit, age_threshold, security_prio, avoidance_list]
+    return {
+      "size_restriction": size_restriction,
+      "ignore_eol": ignore_eol,
+      "ignore_masscrit": ignore_masscrit,
+      "age_threshold": age_threshold,
+      "security_prio": security_prio,
+      "avoidance_list": avoidance_list,
+    }
 
   def _clear_results(self):
     self.tableWidget_path.setRowCount(0)
     self.lineEdit_short_format.setText("")
 
   def find_path(self):
-    source_sys_name = self.nav.eve_db.normalize_name(
-      self.lineEdit_source.text().strip()
-    )
-    dest_sys_name = self.nav.eve_db.normalize_name(
-      self.lineEdit_destination.text().strip()
-    )
+    source_sys_name = self.nav.eve_db.normalize_name(self.lineEdit_source.text().strip())
+    dest_sys_name = self.nav.eve_db.normalize_name(self.lineEdit_destination.text().strip())
 
     if not source_sys_name or not dest_sys_name:
       self._clear_results()
@@ -496,16 +491,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
       self._path_message(error_msg, MainWindow.MSG_ERROR)
       return
 
-    # TODO Why destination can't be in avoidance list?
-    # Should refactored
-    if self.avoidance_enabled() and dest_sys_name in self.avoidance_list():
-      self._path_message("Destination in avoidance list, dummy ;)", MainWindow.MSG_ERROR)
-      self._clear_results()
-      return
-
     [route, short_format] = self.nav.route(
-      source_sys_name,
-      dest_sys_name
+      self.eve_db.name2id(source_sys_name),
+      self.eve_db.name2id(dest_sys_name),
     )
 
     if not route:
@@ -584,20 +572,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     else:
       self.label_evescout_status.setText("Eve-Scout: disabled")
     if connections > 0:
-      self._trip_message(
-        "Retrieved {} Tripwire connections!".format(connections),
-        MainWindow.MSG_OK
-      )
+      self._trip_message("Retrieved {} Tripwire connections!".format(connections), MainWindow.MSG_OK)
     elif connections == 0:
-      self._trip_message(
-        "No Tripwire connections exist!",
-        MainWindow.MSG_ERROR
-      )
+      self._trip_message("No Tripwire connections exist!", MainWindow.MSG_ERROR)
     else:
-      self._trip_message(
-        "Tripwire error. Check url/user/pass.",
-        MainWindow.MSG_ERROR
-      )
+      self._trip_message("Tripwire error. Check url/user/pass.", MainWindow.MSG_ERROR)
 
     self.pushButton_trip_get.setEnabled(True)
     self.pushButton_find_path.setEnabled(True)
@@ -617,9 +596,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
   @QtCore.Slot()
   def btn_set_dest_clicked(self):
     if self.pushButton_set_dest.isEnabled():
-      dest_sys_name = self.nav.eve_db.normalize_name(
-        self.lineEdit_set_dest.text().strip()
-      )
+      dest_sys_name = self.nav.eve_db.normalize_name(self.lineEdit_set_dest.text().strip())
       sys_id = self.nav.eve_db.name2id(dest_sys_name)
       if sys_id:
         self.pushButton_set_dest.setEnabled(False)
@@ -642,7 +619,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
       self.tripwire_user,
       self.tripwire_pass,
       self.global_proxy,
-      self.evescout_enabled
+      self.evescout_enabled,
     )
 
     if not tripwire_dialog.exec_():
@@ -756,7 +733,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         last_update,
         version,
         latest['published_at'],
-        changelog
+        changelog,
       )
     )
     version_box.addButton('Download now', QtWidgets.QMessageBox.AcceptRole)

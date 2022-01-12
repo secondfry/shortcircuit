@@ -2,7 +2,7 @@
 
 # Original credits goes to Valtyr Farshield from FarshieldTech
 # Maintainer list:
-# Rustam @Second_Fry Gubaydullin
+# Rustam @SecondFry Gubaydullin
 
 
 __appname__ = 'Short Circuit'
