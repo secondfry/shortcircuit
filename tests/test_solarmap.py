@@ -9,12 +9,6 @@ def test_dodixie_jita():
     eve_db.name2id("Dodixie"),
     eve_db.name2id("Jita"),
     {
-      "size_restriction": {
-        WormholeSize.SMALL: False,
-        WormholeSize.MEDIUM: False,
-        WormholeSize.LARGE: False,
-        WormholeSize.XLARGE: False,
-      },
       "avoidance_list": [],
       "security_prio": {
         SpaceType.HS: 1,
@@ -48,12 +42,6 @@ def test_dodixie_jita_but_avoid_tama():
     eve_db.name2id("Dodixie"),
     eve_db.name2id("Jita"),
     {
-      "size_restriction": {
-        WormholeSize.SMALL: False,
-        WormholeSize.MEDIUM: False,
-        WormholeSize.LARGE: False,
-        WormholeSize.XLARGE: False,
-      },
       "avoidance_list": [
         eve_db.name2id("Tama"),
       ],
@@ -91,12 +79,6 @@ def test_dodixie_jita_but_avoid_hs():
     eve_db.name2id("Dodixie"),
     eve_db.name2id("Jita"),
     {
-      "size_restriction": {
-        WormholeSize.SMALL: False,
-        WormholeSize.MEDIUM: False,
-        WormholeSize.LARGE: False,
-        WormholeSize.XLARGE: False,
-      },
       "avoidance_list": [],
       "security_prio": {
         SpaceType.HS: 100,
@@ -149,9 +131,9 @@ def test_wh_botane_ikuchi():
     {
       "size_restriction": {
         WormholeSize.SMALL: False,
-        WormholeSize.MEDIUM: True,
-        WormholeSize.LARGE: True,
-        WormholeSize.XLARGE: True,
+        WormholeSize.MEDIUM: False,
+        WormholeSize.LARGE: False,
+        WormholeSize.XLARGE: False,
       },
       "avoidance_list": [],
       "security_prio": {
@@ -173,7 +155,7 @@ def test_wh_botane_ikuchi():
   ]
 
 
-def test_wh_botane_ikuchi_but_not_small():
+def test_wh_botane_ikuchi_but_medium():
   eve_db = EveDb()
   map = SolarMap(eve_db)
   map.add_connection(
@@ -182,9 +164,9 @@ def test_wh_botane_ikuchi_but_not_small():
     ConnectionType.WORMHOLE,
     [
       "ABC-123",
-      None,
+      "Q063",
       "DEF-456",
-      None,
+      "K162",
       WormholeSize.SMALL,
       WormholeTimespan.CRITICAL,
       WormholeMassspan.CRITICAL,
@@ -197,9 +179,9 @@ def test_wh_botane_ikuchi_but_not_small():
     {
       "size_restriction": {
         WormholeSize.SMALL: True,
-        WormholeSize.MEDIUM: True,
-        WormholeSize.LARGE: True,
-        WormholeSize.XLARGE: True,
+        WormholeSize.MEDIUM: False,
+        WormholeSize.LARGE: False,
+        WormholeSize.XLARGE: False,
       },
       "avoidance_list": [],
       "security_prio": {
@@ -254,9 +236,9 @@ def test_wh_botane_ikuchi_but_not_eol():
     {
       "size_restriction": {
         WormholeSize.SMALL: False,
-        WormholeSize.MEDIUM: True,
-        WormholeSize.LARGE: True,
-        WormholeSize.XLARGE: True,
+        WormholeSize.MEDIUM: False,
+        WormholeSize.LARGE: False,
+        WormholeSize.XLARGE: False,
       },
       "avoidance_list": [],
       "security_prio": {
@@ -311,9 +293,9 @@ def test_wh_botane_ikuchi_but_not_crit():
     {
       "size_restriction": {
         WormholeSize.SMALL: False,
-        WormholeSize.MEDIUM: True,
-        WormholeSize.LARGE: True,
-        WormholeSize.XLARGE: True,
+        WormholeSize.MEDIUM: False,
+        WormholeSize.LARGE: False,
+        WormholeSize.XLARGE: False,
       },
       "avoidance_list": [],
       "security_prio": {
@@ -368,9 +350,9 @@ def test_wh_botane_ikuchi_but_not_stale():
     {
       "size_restriction": {
         WormholeSize.SMALL: False,
-        WormholeSize.MEDIUM: True,
-        WormholeSize.LARGE: True,
-        WormholeSize.XLARGE: True,
+        WormholeSize.MEDIUM: False,
+        WormholeSize.LARGE: False,
+        WormholeSize.XLARGE: False,
       },
       "avoidance_list": [],
       "security_prio": {
@@ -408,12 +390,6 @@ def test_jita_tama_but_avoid_tama():
     eve_db.name2id("Jita"),
     eve_db.name2id("Tama"),
     {
-      "size_restriction": {
-        WormholeSize.SMALL: False,
-        WormholeSize.MEDIUM: True,
-        WormholeSize.LARGE: True,
-        WormholeSize.XLARGE: True,
-      },
       "avoidance_list": [
         eve_db.name2id("Tama"),
       ],
