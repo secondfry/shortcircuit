@@ -2,7 +2,7 @@
 
 from typing import TYPE_CHECKING
 
-from .evedb import EveDb, WormholeMassspan, WormholeTimespan
+from .evedb import EveDb, WormholeMassspan, WormholeSize, WormholeTimespan
 from .evescout import EveScout
 from .solarmap import ConnectionType, SolarMap
 from .tripwire import Tripwire
@@ -75,16 +75,15 @@ class Navigation:
 
     [wh_sig, wh_code, wh_size, wh_life, wh_mass, time_elapsed] = weight_back[1]
     # Wormhole size
-    if wh_size == 0:
+    wh_size_text = "Unknown"
+    if wh_size == WormholeSize.SMALL:
       wh_size_text = "Small"
-    elif wh_size == 1:
+    if wh_size == WormholeSize.MEDIUM:
       wh_size_text = "Medium"
-    elif wh_size == 2:
+    if wh_size == WormholeSize.LARGE:
       wh_size_text = "Large"
-    elif wh_size == 3:
+    elif wh_size == WormholeSize.XLARGE:
       wh_size_text = "X-large"
-    else:
-      wh_size_text = "Unknown"
 
     # Wormhole life
     wh_life_text = "Timespan unknown"
