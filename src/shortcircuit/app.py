@@ -72,7 +72,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
   MSG_INFO = 0
 
   @property
-  def route_source(self):
+  def route_source(self) -> str:
     text_input = self.lineEdit_source.text().strip()
     eve_db = EveDb()
     ret = eve_db.normalize_name(text_input)
@@ -758,3 +758,7 @@ def run():
   form = MainWindow()
   form.show()
   appl.exec_()
+
+
+if __name__ == "__main__":
+  run()

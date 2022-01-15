@@ -4,7 +4,7 @@ import csv
 import sys
 from enum import Enum
 from os import path
-from typing import Dict, List, TypedDict
+from typing import Dict, List, TypedDict, Union
 
 from .logger import Logger
 from .utility.singleton import Singleton
@@ -62,6 +62,18 @@ class Restrictions(TypedDict):
   age_threshold: float
   security_prio: Dict[SpaceType, float]
   avoidance_list: List[int]
+
+
+SystemDescription = TypedDict(
+  'SystemDescription', {
+    'region_id': int,
+    'id': int,
+    'name': str,
+    'class': str,
+    'security': float,
+    'flags': Dict[str, bool]
+  }
+)
 
 
 class EveDb(metaclass=Singleton):
@@ -200,7 +212,7 @@ class EveDb(metaclass=Singleton):
     filepath_statics = path.join('database', 'statics.csv')
 
     self.gates = [[int(rows[0]), int(rows[1])] for rows in get_dict_from_csv_qfile(filepath_gates)]
-    self.system_desc = {
+    self.system_desc: Dict[int, SystemDescription] = {
       int(rows[1]): {
         'region_id': int(rows[0]),
         'id': int(rows[1]),
@@ -251,31 +263,30 @@ class EveDb(metaclass=Singleton):
   def system_name_list(self):
     return [x['name'] for x in self.system_desc.values()]
 
-  # TODO properly type this
-  def get_system_dict_pair_by_partial_name(self, part):
+  def get_system_dict_pair_by_partial_name(self, part: str):
     if not part:
-      return [None, None]
+      return (None, None)
 
-    ret = [None, None]
+    ret = (None, None)
     matches = 0
     part_upper = part.upper()
 
     for sid, system in self.system_desc.items():
       name_upper = system['name'].upper()
       if name_upper == part_upper:
-        return [sid, system]
+        return (sid, system)
       if name_upper.startswith(part_upper):
-        ret = [sid, system]
+        ret = (sid, system)
         matches = matches + 1
 
     if matches > 1:
-      return [None, None]
+      return (None, None)
 
     return ret
 
   # TODO properly type this
-  def normalize_name(self, name):
-    [_, system] = self.get_system_dict_pair_by_partial_name(name)
+  def normalize_name(self, name) -> Union[None, str]:
+    _, system = self.get_system_dict_pair_by_partial_name(name)
 
     if system is None:
       return None
