@@ -1,8 +1,8 @@
 # navigation.py
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 
-from .evedb import EveDb, WormholeMassspan, WormholeSize, WormholeTimespan
+from .evedb import EveDb, SystemDescription, WormholeMassspan, WormholeSize, WormholeTimespan
 from .evescout import EveScout
 from .solarmap import ConnectionType, SolarMap
 from .tripwire import Tripwire
@@ -110,7 +110,7 @@ class Navigation:
     path = self.solar_map.shortest_path(source, destination, self.app_obj.get_restrictions())
 
     # Construct route
-    route = []
+    route: List[SystemDescription] = []
     for idx, x in enumerate(path):
       if idx == len(path) - 1:
         weight = None
@@ -128,7 +128,7 @@ class Navigation:
       route.append(route_step)
 
     if not route:
-      return [[], 'Path is not found']
+      return (route, 'Path is not found')
 
     # Construct short format
     short_format = list()
@@ -174,7 +174,7 @@ class Navigation:
 
     short_format = 'Short Circuit: `{}`'.format(' '.join(short_format))
 
-    return [route, short_format]
+    return (route, short_format)
 
 
 # TODO move this augment_map somewhere
