@@ -110,8 +110,11 @@ class Farmer(QtCore.QObject):
     self.load_world()
 
   def process(self):
-    import debugpy
-    debugpy.debug_this_thread()
+    try:
+      import debugpy
+      debugpy.debug_this_thread()
+    except ConnectionRefusedError:
+      pass
 
     Logger.info('Started Farmer processing...')
     self.load_world()
