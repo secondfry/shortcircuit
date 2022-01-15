@@ -29,7 +29,7 @@ def get_dict_from_csv_qfile(file_path: str):
   return reader
 
 
-class WormholeSize(Enum):
+class WormholeSize(int, Enum):
   UNKNOWN = 0
   SMALL = 1
   MEDIUM = 2
@@ -37,18 +37,18 @@ class WormholeSize(Enum):
   XLARGE = 4
 
 
-class WormholeTimespan(Enum):
+class WormholeTimespan(int, Enum):
   STABLE = 1
   CRITICAL = 2
 
 
-class WormholeMassspan(Enum):
+class WormholeMassspan(int, Enum):
   STABLE = 1
   DESTAB = 2
   CRITICAL = 3
 
 
-class SpaceType(Enum):
+class SpaceType(int, Enum):
   HS = 1,
   LS = 2,
   NS = 3,

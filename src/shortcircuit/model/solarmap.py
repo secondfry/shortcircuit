@@ -10,7 +10,7 @@ from typing_extensions import Self
 from .evedb import (EveDb, Restrictions, SpaceType, WormholeSize, WormholeMassspan, WormholeTimespan)
 
 
-class ConnectionType(Enum):
+class ConnectionType(int, Enum):
   GATE = 1
   WORMHOLE = 2
 
