@@ -10,6 +10,7 @@ yapf = "*"
 pytest = "*"
 pipenv-setup = "*"
 tox = "*"
+debugpy = "*"
 
 [packages]
 requests = {extras = ["socks"], version = "*"}
