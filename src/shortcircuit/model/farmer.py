@@ -2,13 +2,16 @@
 
 import json
 from datetime import datetime, timedelta
-from dateutil import parser, relativedelta
-from dateutil.tz import tzutc, tzlocal
-from PySide2 import QtCore
 from time import sleep
+from typing import Dict, List, TypedDict
 
+from dateutil import parser, relativedelta
+from dateutil.tz import tzutc
+from PySide2 import QtCore
+from shortcircuit.model.navigation import Navigation
+
+from .evedb import EveDb, SystemDescription
 from .logger import Logger
-from .evedb import EveDb
 
 
 # https://gist.github.com/wladston/5640961
@@ -46,6 +49,29 @@ def humanize_time(time):
   return 'just now'
 
 
+class FarmerComplexes(TypedDict):
+  all: int
+  named: int
+  data: int
+  ghost_site: int
+  sleeper_cache: int
+  relic: int
+  sansha_relic: int
+
+
+class FarmerSystem(TypedDict):
+  complexes: FarmerComplexes
+  signatures: Dict
+  system_id: int
+  system_name: str
+  timestamp: str
+
+  accessable: bool
+  route_list: List[SystemDescription]
+  route_str: str
+  route_jumps: int
+
+
 class Farmer(QtCore.QObject):
   """
   Farmer handler
@@ -67,7 +93,7 @@ class Farmer(QtCore.QObject):
   def app_obj(self):
     return self.navigation_obj.app_obj
 
-  def __init__(self, navigation_obj, parent=None):
+  def __init__(self, navigation_obj: Navigation, parent=None):
     super(Farmer, self).__init__(parent)
 
     # DI Navigation
@@ -80,21 +106,24 @@ class Farmer(QtCore.QObject):
     self.filename_world = 'world.json'
     self.filename_report = 'report.txt'
     self.eve_db = EveDb()
-    self.world = {
-      'data': {},
-      'timestamp': datetime.now(tzutc()).strftime('%Y-%m-%d %H:%M:%SZ'),
-      'count': 0
-    }
+    self.world = {'data': {}, 'timestamp': datetime.now(tzutc()).strftime('%Y-%m-%d %H:%M:%SZ'), 'count': 0}
     self.load_world()
 
   def process(self):
+    import debugpy
+    debugpy.debug_this_thread()
+
+    Logger.info('Started Farmer processing...')
     self.load_world()
     self.check_process_all_chains_into_world()
     self.filter_world()
+    self.save_world()
     self.generate_report()
     self.finished.emit()
 
   def load_world(self):
+    Logger.info('Loading world...')
+
     try:
       file = open(self.filename_world, 'r')
     except IOError as e:
@@ -127,6 +156,8 @@ class Farmer(QtCore.QObject):
     for sid, data in world['data'].items():
       self.world['data'][int(sid)] = data
 
+    Logger.info('World loaded!')
+
   def save_world(self):
     with open(self.filename_world, 'w') as file:
       json.dump(self.world, file, indent=2, sort_keys=True)
@@ -135,7 +166,9 @@ class Farmer(QtCore.QObject):
     self.world['timestamp'] = datetime.now(tzutc()).strftime('%Y-%m-%d %H:%M:%SZ')
 
   def check_process_all_chains_into_world(self, data=None):
-    if self.world['count'] == 0:
+    Logger.info('Checking if processing needed...')
+
+    if not self.world['count']:
       self.process_all_chains_into_world(data)
       return
 
@@ -167,7 +200,7 @@ class Farmer(QtCore.QObject):
         continue
 
       if system_id not in self.world['data']:
-        system = {
+        system: FarmerSystem = {
           'complexes': {
             'all': 0,
             'named': 0,
@@ -182,7 +215,6 @@ class Farmer(QtCore.QObject):
           'system_name': self.eve_db.id2name(system_id),
           'timestamp': (datetime.now(tzutc()) - timedelta(days=14)).strftime('%Y-%m-%d %H:%M:%SZ')
         }
-        system = self.check_route_to(system)
       else:
         system = self.world['data'][system_id]
 
@@ -226,6 +258,8 @@ class Farmer(QtCore.QObject):
     self.save_world()
 
   def process_all_chains_into_world(self, data=None):
+    Logger.info('Processing chains...')
+
     if not data:
       data = self.tripwire_obj.chain
 
@@ -261,8 +295,12 @@ class Farmer(QtCore.QObject):
     self.update_world_timestamp()
     self.save_world()
 
-  def check_route_to(self, system):
-    [route_list, route_str] = self.navigation_obj.route(self.app_obj.route_source, system['system_name'])
+    Logger.info('Processing complete!')
+
+  def check_route_to(self, system: FarmerSystem):
+    route_list, route_str = self.navigation_obj.route(
+      self.eve_db.name2id(self.app_obj.route_source), system['system_id']
+    )
     accessable = True
     route_jumps = len(route_list)
     if route_jumps == 0:
@@ -276,16 +314,17 @@ class Farmer(QtCore.QObject):
     return system
 
   def filter_world(self):
+    Logger.info('Filterting start...')
+
     self.world_accessable = {}
     for system_id, system in self.world['data'].items():
-      if not system['accessable']:
-        continue
-
       system = self.check_route_to(system)
       if not system['accessable']:
         continue
 
       self.world_accessable[system_id] = system
+
+    Logger.info('Filterting finished!')
 
   def generate_report(self):
     with open(self.filename_report, 'w') as f:
@@ -342,13 +381,9 @@ class Farmer(QtCore.QObject):
       system['complexes']['data'],
       system['complexes']['ghost_site'],
       system['complexes']['relic'],
-      system['complexes']['sansha_relic']
+      system['complexes']['sansha_relic'],
     )
-    ret = '{}\nRoute: [J {}] {}'.format(
-      ret,
-      system['route_jumps'],
-      system['route_str']
-    )
+    ret = '{}\nRoute: [J {}] {}'.format(ret, system['route_jumps'], system['route_str'])
     for [sig_id, signature] in sorted(list(system['signatures'].items()), key=lambda kv: str(kv[1]['name'])):
       ret = '{}\n -> [T {}][RT {:>13}][S {}] {} # {}'.format(
         ret,
@@ -356,6 +391,6 @@ class Farmer(QtCore.QObject):
         signature['_relative_time'],
         signature['signatureID'],
         signature['_type'],
-        signature['name']
+        signature['name'],
       )
     return ret
