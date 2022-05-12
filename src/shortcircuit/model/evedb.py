@@ -8,14 +8,11 @@ from typing import Dict, List, TypedDict, Union
 
 from importlib_resources import files
 
-from .logger import Logger
 from .utility.singleton import Singleton
 
 
 def get_dict_from_csv(filename: str):
-  file = files('resources.database').joinpath(filename)
-  Logger.info(file.name)
-
+  file = files('shortcircuit.resources.database').joinpath(filename)
   data = file.read_text()
   reader = csv.reader(StringIO(data), delimiter=';')
 
