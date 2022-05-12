@@ -6,5 +6,4 @@ python -O -m PyInstaller \
     --icon src/shortcircuit/resources/images/app_icon.icns \
     --name shortcircuit src/main.py \
     --noupx \
-    --osx-bundle-identifier ru.secondfry.shortcircuit \
-    --target-architecture universal2
+    --osx-bundle-identifier ru.secondfry.shortcircuit
