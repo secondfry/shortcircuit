@@ -1,12 +1,12 @@
 # evedb.py
 
 import csv
-import sys
 from enum import Enum
+from io import StringIO
 from os import path
 from typing import Dict, List, TypedDict, Union
 
-from importlib.resources import files
+from importlib_resources import files
 
 from .logger import Logger
 from .utility.singleton import Singleton
@@ -17,7 +17,7 @@ def get_dict_from_csv(filename: str):
   Logger.info(file.name)
 
   data = file.read_text()
-  reader = csv.reader(data, delimiter=';')
+  reader = csv.reader(StringIO(data), delimiter=';')
 
   return reader
 

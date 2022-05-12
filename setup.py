@@ -7,6 +7,7 @@ setup(
         "certifi==2021.10.8",
         "charset-normalizer==2.0.10; python_version >= '3'",
         "idna==3.3; python_version >= '3'",
+        "importlib-resources==5.7.1",
         "pyside2==5.15.2",
         "pysocks==1.7.1",
         "python-dateutil==2.8.2",

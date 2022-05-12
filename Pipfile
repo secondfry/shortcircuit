@@ -18,6 +18,7 @@ semver = "*"
 python-dateutil = "*"
 pyside2 = "*"
 typing-extensions = "*"
+importlib-resources = "*"
 
 [requires]
 python_version = "3.8"
