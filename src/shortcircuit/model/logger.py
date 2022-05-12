@@ -1,11 +1,14 @@
 # logger.py
 
 import logging
+import os
 import sys
 from logging.handlers import RotatingFileHandler
 
+from appdirs import AppDirs
 from PySide2 import QtCore
 
+from shortcircuit import __appslug__, __version__
 from .utility.singleton import Singleton
 
 
@@ -15,7 +18,11 @@ class Logger(metaclass=Singleton):
     root_logger = logging.getLogger()
     root_logger.setLevel(logging.DEBUG)
 
-    file_handler = RotatingFileHandler('shortcircuit.log', maxBytes=1024*1024, backupCount=2)
+    app_dirs = AppDirs(__appslug__, "secondfry", version=__version__)
+    if not os.path.isdir(app_dirs.user_log_dir):
+      os.makedirs(app_dirs.user_log_dir)
+    log_file = os.path.join(app_dirs.user_log_dir, 'shortcircuit.log')
+    file_handler = RotatingFileHandler(log_file, maxBytes=1024*1024, backupCount=7)
     file_handler.setFormatter(log_formatter)
     file_handler.setLevel(logging.DEBUG)
     root_logger.addHandler(file_handler)

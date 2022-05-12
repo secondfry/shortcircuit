@@ -4,6 +4,7 @@ from glob import glob
 
 setup(
     install_requires=[
+        "appdirs==1.4.4",
         "certifi==2021.10.8",
         "charset-normalizer==2.0.10; python_version >= '3'",
         "idna==3.3; python_version >= '3'",

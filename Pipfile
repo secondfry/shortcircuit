@@ -19,6 +19,7 @@ python-dateutil = "*"
 pyside2 = "*"
 typing-extensions = "*"
 importlib-resources = "*"
+appdirs = "*"
 
 [requires]
 python_version = "3.8"

@@ -8,9 +8,7 @@ from typing import Dict, List
 
 from PySide2 import QtCore, QtGui, QtWidgets
 
-from . import __appname__
-from . import __date__ as last_update
-from . import __version__
+from . import __appname__, __date__ as last_update, __version__
 from .model.esi_processor import ESIProcessor
 from .model.evedb import EveDb, Restrictions, SpaceType, WormholeSize
 from .model.logger import Logger
