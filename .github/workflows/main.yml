@@ -60,7 +60,7 @@ jobs:
 
       - name: Build [macos-latest]
         if: ${{ matrix.os == 'macos-latest' }}
-        run: python -m pipenv run build_mac_installer.sh
+        run: python -m pipenv run ./build_mac_installer.sh
 
       - name: Upload a Build Artifact [macos-latest]
         uses: actions/upload-artifact@v3
