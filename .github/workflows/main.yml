@@ -66,5 +66,5 @@ jobs:
         uses: actions/upload-artifact@v3
         if: ${{ matrix.os == 'macos-latest' }}
         with:
-          name: shortcircuit.app
-          path: ./dist/shortcircuit.app
+          name: shortcircuit.app.tar.gz
+          path: ./dist/shortcircuit.app.tar.gz
