@@ -10,25 +10,30 @@ on:
 jobs:
   build:
     name: Build
-    runs-on: windows-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, macos-latest]
     steps:
       - name: Setup Python
-        uses: actions/setup-python@v2.2.2
+        uses: actions/setup-python@v3
         with:
           python-version: 3.8
           architecture: x64
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
-      - name: Download UPX
+      - name: Download UPX [windows-latest]
         uses: i3h/download-release-asset@v1.3.2
+        if: ${{ matrix.os == 'windows-latest' }}
         with:
           owner: upx
           repo: upx
           tag: v3.96
           file: upx-3.96-win64.zip
 
-      - name: Extract UPX
+      - name: Extract UPX [windows-latest]
+        if: ${{ matrix.os == 'windows-latest' }}
         run: |
           7z x upx-3.96-win64.zip
           copy upx-3.96-win64\upx.exe upx.exe
@@ -42,10 +47,24 @@ jobs:
       - name: Test
         run: python -m pipenv run tox
 
-      - name: Build
+      - name: Build [windows-latest]
+        if: ${{ matrix.os == 'windows-latest' }}
         run: python -m pipenv run build_win_installer.bat
 
-      - name: Upload a Build Artifact
-        uses: actions/upload-artifact@v2
+      - name: Upload a Build Artifact [windows-latest]
+        uses: actions/upload-artifact@v3
+        if: ${{ matrix.os == 'windows-latest' }}
         with:
+          name: shortcircuit.exe
           path: ./dist/shortcircuit.exe
+
+      - name: Build [macos-latest]
+        if: ${{ matrix.os == 'macos-latest' }}
+        run: python -m pipenv run build_mac_installer.sh
+
+      - name: Upload a Build Artifact [macos-latest]
+        uses: actions/upload-artifact@v3
+        if: ${{ matrix.os == 'macos-latest' }}
+        with:
+          name: shortcircuit.app
+          path: ./dist/shortcircuit.app
