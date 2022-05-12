@@ -180,7 +180,9 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+
 ### Custom
 .idea
 src/shortcircuit/resources/database/universeDataDx.db
 shortcircuit.log*
+.DS_Store
