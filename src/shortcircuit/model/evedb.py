@@ -6,25 +6,18 @@ from enum import Enum
 from os import path
 from typing import Dict, List, TypedDict, Union
 
+from importlib.resources import files
+
 from .logger import Logger
 from .utility.singleton import Singleton
 
 
-# https://pyinstaller.readthedocs.io/en/stable/runtime-information.html
-def resource_path(relative_path):
-  """ Get absolute path to resource, works for dev and for PyInstaller """
-  current = path.dirname(__file__)
-  resources = path.abspath(path.join(current, '../../../resources'))
-  base_path = getattr(sys, '_MEIPASS', resources)
+def get_dict_from_csv(filename: str):
+  file = files('resources.database').joinpath(filename)
+  Logger.info(file.name)
 
-  return path.join(base_path, relative_path)
-
-
-def get_dict_from_csv_qfile(file_path: str):
-  result_path = resource_path(file_path)
-  Logger.info(result_path)
-  f = open(result_path, 'r', encoding='utf-8')
-  reader = csv.reader(f, delimiter=';')
+  data = file.read_text()
+  reader = csv.reader(data, delimiter=';')
 
   return reader
 
@@ -207,11 +200,11 @@ class EveDb(metaclass=Singleton):
   TRIGLAVIAN_REGION_ID: int = 10000070
 
   def __init__(self):
-    filepath_gates = path.join('database', 'system_jumps.csv')
-    filepath_descriptions = path.join('database', 'system_description.csv')
-    filepath_statics = path.join('database', 'statics.csv')
+    filename_gates = 'system_jumps.csv'
+    filename_descriptions = 'system_description.csv'
+    filename_statics = 'statics.csv'
 
-    self.gates = [[int(rows[0]), int(rows[1])] for rows in get_dict_from_csv_qfile(filepath_gates)]
+    self.gates = [[int(rows[0]), int(rows[1])] for rows in get_dict_from_csv(filename_gates)]
     self.system_desc: Dict[int, SystemDescription] = {
       int(rows[1]): {
         'region_id': int(rows[0]),
@@ -223,11 +216,11 @@ class EveDb(metaclass=Singleton):
           'triglavian': self.is_triglavian(int(rows[0]))
         }
       }
-      for rows in get_dict_from_csv_qfile(filepath_descriptions)
+      for rows in get_dict_from_csv(filename_descriptions)
     }
     self.wh_codes: Dict[str, WormholeSize] = {
       rows[0]: WormholeSize(int(rows[1]))
-      for rows in get_dict_from_csv_qfile(filepath_statics)
+      for rows in get_dict_from_csv(filename_statics)
     }
 
   def is_triglavian(self, region_id: int):

@@ -182,5 +182,5 @@ $RECYCLE.BIN/
 *.lnk
 ### Custom
 .idea
-resources/database/universeDataDx.db
+src/resources/database/universeDataDx.db
 shortcircuit.log*
