@@ -8,7 +8,7 @@ a = Analysis(
     ['src/main.py'],
     pathex=[],
     binaries=[],
-    datas=[ ('src/shortcircuit/resources', 'shortcircuit/resources') ],
+    datas=[('src/database', '.')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
@@ -37,7 +37,7 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon='src/shortcircuit/resources/images/app_icon.icns',
+    icon='resources/images/app_icon.icns',
 )
 coll = COLLECT(
     exe,
@@ -52,6 +52,6 @@ coll = COLLECT(
 app = BUNDLE(
     coll,
     name='shortcircuit.app',
-    icon='src/shortcircuit/resources/images/app_icon.icns',
+    icon='resources/images/app_icon.icns',
     bundle_identifier='ru.secondfry.shortcircuit',
 )

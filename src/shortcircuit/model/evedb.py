@@ -12,7 +12,7 @@ from .utility.singleton import Singleton
 
 
 def get_dict_from_csv(filename: str):
-  file = files('shortcircuit.resources.database').joinpath(filename)
+  file = files('database').joinpath(filename)
   data = file.read_text()
   reader = csv.reader(StringIO(data), delimiter=';')
 

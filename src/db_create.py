@@ -13,7 +13,7 @@ def main():
   Place "universeDataDx.db" in the database resource directory for this script to run
   :return:
   """
-  db_dir = os.path.join("shortcircuit", "resources", "database")
+  db_dir = os.path.join("database")
   eve_db_file = os.path.join(db_dir, "universeDataDx.db")
   system_jumps_file = os.path.join(db_dir, "system_jumps.csv")
   system_description_file = os.path.join(db_dir, "system_description.csv")

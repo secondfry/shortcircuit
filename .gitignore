@@ -184,6 +184,6 @@ $RECYCLE.BIN/
 
 ### Custom
 .idea
-src/shortcircuit/resources/database/universeDataDx.db
+src/database/universeDataDx.db
 shortcircuit.log*
 .DS_Store

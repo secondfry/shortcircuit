@@ -3,7 +3,9 @@
 python -O -m PyInstaller \
     --clean \
     --windowed \
-    --icon src/shortcircuit/resources/images/app_icon.icns \
+    --icon resources/images/app_icon.icns \
+    --add-data 'src/database:.' \
+    --noconfirm \
     --name shortcircuit src/main.py \
     --noupx \
     --osx-bundle-identifier ru.secondfry.shortcircuit
