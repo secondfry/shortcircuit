@@ -2,19 +2,20 @@
 
 import csv
 from enum import Enum
-from io import StringIO
 from os import path
 from typing import Dict, List, TypedDict, Union
 
-from importlib_resources import files
-
+from .logger import Logger
 from .utility.singleton import Singleton
 
 
 def get_dict_from_csv(filename: str):
-  file = files('database').joinpath(filename)
-  data = file.read_text()
-  reader = csv.reader(StringIO(data), delimiter=';')
+  bundle_dir = path.abspath(path.dirname(__file__))
+  filepath = path.join(bundle_dir, '..', '..', 'database', filename)
+  Logger.info(filepath)
+
+  f = open(filepath, 'r', encoding='utf-8')
+  reader = csv.reader(f, delimiter=';')
 
   return reader
 
