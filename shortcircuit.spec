@@ -8,7 +8,7 @@ a = Analysis(
     ['src/main.py'],
     pathex=[],
     binaries=[],
-    datas=[],
+    datas=[ ('src/shortcircuit/resources', 'shortcircuit/resources') ],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
