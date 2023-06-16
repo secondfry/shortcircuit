@@ -146,16 +146,16 @@ class Tripwire:
         if wormhole['type'] == 'GATE':
           continue
 
-        if wormhole['initialID'] not in self.chain['signatures']:
+        if str(wormhole['initialID']) not in self.chain['signatures']:
           continue
 
-        if wormhole['secondaryID'] not in self.chain['signatures']:
+        if str(wormhole['secondaryID']) not in self.chain['signatures']:
           continue
 
         parent = 'initialID' if not wormhole['parent'] else wormhole['parent'] + 'ID'
         sibling = 'secondaryID' if parent == 'initialID' else 'initialID'
-        signature_in = self.chain['signatures'][wormhole[parent]]
-        signature_out = self.chain['signatures'][wormhole[sibling]]
+        signature_in = self.chain['signatures'][str(wormhole[parent])]
+        signature_out = self.chain['signatures'][str(wormhole[sibling])]
 
         system_from = convert_to_int(signature_in['systemID'])
         system_to = convert_to_int(signature_out['systemID'])
