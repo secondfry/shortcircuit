@@ -137,6 +137,11 @@ class Tripwire:
     if not self.chain:
       return -1
 
+    # NOTE(secondfry): Tripwire API for some weird reason returns [] if there
+    # are no connections.
+    if isinstance(self.chain['wormholes'], list):
+      return 0
+
     # We got some sort of response so at least we're logged in
     connections = 0
 
