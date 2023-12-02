@@ -34,6 +34,7 @@ class WormholeTimespan(int, Enum):
 
 
 class WormholeMassspan(int, Enum):
+  UNKNOWN = 0
   STABLE = 1
   DESTAB = 2
   CRITICAL = 3

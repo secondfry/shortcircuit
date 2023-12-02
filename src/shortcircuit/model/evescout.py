@@ -16,7 +16,7 @@ class EveScout:
   """
   TIMEOUT = 2
 
-  def __init__(self, url: str = 'https://www.eve-scout.com/api/wormholes'):
+  def __init__(self, url: str = 'https://api.eve-scout.com/v2/public/signatures'):
     self.eve_db = EveDb()
     self.evescout_url = url
 
@@ -41,28 +41,22 @@ class EveScout:
     # we get some sort of response so at least something is working
     connections = 0
     json_response = result.json()
-    for row in json_response:
+    for connection in json_response:
       connections += 1
+
       # Retrieve signature meta data
-      source = row['sourceSolarSystem']['id']
-      dest = row['destinationSolarSystem']['id']
-      sig_source = row['signatureId']
-      code_source = row['sourceWormholeType']['name']
-      sig_dest = row['wormholeDestinationSignatureId']
-      code_dest = row['destinationWormholeType']['name']
-      if row['wormholeEol'] == 'stable':
-        wh_life = WormholeTimespan.STABLE
-      else:
-        wh_life = WormholeTimespan.CRITICAL
-      if row['wormholeEol'] == 'stable':
-        wh_mass = WormholeMassspan.STABLE
-      elif row['wormholeEol'] == 'destab':
-        wh_mass = WormholeMassspan.DESTAB
-      else:
-        wh_mass = WormholeMassspan.CRITICAL
+      source = connection['in_system_id']
+      sig_source = connection['in_signature']
+      code_source = 'K162' if connection['wh_exits_outward'] else connection['wh_type']
+      dest = connection['out_system_id']
+      sig_dest = connection['out_signature']
+      code_dest = connection['wh_type'] if connection['wh_exits_outward'] else 'K162'
+
+      wh_life = WormholeTimespan.STABLE if connection['remaining_hours'] >= 4 else WormholeTimespan.CRITICAL
+      wh_mass = WormholeMassspan.UNKNOWN
 
       # Compute time elapsed from this moment to when the signature was updated
-      last_modified = datetime.strptime(row['updatedAt'][:-5], "%Y-%m-%dT%H:%M:%S")
+      last_modified = datetime.strptime(connection['updated_at'], "%Y-%m-%dT%H:%M:%S.000Z")
       delta = datetime.utcnow() - last_modified
       time_elapsed = round(delta.total_seconds() / 3600.0, 1)
 
