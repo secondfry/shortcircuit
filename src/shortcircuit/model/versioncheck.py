@@ -1,5 +1,6 @@
 # versioncheck.py
 import json
+import os
 from datetime import datetime, timedelta
 
 import requests
@@ -24,6 +25,10 @@ class VersionCheck(QtCore.QObject):
     """
     Emits latest version string
     """
+
+    if 'DEBUG' in os.environ:
+      import debugpy
+      debugpy.debug_this_thread()
 
     try:
       response = requests.get(

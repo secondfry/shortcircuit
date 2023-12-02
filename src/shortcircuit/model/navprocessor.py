@@ -1,4 +1,5 @@
 # navprocessor.py
+import os
 
 from PySide2 import QtCore
 
@@ -18,6 +19,10 @@ class NavProcessor(QtCore.QObject):
     self.nav = nav
 
   def process(self):
+    if 'DEBUG' in os.environ:
+      import debugpy
+      debugpy.debug_this_thread()
+
     solar_map = self.nav.reset_chain()
     connections = self.nav.tripwire_augment(solar_map)
     evescout_connections = 0
