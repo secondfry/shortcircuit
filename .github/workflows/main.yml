@@ -24,7 +24,7 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Download UPX [windows-latest]
-        uses: i3h/download-release-asset@v1.3.2
+        uses: i3h/download-release-asset@v1
         if: ${{ matrix.os == 'windows-latest' }}
         with:
           owner: upx
