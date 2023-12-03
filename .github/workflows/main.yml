@@ -58,6 +58,10 @@ jobs:
           name: shortcircuit.exe
           path: ./dist/shortcircuit.exe
 
+      - name: Additional dependencies [macos-latest]
+        if: ${{ matrix.os == 'macos-latest' }}
+        run: python -m pipenv install macholib
+
       - name: Build [macos-latest]
         if: ${{ matrix.os == 'macos-latest' }}
         run: python -m pipenv run ./build_mac_installer.sh
