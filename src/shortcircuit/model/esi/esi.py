@@ -57,7 +57,7 @@ class ESI:
       )
       server_thread = threading.Thread(
         target=self.httpd.serve,
-        args=(self.handle_login),
+        args=(self.handle_login, ),
       )
       server_thread.setDaemon(True)
       server_thread.start()
