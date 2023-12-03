@@ -8,8 +8,6 @@ pyinstaller = "*"
 pylint = "*"
 yapf = "*"
 pytest = "*"
-pipenv-setup = "*"
-tox = "*"
 debugpy = "*"
 
 [packages]
