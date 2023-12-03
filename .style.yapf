@@ -1,0 +1,80 @@
+[style]
+# Do not split consecutive brackets. Only relevant when
+# dedent_closing_brackets is set. For example:
+#
+#    call_func_that_takes_a_dict(
+#        {
+#            'key1': 'value1',
+#            'key2': 'value2',
+#        }
+#    )
+#
+# would reformat to:
+#
+#    call_func_that_takes_a_dict({
+#        'key1': 'value1',
+#        'key2': 'value2',
+#    })
+coalesce_brackets=True
+
+# The column limit.
+column_limit=80
+
+# Indent width used for line continuations.
+continuation_indent_width=2
+
+# Put closing brackets on a separate line, dedented, if the bracketed
+# expression can't fit in a single line. Applies to all kinds of brackets,
+# including function definitions and calls. For example:
+#
+#   config = {
+#       'key1': 'value1',
+#       'key2': 'value2',
+#   }        # <--- this bracket is dedented and on a separate line
+#
+#   time_series = self.remote_client.query_entity_counters(
+#       entity='dev3246.region1',
+#       key='dns.query_latency_tcp',
+#       transform=Transformation.AVERAGE(window=timedelta(seconds=60)),
+#       start_ts=now()-timedelta(days=3),
+#       end_ts=now(),
+#   )        # <--- this bracket is dedented and on a separate line
+dedent_closing_brackets=True
+
+# The number of columns to use for indentation.
+indent_width=2
+
+# Split before arguments.
+split_all_comma_separated_values=False
+
+# Split before arguments, but do not split all subexpressions recursively
+# (unless needed).
+split_all_top_level_comma_separated_values=True
+
+# Split before arguments if the argument list is terminated by a
+# comma.
+split_arguments_when_comma_terminated=True
+
+# Split after the opening paren which surrounds an expression if it doesn't
+# fit on a single line.
+split_before_expression_after_opening_paren=True
+
+# If an argument / parameter list is going to be split, then split before
+# the first argument.
+split_before_first_argument=True
+
+# Set to True to split list comprehensions and generators that have
+# non-trivial expressions and multiple clauses before each of these
+# clauses. For example:
+#
+#   result = [
+#       a_long_var + 100 for a_long_var in xrange(1000)
+#       if a_long_var % 10]
+#
+# would reformat to something like:
+#
+#   result = [
+#       a_long_var + 100
+#       for a_long_var in xrange(1000)
+#       if a_long_var % 10]
+split_complex_comprehension=True
