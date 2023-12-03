@@ -31,7 +31,12 @@ class Navigation:
     self.solar_map = SolarMap(self.eve_db)
     return self.solar_map
 
-  def tripwire_set_login(self, url: str = None, user: str = None, password: str = None):
+  def tripwire_set_login(
+    self,
+    url: str = None,
+    user: str = None,
+    password: str = None,
+  ):
     if not url:
       url = self.app_obj.tripwire_url
     self.tripwire_url = url
@@ -45,7 +50,11 @@ class Navigation:
     self.tripwire_password = password
 
   def tripwire_augment(self, solar_map: SolarMap):
-    self.tripwire_obj = Tripwire(self.tripwire_user, self.tripwire_password, self.tripwire_url)
+    self.tripwire_obj = Tripwire(
+      self.tripwire_user,
+      self.tripwire_password,
+      self.tripwire_url,
+    )
     connections = self.tripwire_obj.augment_map(solar_map)
     return connections
 
@@ -107,7 +116,11 @@ class Navigation:
     )
 
   def route(self, source: int, destination: int):
-    path = self.solar_map.shortest_path(source, destination, self.app_obj.get_restrictions())
+    path = self.solar_map.shortest_path(
+      source,
+      destination,
+      self.app_obj.get_restrictions(),
+    )
 
     # Construct route
     route: List[SystemDescription] = []
@@ -123,7 +136,10 @@ class Navigation:
 
       route_step = self.eve_db.system_desc[x]
       route_step['path_action'] = Navigation._get_instructions(weight)
-      route_step['path_info'] = Navigation._get_additional_info(weight, weight_back)
+      route_step['path_info'] = Navigation._get_additional_info(
+        weight,
+        weight_back,
+      )
       route_step['path_data'] = weight
       route.append(route_step)
 
@@ -150,7 +166,8 @@ class Navigation:
         short_format.extend([
           '{} [{}]'.format(
             prev_route_step['name'],
-            prev_route_step['path_data'][1][0]  # FIXME my eyes are bleeding, this gets signature from weight param
+            # FIXME my eyes are bleeding, this gets signature from weight param
+            prev_route_step['path_data'][1][0],
           ),
           '~~>'
         ])

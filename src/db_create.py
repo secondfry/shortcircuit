@@ -23,13 +23,17 @@ def main():
     cursor = sql_con.cursor()
 
     # write solar system jumps file (gate connections)
-    result = cursor.execute('SELECT fromSolarSystemID, toSolarSystemID FROM mapSolarSystemJumps')
+    result = cursor.execute(
+      'SELECT fromSolarSystemID, toSolarSystemID FROM mapSolarSystemJumps'
+    )
     with open(system_jumps_file, "w") as f_out:
       for row in result.fetchall():
         f_out.write("{};{}\n".format(row[0], row[1]))
 
     # write solar system description file (id, name, security class, security value)
-    result = cursor.execute('SELECT regionID, solarSystemID, solarSystemName, security FROM mapSolarSystems')
+    result = cursor.execute(
+      'SELECT regionID, solarSystemID, solarSystemName, security FROM mapSolarSystems'
+    )
     with open(system_description_file, "w") as f_out:
       for row in result.fetchall():
         region_id = row[0]
@@ -40,7 +44,7 @@ def main():
         # try and compute wormhole class or k-space class (HS, LS, NS)
         query = cursor.execute(
           'SELECT wormholeClassID FROM mapLocationWormholeClasses WHERE locationID=?',
-          (region_id, )
+          (region_id)
         )
         system_class = query.fetchone()
         if system_class:
@@ -48,7 +52,7 @@ def main():
         else:
           query = cursor.execute(
             'SELECT wormholeClassID FROM mapLocationWormholeClasses WHERE locationID=?',
-            (system_id, )
+            (system_id)
           )
           system_class = query.fetchone()
           if system_class:
@@ -73,7 +77,14 @@ def main():
           security_format = "0.1"
         else:
           security_format = "{:.1f}".format(security)
-        f_out.write("{};{};{};{}\n".format(system_id, system_name, system_class, security_format))
+        f_out.write(
+          "{};{};{};{}\n".format(
+            system_id,
+            system_name,
+            system_class,
+            security_format,
+          )
+        )
 
 
 if __name__ == "__main__":

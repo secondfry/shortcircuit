@@ -25,7 +25,15 @@ class TripwireDialog(QtWidgets.QDialog, Ui_TripwireDialog):
   Tripwire Configuration Window
   """
 
-  def __init__(self, trip_url, trip_user, trip_pass, proxy, evescout_enabled, parent=None):
+  def __init__(
+    self,
+    trip_url,
+    trip_user,
+    trip_pass,
+    proxy,
+    evescout_enabled,
+    parent=None,
+  ):
     super().__init__(parent)
     self.setupUi(self)
     self.lineEdit_url.setText(trip_url)
@@ -49,7 +57,13 @@ class AboutDialog(QtWidgets.QDialog, Ui_AboutDialog):
   def __init__(self, parent=None):
     super().__init__(parent)
     self.setupUi(self)
-    self.label_title.setText('{} v{} ({})'.format(__appname__, __version__, last_update))
+    self.label_title.setText(
+      '{} v{} ({})'.format(
+        __appname__,
+        __version__,
+        last_update,
+      )
+    )
     # noinspection PyUnresolvedReferences
     self.pushButton_o7.clicked.connect(self.close)
     self.label_icon.mouseReleaseEvent = AboutDialog.icon_click
@@ -57,7 +71,9 @@ class AboutDialog(QtWidgets.QDialog, Ui_AboutDialog):
   @staticmethod
   def icon_click(event):
     event.accept()
-    QtGui.QDesktopServices.openUrl(QtCore.QUrl("https://github.com/secondfry/shortcircuit"))
+    QtGui.QDesktopServices.openUrl(
+      QtCore.QUrl("https://github.com/secondfry/shortcircuit")
+    )
 
 
 class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
@@ -162,21 +178,29 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
   # noinspection PyUnresolvedReferences
   def additional_gui_setup(self):
     # Additional GUI setup
-    self.setWindowTitle('{} v{} ({})'.format(__appname__, __version__, last_update))
+    self.setWindowTitle(
+      '{} v{} ({})'.format(
+        __appname__,
+        __version__,
+        last_update,
+      )
+    )
     self.banner_image.mouseReleaseEvent = MainWindow.banner_click
     self.banner_button.mouseReleaseEvent = MainWindow.banner_click
     self._path_message("", MainWindow.MSG_OK)
     self._avoid_message("", MainWindow.MSG_OK)
     self.lineEdit_source.setFocus()
-    self.lineEdit_short_format.mousePressEvent = partial(MainWindow.short_format_click, self)
+    self.lineEdit_short_format.mousePressEvent = partial(
+      MainWindow.short_format_click, self
+    )
 
     # Auto-completion
     system_list = self.nav.eve_db.system_name_list()
     for line_edit_field in [
-      self.lineEdit_source,
-      self.lineEdit_destination,
-      self.lineEdit_avoid_name,
-      self.lineEdit_set_dest,
+        self.lineEdit_source,
+        self.lineEdit_destination,
+        self.lineEdit_avoid_name,
+        self.lineEdit_set_dest,
     ]:
       completer = QtWidgets.QCompleter(system_list, self)
       completer.setCaseSensitivity(QtCore.Qt.CaseInsensitive)
@@ -184,7 +208,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
     # Signals
     self.pushButton_eve_login.clicked.connect(self.btn_eve_login_clicked)
-    self.pushButton_player_location.clicked.connect(self.btn_player_location_clicked)
+    self.pushButton_player_location.clicked.connect(
+      self.btn_player_location_clicked
+    )
     self.pushButton_find_path.clicked.connect(self.btn_find_path_clicked)
     self.pushButton_trip_config.clicked.connect(self.btn_trip_config_clicked)
     self.pushButton_trip_get.clicked.connect(self.btn_trip_get_clicked)
@@ -194,17 +220,25 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     self.pushButton_set_dest.clicked.connect(self.btn_set_dest_clicked)
     self.pushButton_reset.clicked.connect(self.btn_reset_clicked)
     self.lineEdit_source.returnPressed.connect(self.line_edit_source_return)
-    self.lineEdit_destination.returnPressed.connect(self.line_edit_destination_return)
-    self.lineEdit_avoid_name.returnPressed.connect(self.line_edit_avoid_name_return)
+    self.lineEdit_destination.returnPressed.connect(
+      self.line_edit_destination_return
+    )
+    self.lineEdit_avoid_name.returnPressed.connect(
+      self.line_edit_avoid_name_return
+    )
     self.lineEdit_set_dest.returnPressed.connect(self.btn_set_dest_clicked)
-    self.tableWidget_path.itemSelectionChanged.connect(self.table_item_selection_changed)
+    self.tableWidget_path.itemSelectionChanged.connect(
+      self.table_item_selection_changed
+    )
 
   def migrate_settings_tripwire(self):
     Logger.info('Mirgating Tripwire dialog settings to their own category')
     tripwire_url = self.settings.value('MainWindow/tripwire_url')
     tripwire_user = self.settings.value('MainWindow/tripwire_user')
     tripwire_pass = self.settings.value('MainWindow/tripwire_pass')
-    evescout_enabled = self.settings.value('MainWindow/evescout_enable', 'false') == 'true'
+    evescout_enabled = self.settings.value(
+      'MainWindow/evescout_enable', 'false'
+    ) == 'true'
     self.settings.beginGroup('Tripwire')
     self.settings.setValue('url', tripwire_url)
     self.settings.setValue('user', tripwire_user)
@@ -219,10 +253,14 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
   def read_settings_tripwire(self):
     self.global_proxy = self.settings.value('proxy')
     self.settings.beginGroup('Tripwire')
-    self.tripwire_url = self.settings.value('url', 'https://tripwire.eve-apps.com')
+    self.tripwire_url = self.settings.value(
+      'url', 'https://tripwire.eve-apps.com'
+    )
     self.tripwire_user = self.settings.value('user')
     self.tripwire_pass = self.settings.value('pass')
-    self.evescout_enabled = self.settings.value('evescout_enabled', 'false') == 'true'
+    self.evescout_enabled = self.settings.value(
+      'evescout_enabled', 'false'
+    ) == 'true'
     self.settings.endGroup()
 
   def read_settings(self):
@@ -239,24 +277,40 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     win_state = self.settings.value("win_state")
     if win_state:
       self.restoreState(win_state)
-    for col_idx, column_width in enumerate(self.settings.value("table_widths", "110,75,75,180").split(',')):
+    for col_idx, column_width in enumerate(
+      self.settings.value("table_widths", "110,75,75,180").split(',')
+    ):
       self.tableWidget_path.setColumnWidth(col_idx, int(column_width))
 
     # Avoidance list
-    self.checkBox_avoid_enabled.setChecked(self.settings.value("avoidance_enabled", "false") == "true")
+    self.checkBox_avoid_enabled.setChecked(
+      self.settings.value("avoidance_enabled", "false") == "true"
+    )
     for sys_name in self.settings.value("avoidance_list", "").split(','):
       if sys_name != "":
         self._avoid_system_name(sys_name)
 
     # Restrictions
-    self.comboBox_size.setCurrentIndex(int(self.settings.value("restrictions_whsize", "0")))
-    self.checkBox_eol.setChecked(self.settings.value("restriction_eol", "false") == "true")
-    self.checkBox_masscrit.setChecked(self.settings.value("restriction_masscrit", "false") == "true")
-    self.checkBox_ignore_old.setChecked(self.settings.value("restriction_ignore_old", "false") == "true")
-    self.doubleSpinBox_hours.setValue(float(self.settings.value("restriction_hours", "16.0")))
+    self.comboBox_size.setCurrentIndex(
+      int(self.settings.value("restrictions_whsize", "0"))
+    )
+    self.checkBox_eol.setChecked(
+      self.settings.value("restriction_eol", "false") == "true"
+    )
+    self.checkBox_masscrit.setChecked(
+      self.settings.value("restriction_masscrit", "false") == "true"
+    )
+    self.checkBox_ignore_old.setChecked(
+      self.settings.value("restriction_ignore_old", "false") == "true"
+    )
+    self.doubleSpinBox_hours.setValue(
+      float(self.settings.value("restriction_hours", "16.0"))
+    )
 
     # Security prioritization
-    self.checkBox_security_enabled.setChecked(self.settings.value("security_enabled", "false") == "true")
+    self.checkBox_security_enabled.setChecked(
+      self.settings.value("security_enabled", "false") == "true"
+    )
     self.spinBox_prio_hs.setValue(int(self.settings.value("prio_hs", "1")))
     self.spinBox_prio_ls.setValue(int(self.settings.value("prio_ls", "1")))
     self.spinBox_prio_ns.setValue(int(self.settings.value("prio_ns", "1")))
@@ -292,19 +346,31 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     )
 
     # Avoidance list
-    self.settings.setValue("avoidance_enabled", self.checkBox_avoid_enabled.isChecked())
+    self.settings.setValue(
+      "avoidance_enabled", self.checkBox_avoid_enabled.isChecked()
+    )
     avoidance_list_string = ",".join(self.avoidance_list())
     self.settings.setValue("avoidance_list", avoidance_list_string)
 
     # Restrictions
-    self.settings.setValue("restrictions_whsize", self.comboBox_size.currentIndex())
+    self.settings.setValue(
+      "restrictions_whsize", self.comboBox_size.currentIndex()
+    )
     self.settings.setValue("restriction_eol", self.checkBox_eol.isChecked())
-    self.settings.setValue("restriction_masscrit", self.checkBox_masscrit.isChecked())
-    self.settings.setValue("restriction_ignore_old", self.checkBox_ignore_old.isChecked())
-    self.settings.setValue("restriction_hours", self.doubleSpinBox_hours.value())
+    self.settings.setValue(
+      "restriction_masscrit", self.checkBox_masscrit.isChecked()
+    )
+    self.settings.setValue(
+      "restriction_ignore_old", self.checkBox_ignore_old.isChecked()
+    )
+    self.settings.setValue(
+      "restriction_hours", self.doubleSpinBox_hours.value()
+    )
 
     # Security prioritization
-    self.settings.setValue("security_enabled", self.checkBox_security_enabled.isChecked())
+    self.settings.setValue(
+      "security_enabled", self.checkBox_security_enabled.isChecked()
+    )
     self.settings.setValue("prio_hs", self.spinBox_prio_hs.value())
     self.settings.setValue("prio_ls", self.spinBox_prio_ls.value())
     self.settings.setValue("prio_ns", self.spinBox_prio_ns.value())
@@ -380,11 +446,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
       color = self.get_system_class_color(route_step['class'])
       ui_col_id = 0
       for col_id in [
-        'name',
-        'class',
-        'security',
-        'path_action',
-        'path_info',
+          'name',
+          'class',
+          'security',
+          'path_action',
+          'path_info',
       ]:
         text = str(route_step[col_id])
         item = QtWidgets.QTableWidgetItem(text)
@@ -475,8 +541,12 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     self.lineEdit_short_format.setText("")
 
   def find_path(self):
-    source_sys_name = self.nav.eve_db.normalize_name(self.lineEdit_source.text().strip())
-    dest_sys_name = self.nav.eve_db.normalize_name(self.lineEdit_destination.text().strip())
+    source_sys_name = self.nav.eve_db.normalize_name(
+      self.lineEdit_source.text().strip()
+    )
+    dest_sys_name = self.nav.eve_db.normalize_name(
+      self.lineEdit_destination.text().strip()
+    )
 
     if not source_sys_name or not dest_sys_name:
       self._clear_results()
@@ -496,14 +566,20 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
     if not route:
       self._clear_results()
-      self._path_message("No path found between the solar systems.", MainWindow.MSG_ERROR)
+      self._path_message(
+        "No path found between the solar systems.", MainWindow.MSG_ERROR
+      )
       return
 
     route_length = len(route)
     if route_length == 1:
-      self._path_message("Set the same source and destination :P", MainWindow.MSG_OK)
+      self._path_message(
+        "Set the same source and destination :P", MainWindow.MSG_OK
+      )
     else:
-      self._path_message("Total number of jumps: {}".format(route_length - 1), MainWindow.MSG_OK)
+      self._path_message(
+        "Total number of jumps: {}".format(route_length - 1), MainWindow.MSG_OK
+      )
 
     self.add_data_to_table(route)
     self.lineEdit_short_format.setText(short_format)
@@ -519,18 +595,24 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
       return
     self.lineEdit_short_format.selectAll()
     self.lineEdit_short_format.copy()
-    self._statusbar_message("Copied travel info to clipboard!", MainWindow.MSG_INFO)
+    self._statusbar_message(
+      "Copied travel info to clipboard!", MainWindow.MSG_INFO
+    )
 
   @QtCore.Slot(str)
   def login_handler(self, char_name):
     if char_name:
-      self._statusbar_message("Welcome, {}".format(char_name), MainWindow.MSG_OK)
+      self._statusbar_message(
+        "Welcome, {}".format(char_name), MainWindow.MSG_OK
+      )
       self.pushButton_eve_login.setText("Logout")
       self.pushButton_player_location.setEnabled(True)
       self.pushButton_set_dest.setEnabled(True)
       self.eve_connected = True
     else:
-      self._statusbar_message("Error: Unable to connect with ESI", MainWindow.MSG_ERROR)
+      self._statusbar_message(
+        "Error: Unable to connect with ESI", MainWindow.MSG_ERROR
+      )
 
   @QtCore.Slot()
   def logout_handler(self):
@@ -545,13 +627,18 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     if location:
       self.lineEdit_source.setText(location)
     else:
-      self._message_box("Player destination", "Unable to get location (character not online or ESI error)")
+      self._message_box(
+        "Player destination",
+        "Unable to get location (character not online or ESI error)"
+      )
     self.pushButton_player_location.setEnabled(True)
 
   @QtCore.Slot(bool)
   def destination_handler(self, response):
     if not response:
-      self._message_box("Player destination", "ESI error when trying to set destination")
+      self._message_box(
+        "Player destination", "ESI error when trying to set destination"
+      )
     self.pushButton_set_dest.setEnabled(True)
 
   @QtCore.Slot(int)
@@ -564,17 +651,24 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
     if self.evescout_enabled:
       if evescout_connections >= 0:
-        self.label_evescout_status.setText("Eve-Scout: {} connections".format(evescout_connections))
+        self.label_evescout_status.setText(
+          "Eve-Scout: {} connections".format(evescout_connections)
+        )
       else:
         self.label_evescout_status.setText("Eve-Scout: error :(")
     else:
       self.label_evescout_status.setText("Eve-Scout: disabled")
     if connections > 0:
-      self._trip_message("Retrieved {} Tripwire connections!".format(connections), MainWindow.MSG_OK)
+      self._trip_message(
+        "Retrieved {} Tripwire connections!".format(connections),
+        MainWindow.MSG_OK
+      )
     elif connections == 0:
       self._trip_message("No Tripwire connections exist!", MainWindow.MSG_ERROR)
     else:
-      self._trip_message("Tripwire error. Check url/user/pass.", MainWindow.MSG_ERROR)
+      self._trip_message(
+        "Tripwire error. Check url/user/pass.", MainWindow.MSG_ERROR
+      )
 
     self.pushButton_trip_get.setEnabled(True)
     self.pushButton_find_path.setEnabled(True)
@@ -594,7 +688,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
   @QtCore.Slot()
   def btn_set_dest_clicked(self):
     if self.pushButton_set_dest.isEnabled():
-      dest_sys_name = self.nav.eve_db.normalize_name(self.lineEdit_set_dest.text().strip())
+      dest_sys_name = self.nav.eve_db.normalize_name(
+        self.lineEdit_set_dest.text().strip()
+      )
       sys_id = self.nav.eve_db.name2id(dest_sys_name)
       if sys_id:
         self.pushButton_set_dest.setEnabled(False)
@@ -603,7 +699,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         if self.lineEdit_set_dest.text().strip() == "":
           msg_txt = "No system name give as input"
         else:
-          msg_txt = "Invalid system name: '{}'".format(self.lineEdit_set_dest.text())
+          msg_txt = "Invalid system name: '{}'".format(
+            self.lineEdit_set_dest.text()
+          )
         self._message_box("Player destination", msg_txt)
 
   @QtCore.Slot()
@@ -663,7 +761,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     msg_box = QtWidgets.QMessageBox(self)
     msg_box.setWindowTitle("Reset chain")
     msg_box.setText("Are you sure you want to clear all Tripwire data?")
-    msg_box.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+    msg_box.setStandardButtons(
+      QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No
+    )
     msg_box.setDefaultButton(QtWidgets.QMessageBox.No)
     ret = msg_box.exec_()
 
@@ -685,7 +785,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
   def _table_style(self, red_value, green_value, blue_value):
     self.tableWidget_path.setStyleSheet(
-      "selection-color: black; selection-background-color: rgb({}, {}, {});".format(
+      "selection-color: black; selection-background-color: rgb({}, {}, {});".
+      format(
         red_value,
         green_value,
         blue_value,
@@ -742,7 +843,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
       return
 
     QtGui.QDesktopServices.openUrl(
-      QtCore.QUrl('https://github.com/secondfry/shortcircuit/releases/tag/{}'.format(latest['tag_name']))
+      QtCore.QUrl(
+        'https://github.com/secondfry/shortcircuit/releases/tag/{}'.format(
+          latest['tag_name']
+        )
+      )
     )
 
   # event: QCloseEvent

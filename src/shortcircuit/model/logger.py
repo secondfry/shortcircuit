@@ -13,8 +13,11 @@ from .utility.singleton import Singleton
 
 
 class Logger(metaclass=Singleton):
+
   def __init__(self):
-    log_formatter = logging.Formatter("%(asctime)s [%(levelname)-5.5s] %(message)s")
+    log_formatter = logging.Formatter(
+      "%(asctime)s [%(levelname)-5.5s] %(message)s"
+    )
     root_logger = logging.getLogger()
     root_logger.setLevel(logging.DEBUG)
 
@@ -22,7 +25,9 @@ class Logger(metaclass=Singleton):
     if not os.path.isdir(app_dirs.user_log_dir):
       os.makedirs(app_dirs.user_log_dir)
     log_file = os.path.join(app_dirs.user_log_dir, 'shortcircuit.log')
-    file_handler = RotatingFileHandler(log_file, maxBytes=1024*1024, backupCount=7)
+    file_handler = RotatingFileHandler(
+      log_file, maxBytes=1024 * 1024, backupCount=7
+    )
     file_handler.setFormatter(log_formatter)
     file_handler.setLevel(logging.DEBUG)
     root_logger.addHandler(file_handler)
@@ -36,9 +41,7 @@ class Logger(metaclass=Singleton):
 
   @staticmethod
   def register_thread(thread: QtCore.QThread, name: str):
-    Logger().threads[thread] = {
-      'name': name
-    }
+    Logger().threads[thread] = {'name': name}
 
   @staticmethod
   def get_thread_name(thread: QtCore.QThread):
@@ -67,7 +70,9 @@ class Logger(metaclass=Singleton):
   def prepare_message(msg, origin: str = None, func: str = None):
     caller_class_name, caller_function_name = Logger.get_caller(origin, func)
     thread_name = Logger.get_thread_name(QtCore.QThread.currentThread())
-    return '[{}] [{}.{}()]  {}'.format(thread_name, caller_class_name, caller_function_name, msg)
+    return '[{}] [{}.{}()]  {}'.format(
+      thread_name, caller_class_name, caller_function_name, msg
+    )
 
   @staticmethod
   def critical(msg, origin: str = None, func: str = None, *args, **kwargs):

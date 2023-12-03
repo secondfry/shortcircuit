@@ -32,8 +32,9 @@ class VersionCheck(QtCore.QObject):
 
     try:
       response = requests.get(
-        url='https://api.github.com/repos/secondfry/shortcircuit/releases/latest',
-        timeout=3.1
+        url=
+        'https://api.github.com/repos/secondfry/shortcircuit/releases/latest',
+        timeout=3.1,
       )
     except requests.exceptions.RequestException as e:
       Logger.error('Exception raised while trying to get latest version info')
@@ -72,7 +73,9 @@ class VersionCheck(QtCore.QObject):
         Logger.debug('GitHub version is not newer')
         return False
     except ValueError:
-      Logger.error('semver.compare(\'{}\', \'{}\')'.format(github_version, app_version))
+      Logger.error(
+        'semver.compare(\'{}\', \'{}\')'.format(github_version, app_version)
+      )
       return False
     except Exception as e:
       Logger.error('Something is really wrong', exc_info=e)
@@ -85,17 +88,29 @@ class VersionCheck(QtCore.QObject):
     Logger.debug('Latest remote version saved is – v{}'.format(saved_version))
     if not saved_version or semver.compare(github_version, saved_version) != 0:
       Configuration.settings.setValue('updates/version', github_version)
-      Configuration.settings.setValue('updates/ping_timestamp', datetime_now_string)
+      Configuration.settings.setValue(
+        'updates/ping_timestamp', datetime_now_string
+      )
       return True
 
-    saved_version_timestamp = Configuration.settings.value('updates/ping_timestamp')
-    Logger.debug('Last time user was notified about update was – {}'.format(saved_version_timestamp))
+    saved_version_timestamp = Configuration.settings.value(
+      'updates/ping_timestamp'
+    )
+    Logger.debug(
+      'Last time user was notified about update was – {}'.
+      format(saved_version_timestamp)
+    )
     if not saved_version_timestamp:
-      Configuration.settings.setValue('updates/ping_timestamp', datetime_now_string)
+      Configuration.settings.setValue(
+        'updates/ping_timestamp', datetime_now_string
+      )
       return True
 
-    if datetime_now - parser.parse(timestr=saved_version_timestamp) > timedelta(days=7):
-      Configuration.settings.setValue('updates/ping_timestamp', datetime_now_string)
+    version_timestamp = parser.parse(timestr=saved_version_timestamp)
+    if datetime_now - version_timestamp > timedelta(days=7):
+      Configuration.settings.setValue(
+        'updates/ping_timestamp', datetime_now_string
+      )
       return True
 
     return False

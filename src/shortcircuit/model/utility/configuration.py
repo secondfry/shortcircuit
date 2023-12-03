@@ -8,5 +8,5 @@ class Configuration(metaclass=Singleton):
   settings = QtCore.QSettings(
     QtCore.QSettings.IniFormat,
     QtCore.QSettings.UserScope,
-    __appname__
+    __appname__,
   )

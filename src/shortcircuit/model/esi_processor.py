@@ -37,7 +37,10 @@ class ESIProcessor(QtCore.QObject):
 
   # TODO properly type this
   def set_destination(self, sys_id):
-    server_thread = threading.Thread(target=self._set_destination, args=(sys_id, ))
+    server_thread = threading.Thread(
+      target=self._set_destination,
+      args=(sys_id),
+    )
     server_thread.setDaemon(True)
     server_thread.start()
 

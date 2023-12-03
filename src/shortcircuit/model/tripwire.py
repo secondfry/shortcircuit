@@ -157,7 +157,10 @@ class Tripwire:
         if str(wormhole['secondaryID']) not in self.chain['signatures']:
           continue
 
-        parent = 'initialID' if not wormhole['parent'] else wormhole['parent'] + 'ID'
+        if wormhole['parent']:
+          parent = '{}ID'.format(wormhole['parent'])
+        else:
+          parent = 'initialID'
         sibling = 'secondaryID' if parent == 'initialID' else 'initialID'
         signature_in = self.chain['signatures'][str(wormhole[parent])]
         signature_out = self.chain['signatures'][str(wormhole[sibling])]
@@ -169,9 +172,14 @@ class Tripwire:
           continue
 
         sig_id_in = self.format_tripwire_signature(signature_in['signatureID'])
-        sig_id_out = self.format_tripwire_signature(signature_out['signatureID'])
+        sig_id_out = self.format_tripwire_signature(
+          signature_out['signatureID']
+        )
 
-        wh_type_in = Tripwire.WTYPE_UNKNOWN if not wormhole['type'] or wormhole['type'] == '' else wormhole['type']
+        if wormhole['type']:
+          wh_type_in = wormhole['type']
+        else:
+          wh_type_in = Tripwire.WTYPE_UNKNOWN
         wh_type_out = Tripwire.WTYPE_UNKNOWN if wh_type_in == Tripwire.WTYPE_UNKNOWN else 'K162'
 
         connections += 1
@@ -188,7 +196,9 @@ class Tripwire:
         }.get(wormhole['mass'], WormholeMassspan.CRITICAL)
 
         # Compute time elapsed from this moment to when the signature was updated
-        last_modified = datetime.strptime(signature_in['modifiedTime'], "%Y-%m-%d %H:%M:%S")
+        last_modified = datetime.strptime(
+          signature_in['modifiedTime'], "%Y-%m-%d %H:%M:%S"
+        )
         delta = datetime.utcnow() - last_modified
         time_elapsed = round(delta.total_seconds() / 3600.0, 1)
 
@@ -196,7 +206,7 @@ class Tripwire:
         wh_size = WormholeSize.UNKNOWN
         if wormhole['type']:
           wh_size = self.eve_db.get_whsize_by_code(wormhole['type'])
-        if wh_size not in [WormholeSize.SMALL, WormholeSize.MEDIUM, WormholeSize.LARGE, WormholeSize.XLARGE]:
+        if not WormholeSize.valid(wh_size):
           # Wormhole codes are unknown => determine size based on class of wormholes
           wh_size = self.eve_db.get_whsize_by_system(system_from, system_to)
 

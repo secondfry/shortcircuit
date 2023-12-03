@@ -7,7 +7,14 @@ from typing import Dict, List, Tuple
 from shortcircuit.model.logger import Logger
 from typing_extensions import Self
 
-from .evedb import (EveDb, Restrictions, SpaceType, WormholeSize, WormholeMassspan, WormholeTimespan)
+from .evedb import (
+  EveDb,
+  Restrictions,
+  SpaceType,
+  WormholeSize,
+  WormholeMassspan,
+  WormholeTimespan,
+)
 
 
 class ConnectionType(int, Enum):
@@ -83,19 +90,38 @@ class SolarMap:
       self.add_system(destination)
 
     if con_type == ConnectionType.GATE:
-      self.systems_list[source].add_neighbor(self.systems_list[destination], (ConnectionType.GATE, None))
-      self.systems_list[destination].add_neighbor(self.systems_list[source], (ConnectionType.GATE, None))
+      self.systems_list[source].add_neighbor(
+        self.systems_list[destination], (ConnectionType.GATE, None)
+      )
+      self.systems_list[destination].add_neighbor(
+        self.systems_list[source], (ConnectionType.GATE, None)
+      )
       return
 
     if con_type == ConnectionType.WORMHOLE:
-      [sig_source, code_source, sig_dest, code_dest, wh_size, wh_life, wh_mass, time_elapsed] = con_info
+      [
+        sig_source,
+        code_source,
+        sig_dest,
+        code_dest,
+        wh_size,
+        wh_life,
+        wh_mass,
+        time_elapsed,
+      ] = con_info
       self.systems_list[source].add_neighbor(
         self.systems_list[destination],
-        (ConnectionType.WORMHOLE, [sig_source, code_source, wh_size, wh_life, wh_mass, time_elapsed])
+        (
+          ConnectionType.WORMHOLE,
+          [sig_source, code_source, wh_size, wh_life, wh_mass, time_elapsed]
+        )
       )
       self.systems_list[destination].add_neighbor(
         self.systems_list[source],
-        (ConnectionType.WORMHOLE, [sig_dest, code_dest, wh_size, wh_life, wh_mass, time_elapsed])
+        (
+          ConnectionType.WORMHOLE,
+          [sig_dest, code_dest, wh_size, wh_life, wh_mass, time_elapsed]
+        )
       )
       return
 
@@ -107,12 +133,17 @@ class SolarMap:
   def __iter__(self):
     return iter(self.systems_list.values())
 
-  def _check_neighbor(self, current_sys: SolarSystem, neighbor: SolarSystem,
-                      restrictions: Restrictions) -> Tuple[bool, float]:
+  def _check_neighbor(
+    self,
+    current_sys: SolarSystem,
+    neighbor: SolarSystem,
+    restrictions: Restrictions,
+  ) -> Tuple[bool, float]:
     con_type, con_info = current_sys.get_weight(neighbor)
 
     if con_type == ConnectionType.GATE:
-      return True, restrictions["security_prio"][self.eve_db.system_type(neighbor.get_id())]
+      system_type = self.eve_db.system_type(neighbor.get_id())
+      return True, restrictions["security_prio"][system_type]
 
     if con_type != ConnectionType.WORMHOLE:
       return False, 0
@@ -189,8 +220,11 @@ class SolarMap:
             return path
 
       # Keep searching
-      for neighbor in [x for x in current_sys.get_connections() if x not in visited]:
-        proceed, risk = self._check_neighbor(current_sys, neighbor, restrictions)
+      for neighbor in [x for x in current_sys.get_connections()
+                       if x not in visited]:
+        proceed, risk = self._check_neighbor(
+          current_sys, neighbor, restrictions
+        )
 
         if not proceed:
           continue
@@ -200,7 +234,9 @@ class SolarMap:
 
         if distance[neighbor] > distance[current_sys] + risk:
           distance[neighbor] = distance[current_sys] + risk
-          heapq.heappush(priority_queue, (distance[neighbor], id(neighbor), neighbor))
+          heapq.heappush(
+            priority_queue, (distance[neighbor], id(neighbor), neighbor)
+          )
           parent[neighbor] = current_sys
 
     return path

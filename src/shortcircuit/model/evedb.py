@@ -27,6 +27,15 @@ class WormholeSize(int, Enum):
   LARGE = 3
   XLARGE = 4
 
+  @staticmethod
+  def valid(value):
+    return value in [
+      WormholeSize.SMALL,
+      WormholeSize.MEDIUM,
+      WormholeSize.LARGE,
+      WormholeSize.XLARGE,
+    ]
+
 
 class WormholeTimespan(int, Enum):
   STABLE = 1
@@ -57,7 +66,8 @@ class Restrictions(TypedDict):
 
 
 SystemDescription = TypedDict(
-  'SystemDescription', {
+  'SystemDescription',
+  {
     'region_id': int,
     'id': int,
     'name': str,
@@ -203,7 +213,8 @@ class EveDb(metaclass=Singleton):
     filename_descriptions = 'system_description.csv'
     filename_statics = 'statics.csv'
 
-    self.gates = [[int(rows[0]), int(rows[1])] for rows in get_dict_from_csv(filename_gates)]
+    self.gates = [[int(rows[0]), int(rows[1])]
+                  for rows in get_dict_from_csv(filename_gates)]
     self.system_desc: Dict[int, SystemDescription] = {
       int(rows[1]): {
         'region_id': int(rows[0]),
@@ -245,7 +256,12 @@ class EveDb(metaclass=Singleton):
   def system_type(self, system_id: int) -> SpaceType:
     db_class = self.system_desc[system_id]['class']
 
-    return {'HS': SpaceType.HS, 'LS': SpaceType.LS, 'NS': SpaceType.NS, 'WH': SpaceType.WH}.get(db_class, SpaceType.NS)
+    return {
+      'HS': SpaceType.HS,
+      'LS': SpaceType.LS,
+      'NS': SpaceType.NS,
+      'WH': SpaceType.WH,
+    }.get(db_class, SpaceType.NS)
 
   def get_whsize_by_system(self, source_id: int, dest_id: int) -> WormholeSize:
     source_class = self.get_class(source_id)

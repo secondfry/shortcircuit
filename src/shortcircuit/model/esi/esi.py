@@ -6,6 +6,7 @@ import webbrowser
 
 import requests
 from shortcircuit.model.logger import Logger
+from shortcircuit import USER_AGENT
 
 from .server import AuthHandler, StoppableHTTPServer
 
@@ -54,7 +55,10 @@ class ESI:
         request_handler_class=AuthHandler,
         timeout_callback=self.timeout_server,
       )
-      server_thread = threading.Thread(target=self.httpd.serve, args=(self.handle_login, ))
+      server_thread = threading.Thread(
+        target=self.httpd.serve,
+        args=(self.handle_login),
+      )
       server_thread.setDaemon(True)
       server_thread.start()
       self.state = str(uuid.uuid4())
@@ -63,7 +67,9 @@ class ESI:
       self.httpd.tries = 0
 
     scopes = ' '.join(ESI.CLIENT_SCOPES)
-    endpoint_auth = ESI.ENDPOINT_EVE_AUTH_FORMAT.format(ESI.CLIENT_CALLBACK, ESI.CLIENT_ID, scopes, self.state)
+    endpoint_auth = ESI.ENDPOINT_EVE_AUTH_FORMAT.format(
+      ESI.CLIENT_CALLBACK, ESI.CLIENT_ID, scopes, self.state
+    )
     return webbrowser.open(endpoint_auth)
 
   def timeout_server(self):
@@ -86,7 +92,9 @@ class ESI:
 
     if 'access_token' in message:
       self.token = message['access_token'][0]
-      self.sso_timer = threading.Timer(int(message['expires_in'][0]), self._logout)
+      self.sso_timer = threading.Timer(
+        int(message['expires_in'][0]), self._logout
+      )
       self.sso_timer.setDaemon(True)
       self.sso_timer.start()
 
@@ -107,7 +115,7 @@ class ESI:
 
   def _get_headers(self):
     return {
-      'User-Agent': 'Short Circuit (minimally maintained by @SecondFry), secondfry@gmail.com',
+      'User-Agent': USER_AGENT,
       'Authorization': 'Bearer {}'.format(self.token),
     }
 
@@ -118,11 +126,16 @@ class ESI:
     current_location_name = None
     current_location_id = None
 
-    r = requests.get(ESI.ENDPOINT_ESI_LOCATION_FORMAT.format(self.char_id), headers=self._get_headers())
+    r = requests.get(
+      ESI.ENDPOINT_ESI_LOCATION_FORMAT.format(self.char_id),
+      headers=self._get_headers()
+    )
     if r.status_code == requests.codes.ok:
       current_location_id = r.json()['solar_system_id']
 
-    r = requests.post(ESI.ENDPOINT_ESI_UNIVERSE_NAMES, json=[str(current_location_id)])
+    r = requests.post(
+      ESI.ENDPOINT_ESI_UNIVERSE_NAMES, json=[str(current_location_id)]
+    )
     if r.status_code == requests.codes.ok:
       current_location_name = r.json()[0]['name']
 
@@ -134,7 +147,8 @@ class ESI:
 
     success = False
     r = requests.post(
-      '{}?add_to_beginning=false&clear_other_waypoints=true&destination_id={}'.format(
+      '{}?add_to_beginning=false&clear_other_waypoints=true&destination_id={}'.
+      format(
         ESI.ENDPOINT_ESI_UI_WAYPOINT,
         sys_id,
       ),

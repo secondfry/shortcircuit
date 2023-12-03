@@ -55,6 +55,7 @@ else {
 
 # Reference: https://github.com/fuzzysteve/CREST-Market-Downloader/
 class AuthHandler(http.server.BaseHTTPRequestHandler):
+
   def do_GET(self):
     if self.path == "/favicon.ico":
       return
@@ -74,7 +75,9 @@ class StoppableHTTPServer(http.server.HTTPServer):
 
   WAIT_TIMEOUT = 90
 
-  def __init__(self, server_address, request_handler_class, timeout_callback=None):
+  def __init__(
+    self, server_address, request_handler_class, timeout_callback=None
+  ):
     http.server.HTTPServer.__init__(self, server_address, request_handler_class)
     self.timeout_callback = timeout_callback
 
@@ -82,7 +85,9 @@ class StoppableHTTPServer(http.server.HTTPServer):
     http.server.HTTPServer.server_bind(self)
 
     # Allow listening for x seconds
-    Logger.info('Running server for {} seconds'.format(StoppableHTTPServer.WAIT_TIMEOUT))
+    Logger.info(
+      'Running server for {} seconds'.format(StoppableHTTPServer.WAIT_TIMEOUT)
+    )
 
     self.socket.settimeout(0.5)
     self.max_tries = StoppableHTTPServer.WAIT_TIMEOUT / self.socket.gettimeout()

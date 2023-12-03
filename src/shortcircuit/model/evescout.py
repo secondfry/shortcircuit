@@ -16,7 +16,10 @@ class EveScout:
   """
   TIMEOUT = 2
 
-  def __init__(self, url: str = 'https://api.eve-scout.com/v2/public/signatures'):
+  def __init__(
+    self,
+    url: str = 'https://api.eve-scout.com/v2/public/signatures',
+  ):
     self.eve_db = EveDb()
     self.evescout_url = url
 
@@ -27,7 +30,11 @@ class EveScout:
     """
     headers = {'User-Agent': USER_AGENT}
     try:
-      result = requests.get(url=self.evescout_url, headers=headers, timeout=EveScout.TIMEOUT)
+      result = requests.get(
+        url=self.evescout_url,
+        headers=headers,
+        timeout=EveScout.TIMEOUT,
+      )
     except requests.exceptions.RequestException as e:
       Logger.error('Exception raised while trying to get eve-scout chain info')
       Logger.error(e)
@@ -47,16 +54,26 @@ class EveScout:
       # Retrieve signature meta data
       source = connection['in_system_id']
       sig_source = connection['in_signature']
-      code_source = 'K162' if connection['wh_exits_outward'] else connection['wh_type']
       dest = connection['out_system_id']
       sig_dest = connection['out_signature']
-      code_dest = connection['wh_type'] if connection['wh_exits_outward'] else 'K162'
+      if connection['wh_exits_outward']:
+        code_source = 'K162'
+        code_dest = connection['wh_type']
+      else:
+        code_source = connection['wh_type']
+        code_dest = 'K162'
 
-      wh_life = WormholeTimespan.STABLE if connection['remaining_hours'] >= 4 else WormholeTimespan.CRITICAL
+      if connection['remaining_hours'] >= 4:
+        wh_life = WormholeTimespan.STABLE
+      else:
+        wh_life = WormholeTimespan.CRITICAL
+
       wh_mass = WormholeMassspan.UNKNOWN
 
       # Compute time elapsed from this moment to when the signature was updated
-      last_modified = datetime.strptime(connection['updated_at'], "%Y-%m-%dT%H:%M:%S.000Z")
+      last_modified = datetime.strptime(
+        connection['updated_at'], "%Y-%m-%dT%H:%M:%S.000Z"
+      )
       delta = datetime.utcnow() - last_modified
       time_elapsed = round(delta.total_seconds() / 3600.0, 1)
 
@@ -64,9 +81,9 @@ class EveScout:
         # Determine wormhole size
         size_result1 = self.eve_db.get_whsize_by_code(code_source)
         size_result2 = self.eve_db.get_whsize_by_code(code_dest)
-        if size_result1 in [WormholeSize.SMALL, WormholeSize.MEDIUM, WormholeSize.LARGE, WormholeSize.XLARGE]:
+        if WormholeSize.valid(size_result1):
           wh_size = size_result1
-        elif size_result2 in [WormholeSize.SMALL, WormholeSize.MEDIUM, WormholeSize.LARGE, WormholeSize.XLARGE]:
+        elif WormholeSize.valid(size_result2):
           wh_size = size_result2
         else:
           # Wormhole codes are unknown => determine size based on class of wormholes
@@ -76,7 +93,16 @@ class EveScout:
           source,
           dest,
           ConnectionType.WORMHOLE,
-          [sig_source, code_source, sig_dest, code_dest, wh_size, wh_life, wh_mass, time_elapsed],
+          [
+            sig_source,
+            code_source,
+            sig_dest,
+            code_dest,
+            wh_size,
+            wh_life,
+            wh_mass,
+            time_elapsed,
+          ],
         )
 
     return connections
