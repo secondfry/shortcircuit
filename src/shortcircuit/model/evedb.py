@@ -12,9 +12,10 @@ from .utility.singleton import Singleton
 def get_dict_from_csv(filename: str):
   bundle_dir = path.abspath(path.dirname(__file__))
   filepath = path.join(bundle_dir, '..', '..', 'database', filename)
-  Logger.info(filepath)
+  normpath = path.normpath(filepath)
+  Logger.info(normpath)
 
-  f = open(filepath, 'r', encoding='utf-8')
+  f = open(normpath, 'r', encoding='utf-8')
   reader = csv.reader(f, delimiter=';')
 
   return reader
