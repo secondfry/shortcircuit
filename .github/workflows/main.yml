@@ -18,7 +18,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v3
         with:
-          python-version: 3.10
+          python-version: "3.10"
           architecture: x64
 
       - uses: actions/checkout@v3
@@ -29,14 +29,14 @@ jobs:
         with:
           owner: upx
           repo: upx
-          tag: v3.96
-          file: upx-3.96-win64.zip
+          tag: v4.2.1
+          file: upx-4.2.1-win64.zip
 
       - name: Extract UPX [windows-latest]
         if: ${{ matrix.os == 'windows-latest' }}
         run: |
-          7z x upx-3.96-win64.zip
-          copy upx-3.96-win64\upx.exe upx.exe
+          7z x upx-4.2.1-win64.zip
+          copy upx-4.2.1-win64\upx.exe upx.exe
 
       - name: Install dependencies
         run: |
@@ -45,7 +45,7 @@ jobs:
           python -m pipenv install --dev
 
       - name: Test
-        run: python -m pipenv run tox
+        run: python -m pipenv run pytest
 
       - name: Build [windows-latest]
         if: ${{ matrix.os == 'windows-latest' }}
