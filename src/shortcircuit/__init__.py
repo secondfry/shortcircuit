@@ -6,8 +6,8 @@
 
 __appname__ = 'Short Circuit'
 __appslug__ = 'shortcircuit'
-__version__ = '1.0.0-rc.3'
-__date__ = '2023-12-03'
+__version__ = '1.0.0'
+__date__ = '2023-12-06'
 USER_AGENT = '{} v{} ({}); @SecondFry, secondfry@gmail.com'.format(
   __appname__,
   __version__,
