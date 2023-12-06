@@ -1,20 +1,23 @@
 # Short Circuit
 
 ## Description
-Short Circuit (previously known as Pathfinder) is a desktop application which is able to find the shortest path between solar systems (including wormholes) using data retrieved from Eve SDE and 3rd party wormhole mapping tools. The application is able to run on all systems where Python and PySide vesion 1.2.4 are supported.
+Short Circuit (previously known as Pathfinder) is a desktop application which is able to find the shortest path between solar systems (including wormholes) using data retrieved from Eve SDE and 3rd party wormhole mapping tools. The application is able to run on all systems where Python 3.10 and PySide2 are supported.
 
 **Features:**
 
-1. Ability to add wormhole connections from [Tripwire](https://tripwire.eve-apps.com/)
-2. ESI authentication for reading the player location and setting the destination in-game
-3. Avoidance list
-4. Wormhole restrictions for: size, life, mass, last updated
-5. Instructions specify the signature and type of the wormhole (makes navigation easier)
-6. One-line output which can be copy-pasted for those lazy fleet members
+1. Ability to add wormhole connections from [Tripwire](https://tripwire.eve-apps.com/).
+2. ESI authentication for reading the player location and setting the destination in-game.
+3. Avoidance list.
+4. Wormhole restrictions for: size, life, mass, last updated.
+5. Instructions specify the signature and type of the wormhole (makes navigation easier).
+6. One-line output which can be copy-pasted for those lazy fleet members.
 
 ## Usage
 ```bash
-$ pip install -r requirements.txt
+$ pip install pipenv
+$ mkdir .venv
+$ pipenv install
+$ pipenv shell
 $ cd src
 $ python main.py
 ```
@@ -47,10 +50,10 @@ This is only useful if you or your corp/alliance have their own Tripwire server.
 ## Security prioritization
 Security prioritization mechanism is defined by four values which represent a weight, or an effort:
 
-* HS - the amount of effort it takes to jump a gate to high-sec
-* LS - the amount of effort it takes to jump a gate to low-sec
-* NS - the amount of effort it takes to jump a gate to null-sec
-* WH - the amount of effort it takes to jump a wormhole to any system
+* HS - the amount of effort it takes to jump a gate to high-sec.
+* LS - the amount of effort it takes to jump a gate to low-sec.
+* NS - the amount of effort it takes to jump a gate to null-sec.
+* WH - the amount of effort it takes to jump a wormhole to any system.
 
 Values may range from 1 to 100 and if all values are equal (ex. all equal to 1), then this function is practically disabled.
 
@@ -96,10 +99,9 @@ mass: "Stable"
 <a href="https://www.youtube.com/watch?v=qw0OhRGeDgA&t=7m0s" target="_blank"><img src="http://img.youtube.com/vi/qw0OhRGeDgA/1.jpg" alt="Pathfinder on the o7 Show" width="480" height="360" border="10" /></a>
 
 ## Future development
-1. Add support for more 3rd party wormhole mapping tools
-2. Combine data from multiple sources (multiple Tripwire accounts, etc.)
+1. Add support for more 3rd party wormhole mapping tools.
+2. Combine data from multiple sources (multiple Tripwire accounts, etc.).
 3. Suggestions?
 
 ## Contacts
-For any questions please contact Valtyr Farshield. Contract me some Quafe. Thank you :)  
-For questions regarding maintaining ShortCircuit please contact Lenai Chelien. I accept Exotic Dancers and ~~drugs~~ boosters.
+For any questions please contact Lenai Chelien. I accept PLEX, ISK, Exotic Dancers and ~~drugs~~ boosters.
