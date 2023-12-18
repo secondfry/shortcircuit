@@ -82,7 +82,7 @@ def test_dodixie_jita_but_avoid_hs():
   map = SolarMap(eve_db)
   path = map.shortest_path(
     eve_db.name2id("Dodixie"),
-    eve_db.name2id("Ikuchi"),
+    eve_db.name2id("Sujarento"),
     {
       "avoidance_list": [],
       "security_prio": {
@@ -102,14 +102,10 @@ def test_dodixie_jita_but_avoid_hs():
     'Villore',
     'Old Man Star',
     'Heydieles',
-    'Abune',
-    'Oinasiken',
-    'Nisuwa',
-    'Kedama',
-    'Tama',
-    'Nourvukaiken',
-    'Tunttaras',
-    'Ikuchi',
+    'Fliet',
+    'Deven',
+    'Nagamanen',
+    'Sujarento',
   ]
 
 

@@ -196,6 +196,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
     # Auto-completion
     system_list = self.nav.eve_db.system_name_list()
+    system_list.sort(key=str.lower)
     for line_edit_field in [
         self.lineEdit_source,
         self.lineEdit_destination,
@@ -204,6 +205,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     ]:
       completer = QtWidgets.QCompleter(system_list, self)
       completer.setCaseSensitivity(QtCore.Qt.CaseInsensitive)
+      completer.setModelSorting(
+        QtWidgets.QCompleter.CaseInsensitivelySortedModel
+      )
       line_edit_field.setCompleter(completer)
 
     # Signals

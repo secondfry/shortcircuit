@@ -14,3 +14,8 @@ def test_jita():
 def test_tama():
   eve_db = EveDb()
   assert eve_db.name2id("Tama") == 30002813
+
+
+def test_sentinel():
+  eve_db = EveDb()
+  assert eve_db.name2id("J055520 [Sentinel]") == 31000001

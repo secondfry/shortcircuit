@@ -355,6 +355,7 @@ class EveDb(metaclass=Singleton):
 
   def __init__(self):
     filename_statics = 'statics.csv'
+    filaname_renames = 'renames.csv'
 
     # NOTE(secondfry): thank you, Steve Ronuken.
     # @see https://www.fuzzwork.co.uk/dump/
@@ -363,6 +364,7 @@ class EveDb(metaclass=Singleton):
 
     self._init_gates(get_csv_reader(filename_gates))
     self._init_system_descriptions(get_csv_reader(filename_descriptions))
+    self._init_renames(get_csv_reader(filaname_renames))
 
     self.wh_codes: Dict[str, WormholeSize] = {
       rows[0]: WormholeSize(int(rows[1]))
@@ -395,6 +397,12 @@ class EveDb(metaclass=Singleton):
         'region_id': system.regionID,
         'security': system.security
       }
+
+  def _init_renames(self, reader):
+    for row in reader:
+      id = int(row[0])
+      name = row[1]
+      self.system_desc[id]['name'] = name
 
   def get_whsize_by_code(self, code: str) -> WormholeSize:
     return self.wh_codes.get(code.upper(), WormholeSize.UNKNOWN)
