@@ -2,5 +2,7 @@
     "[python]": {
         "editor.formatOnSave": true,
         "editor.formatOnType": false,
-    }
+    },
+    "python.analysis.autoImportCompletions": true,
+    "python.analysis.typeCheckingMode": "basic"
 }
