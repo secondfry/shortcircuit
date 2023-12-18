@@ -1,7 +1,6 @@
 from shortcircuit.model.evedb import EveDb, SpaceType, WormholeSize, WormholeMassspan, WormholeTimespan
 from shortcircuit.model.solarmap import ConnectionType, SolarMap
 
-
 # FIXME(secondfry): why is `shortest_path` unstable?
 # All tests here should have Jita as destination, not Ikuchi.
 
@@ -103,10 +102,10 @@ def test_dodixie_jita_but_avoid_hs():
     'Villore',
     'Old Man Star',
     'Heydieles',
-    'Fliet',
-    'Deven',
-    'Nagamanen',
-    'Sujarento',
+    'Abune',
+    'Oinasiken',
+    'Nisuwa',
+    'Kedama',
     'Tama',
     'Nourvukaiken',
     'Tunttaras',

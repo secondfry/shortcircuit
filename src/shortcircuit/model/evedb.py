@@ -4,19 +4,23 @@ import csv
 from enum import Enum
 from os import path
 from typing import Dict, List, TypedDict, Union
+from typing_extensions import deprecated
 
 from .logger import Logger
 from .utility.singleton import Singleton
 
 
-def get_dict_from_csv(filename: str):
+def get_csv_reader(filename: str):
   bundle_dir = path.abspath(path.dirname(__file__))
   filepath = path.join(bundle_dir, '..', '..', 'database', filename)
   normpath = path.normpath(filepath)
   Logger.info(normpath)
 
   f = open(normpath, 'r', encoding='utf-8')
-  reader = csv.reader(f, delimiter=';')
+  reader = csv.reader(f, delimiter=',')
+
+  # NOTE(secondfry): skip headings.
+  next(reader)
 
   return reader
 
@@ -69,14 +73,156 @@ class Restrictions(TypedDict):
 SystemDescription = TypedDict(
   'SystemDescription',
   {
-    'region_id': int,
+    'class': str,
+    'flags': Dict[str, bool],
     'id': int,
     'name': str,
-    'class': str,
+    'region_id': int,
     'security': float,
-    'flags': Dict[str, bool]
   }
 )
+
+
+class SolarSystem:
+
+  MAP_LOCATION_WORMHOLE_CLASSES = {
+    int(row[0]): int(row[1])
+    for row in get_csv_reader('mapLocationWormholeClasses.csv')
+  }
+
+  def __init__(
+    self,
+    regionID: int,
+    constellationID: int,
+    solarSystemID: int,
+    solarSystemName: str,
+    x: float,
+    y: float,
+    z: float,
+    xMin: float,
+    xMax: float,
+    yMin: float,
+    yMax: float,
+    zMin: float,
+    zMax: float,
+    luminosity: float,
+    border: int,
+    fringe: int,
+    corridor: int,
+    hub: int,
+    international: int,
+    regional: int,
+    constellation: Union[str, None],
+    security: float,
+    factionID: Union[int, None],
+    radius: float,
+    sunTypeID: Union[int, None],
+    securityClass: str
+  ):
+    self.regionID = regionID
+    self.constellationID = constellationID
+    self.solarSystemID = solarSystemID
+    self.solarSystemName = solarSystemName
+    self.x = x
+    self.y = y
+    self.z = z
+    self.xMin = xMin
+    self.xMax = xMax
+    self.yMin = yMin
+    self.yMax = yMax
+    self.zMin = zMin
+    self.zMax = zMax
+    self.luminosity = luminosity
+    self.border = border
+    self.fringe = fringe
+    self.corridor = corridor
+    self.hub = hub
+    self.international = international
+    self.regional = regional
+    self.constellation = constellation
+    self.security = security
+    self.factionID = factionID
+    self.radius = radius
+    self.sunTypeID = sunTypeID
+    self.securityClass = securityClass
+
+  @staticmethod
+  def from_row(row: List[str]) -> 'SolarSystem':
+    regionID, constellationID, solarSystemID, solarSystemName, x, y, z, xMin, xMax, yMin, yMax, zMin, zMax, luminosity, border, fringe, corridor, hub, international, regional, constellation, security, factionID, radius, sunTypeID, securityClass = row
+    return SolarSystem(
+      int(regionID),
+      int(constellationID),
+      int(solarSystemID),
+      solarSystemName,
+      float(x),
+      float(y),
+      float(z),
+      float(xMin),
+      float(xMax),
+      float(yMin),
+      float(yMax),
+      float(zMin),
+      float(zMax),
+      float(luminosity),
+      int(border),
+      int(fringe),
+      int(corridor),
+      int(hub),
+      int(international),
+      int(regional),
+      constellation if constellation != 'None' else None,
+      float(security),
+      int(factionID) if factionID != 'None' else None,
+      float(radius),
+      int(sunTypeID) if sunTypeID != 'None' else None,
+      securityClass
+    )
+
+  def is_known_space(self):
+    return self.regionID > 10000000 and self.regionID < 10000070
+
+  def is_triglavian(self):
+    TRIGLAVIAN_REGION_ID = 10000070
+    return self.regionID == TRIGLAVIAN_REGION_ID
+
+  def is_zarzakh(self):
+    ZARZAKH_REGION_ID = 10001000
+    return self.regionID == ZARZAKH_REGION_ID
+
+  def is_anoikis(self):
+    return self.regionID > 11000000 and self.regionID < 11000034
+
+  def is_abyssal(self):
+    return self.regionID > 12000000 and self.regionID < 12000006
+
+  def is_PR(self):
+    PR_01_REGION_ID = 13000001
+    return self.regionID == PR_01_REGION_ID
+
+  def is_void(self):
+    return self.regionID > 14000000 and self.regionID < 14000006
+
+  def get_system_class(self):
+    if self.is_known_space():
+      if self.security > 0.45: return 'HS'
+      if self.security > 0: return 'LS'
+      return 'NS'
+
+    if self.is_triglavian(): return '▲'
+    if self.is_zarzakh(): return 'Z'
+
+    if self.is_anoikis():
+      system_class = self.MAP_LOCATION_WORMHOLE_CLASSES.get(self.solarSystemID)
+      if system_class: return 'C{}'.format(system_class)
+      region_class = self.MAP_LOCATION_WORMHOLE_CLASSES.get(self.regionID)
+      if region_class: return 'C{}'.format(region_class)
+      return 'C??'
+
+    if self.is_abyssal(): return 'ADR'
+    if self.is_PR(): return 'PR'
+    if self.is_void(): return 'VR'
+
+    return '??'
 
 
 class EveDb(metaclass=Singleton):
@@ -207,35 +353,48 @@ class EveDb(metaclass=Singleton):
     }
   }
 
-  TRIGLAVIAN_REGION_ID: int = 10000070
-
   def __init__(self):
-    filename_gates = 'system_jumps.csv'
-    filename_descriptions = 'system_description.csv'
     filename_statics = 'statics.csv'
 
-    self.gates = [[int(rows[0]), int(rows[1])]
-                  for rows in get_dict_from_csv(filename_gates)]
-    self.system_desc: Dict[int, SystemDescription] = {
-      int(rows[1]): {
-        'region_id': int(rows[0]),
-        'id': int(rows[1]),
-        'name': rows[2],
-        'class': rows[3],
-        'security': float(rows[4]),
-        'flags': {
-          'triglavian': self.is_triglavian(int(rows[0]))
-        }
-      }
-      for rows in get_dict_from_csv(filename_descriptions)
-    }
+    # NOTE(secondfry): thank you, Steve Ronuken.
+    # @see https://www.fuzzwork.co.uk/dump/
+    filename_gates = 'mapSolarSystemJumps.csv'
+    filename_descriptions = 'mapSolarSystems.csv'
+
+    self._init_gates(get_csv_reader(filename_gates))
+    self._init_system_descriptions(get_csv_reader(filename_descriptions))
+
     self.wh_codes: Dict[str, WormholeSize] = {
       rows[0]: WormholeSize(int(rows[1]))
-      for rows in get_dict_from_csv(filename_statics)
+      for rows in get_csv_reader(filename_statics)
     }
 
-  def is_triglavian(self, region_id: int):
-    return region_id == self.TRIGLAVIAN_REGION_ID
+  def _init_gates(self, reader):
+    """
+    Data is stored in 6 column format.
+    0: fromRegionID,
+    1: fromConstellationID,
+    2: fromSolarSystemID,
+    3: toSolarSystemID,
+    4: toConstellationID,
+    5: toRegionID.
+    """
+    self.gates = [[int(row[2]), int(row[3])] for row in reader]
+
+  def _init_system_descriptions(self, reader):
+    self.system_desc: Dict[int, SystemDescription] = {}
+    for row in reader:
+      system = SolarSystem.from_row(row)
+      self.system_desc[system.solarSystemID] = {
+        'class': system.get_system_class(),
+        'flags': {
+          'triglavian': system.is_triglavian()
+        },
+        'id': system.solarSystemID,
+        'name': system.solarSystemName,
+        'region_id': system.regionID,
+        'security': system.security
+      }
 
   def get_whsize_by_code(self, code: str) -> WormholeSize:
     return self.wh_codes.get(code.upper(), WormholeSize.UNKNOWN)
@@ -254,6 +413,7 @@ class EveDb(metaclass=Singleton):
       sys_class = db_class
     return sys_class
 
+  @deprecated('FIXME(secondfry): this seems to be broken')
   def system_type(self, system_id: int) -> SpaceType:
     db_class = self.system_desc[system_id]['class']
 

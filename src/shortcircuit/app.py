@@ -444,6 +444,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
     for route_step_id, route_step in enumerate(route):
       color = self.get_system_class_color(route_step['class'])
+      route_step['security'] = round(route_step['security'], 1)
       ui_col_id = 0
       for col_id in [
           'name',
