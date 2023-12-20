@@ -447,6 +447,9 @@
          <property name="title">
           <string>Security prioritization</string>
          </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
          <property name="flat">
           <bool>true</bool>
          </property>
@@ -613,13 +616,6 @@
             </property>
            </widget>
           </item>
-          <item row="0" column="0" colspan="5">
-           <widget class="QCheckBox" name="checkBox_security_enabled">
-            <property name="text">
-             <string>Enabled</string>
-            </property>
-           </widget>
-          </item>
          </layout>
         </widget>
        </item>
@@ -627,6 +623,9 @@
         <widget class="QGroupBox" name="groupBox_avoidance">
          <property name="title">
           <string>Avoidance list</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
          </property>
          <property name="flat">
           <bool>true</bool>
@@ -647,42 +646,6 @@
           <property name="bottomMargin">
            <number>5</number>
           </property>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_5">
-            <item>
-             <widget class="QCheckBox" name="checkBox_avoid_enabled">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="text">
-               <string>Enabled</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLabel" name="label_avoid_status">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="layoutDirection">
-               <enum>Qt::LeftToRight</enum>
-              </property>
-              <property name="text">
-               <string>Addition status</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout_2">
             <item>
@@ -740,13 +703,6 @@
              </widget>
             </item>
            </layout>
-          </item>
-          <item>
-           <widget class="Line" name="line_2">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-           </widget>
           </item>
           <item>
            <widget class="QListWidget" name="listWidget_avoid">

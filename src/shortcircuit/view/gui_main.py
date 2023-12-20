@@ -271,6 +271,7 @@ class Ui_MainWindow(object):
 
         self.groupBox_security = QGroupBox(self.groupBox__options)
         self.groupBox_security.setObjectName(u"groupBox_security")
+        self.groupBox_security.setCheckable(True)
         self.groupBox_security.setFlat(True)
         self.groupBox_security.setAlignment(Qt.AlignHCenter)
         self.gridLayout_2 = QGridLayout(self.groupBox_security)
@@ -356,67 +357,36 @@ class Ui_MainWindow(object):
 
         self.gridLayout_2.addWidget(self.spinBox_prio_ls, 1, 3, 1, 1)
 
-        self.checkBox_security_enabled = QCheckBox(self.groupBox_security)
-        self.checkBox_security_enabled.setObjectName(u"checkBox_security_enabled")
-
-        self.gridLayout_2.addWidget(self.checkBox_security_enabled, 0, 0, 1, 5)
-
 
         self.verticalLayout_3.addWidget(self.groupBox_security)
 
         self.groupBox_avoidance = QGroupBox(self.groupBox__options)
         self.groupBox_avoidance.setObjectName(u"groupBox_avoidance")
+        self.groupBox_avoidance.setCheckable(True)
         self.groupBox_avoidance.setFlat(True)
         self.groupBox_avoidance.setAlignment(Qt.AlignHCenter)
         self.verticalLayout_4 = QVBoxLayout(self.groupBox_avoidance)
         self.verticalLayout_4.setObjectName(u"verticalLayout_4")
         self.verticalLayout_4.setContentsMargins(0, 5, 0, 5)
-        self.horizontalLayout_5 = QHBoxLayout()
-        self.horizontalLayout_5.setObjectName(u"horizontalLayout_5")
-        self.checkBox_avoid_enabled = QCheckBox(self.groupBox_avoidance)
-        self.checkBox_avoid_enabled.setObjectName(u"checkBox_avoid_enabled")
-        sizePolicy4 = QSizePolicy(QSizePolicy.Maximum, QSizePolicy.Fixed)
-        sizePolicy4.setHorizontalStretch(0)
-        sizePolicy4.setVerticalStretch(0)
-        sizePolicy4.setHeightForWidth(self.checkBox_avoid_enabled.sizePolicy().hasHeightForWidth())
-        self.checkBox_avoid_enabled.setSizePolicy(sizePolicy4)
-
-        self.horizontalLayout_5.addWidget(self.checkBox_avoid_enabled)
-
-        self.label_avoid_status = QLabel(self.groupBox_avoidance)
-        self.label_avoid_status.setObjectName(u"label_avoid_status")
-        sizePolicy5 = QSizePolicy(QSizePolicy.Minimum, QSizePolicy.Preferred)
-        sizePolicy5.setHorizontalStretch(0)
-        sizePolicy5.setVerticalStretch(0)
-        sizePolicy5.setHeightForWidth(self.label_avoid_status.sizePolicy().hasHeightForWidth())
-        self.label_avoid_status.setSizePolicy(sizePolicy5)
-        self.label_avoid_status.setLayoutDirection(Qt.LeftToRight)
-        self.label_avoid_status.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
-
-        self.horizontalLayout_5.addWidget(self.label_avoid_status)
-
-
-        self.verticalLayout_4.addLayout(self.horizontalLayout_5)
-
         self.horizontalLayout_2 = QHBoxLayout()
         self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
         self.label_3 = QLabel(self.groupBox_avoidance)
         self.label_3.setObjectName(u"label_3")
-        sizePolicy6 = QSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
-        sizePolicy6.setHorizontalStretch(0)
-        sizePolicy6.setVerticalStretch(0)
-        sizePolicy6.setHeightForWidth(self.label_3.sizePolicy().hasHeightForWidth())
-        self.label_3.setSizePolicy(sizePolicy6)
+        sizePolicy4 = QSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
+        sizePolicy4.setHorizontalStretch(0)
+        sizePolicy4.setVerticalStretch(0)
+        sizePolicy4.setHeightForWidth(self.label_3.sizePolicy().hasHeightForWidth())
+        self.label_3.setSizePolicy(sizePolicy4)
 
         self.horizontalLayout_2.addWidget(self.label_3)
 
         self.lineEdit_avoid_name = QLineEdit(self.groupBox_avoidance)
         self.lineEdit_avoid_name.setObjectName(u"lineEdit_avoid_name")
-        sizePolicy7 = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
-        sizePolicy7.setHorizontalStretch(0)
-        sizePolicy7.setVerticalStretch(0)
-        sizePolicy7.setHeightForWidth(self.lineEdit_avoid_name.sizePolicy().hasHeightForWidth())
-        self.lineEdit_avoid_name.setSizePolicy(sizePolicy7)
+        sizePolicy5 = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
+        sizePolicy5.setHorizontalStretch(0)
+        sizePolicy5.setVerticalStretch(0)
+        sizePolicy5.setHeightForWidth(self.lineEdit_avoid_name.sizePolicy().hasHeightForWidth())
+        self.lineEdit_avoid_name.setSizePolicy(sizePolicy5)
         self.lineEdit_avoid_name.setMaxLength(32)
 
         self.horizontalLayout_2.addWidget(self.lineEdit_avoid_name)
@@ -433,13 +403,6 @@ class Ui_MainWindow(object):
 
 
         self.verticalLayout_4.addLayout(self.horizontalLayout_2)
-
-        self.line_2 = QFrame(self.groupBox_avoidance)
-        self.line_2.setObjectName(u"line_2")
-        self.line_2.setFrameShape(QFrame.HLine)
-        self.line_2.setFrameShadow(QFrame.Sunken)
-
-        self.verticalLayout_4.addWidget(self.line_2)
 
         self.listWidget_avoid = QListWidget(self.groupBox_avoidance)
         self.listWidget_avoid.setObjectName(u"listWidget_avoid")
@@ -525,10 +488,7 @@ class Ui_MainWindow(object):
         self.label_7.setText(QCoreApplication.translate("MainWindow", u"HS:", None))
         self.label_8.setText(QCoreApplication.translate("MainWindow", u"LS:", None))
         self.label_9.setText(QCoreApplication.translate("MainWindow", u"WH:", None))
-        self.checkBox_security_enabled.setText(QCoreApplication.translate("MainWindow", u"Enabled", None))
         self.groupBox_avoidance.setTitle(QCoreApplication.translate("MainWindow", u"Avoidance list", None))
-        self.checkBox_avoid_enabled.setText(QCoreApplication.translate("MainWindow", u"Enabled", None))
-        self.label_avoid_status.setText(QCoreApplication.translate("MainWindow", u"Addition status", None))
         self.label_3.setText(QCoreApplication.translate("MainWindow", u"System:", None))
         self.pushButton_avoid_add.setText(QCoreApplication.translate("MainWindow", u"+", None))
         self.pushButton_avoid_delete.setText(QCoreApplication.translate("MainWindow", u"Delete selected", None))

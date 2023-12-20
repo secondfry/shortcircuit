@@ -324,7 +324,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
       self.tableWidget_path.setColumnWidth(col_idx, int(column_width))
 
     # Avoidance list
-    self.checkBox_avoid_enabled.setChecked(
+    self.groupBox_avoidance.setChecked(
       self.settings.value("avoidance_enabled", "false") == "true"
     )
     for sys_name in self.settings.value("avoidance_list", "").split(','):
@@ -349,7 +349,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     )
 
     # Security prioritization
-    self.checkBox_security_enabled.setChecked(
+    self.groupBox_security.setChecked(
       self.settings.value("security_enabled", "false") == "true"
     )
     self.spinBox_prio_hs.setValue(int(self.settings.value("prio_hs", "1")))
@@ -388,7 +388,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
     # Avoidance list
     self.settings.setValue(
-      "avoidance_enabled", self.checkBox_avoid_enabled.isChecked()
+      "avoidance_enabled", self.groupBox_avoidance.isChecked()
     )
     avoidance_list_string = ",".join(self.avoidance_list())
     self.settings.setValue("avoidance_list", avoidance_list_string)
@@ -410,7 +410,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
     # Security prioritization
     self.settings.setValue(
-      "security_enabled", self.checkBox_security_enabled.isChecked()
+      "security_enabled", self.groupBox_security.isChecked()
     )
     self.settings.setValue("prio_hs", self.spinBox_prio_hs.value())
     self.settings.setValue("prio_ls", self.spinBox_prio_ls.value())
@@ -437,7 +437,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     label.setText(message)
 
   def _avoid_message(self, message, message_type):
-    MainWindow._label_message(self.label_avoid_status, message, message_type)
+    self.statusBar().showMessage(message, 5000)
 
   def _path_message(self, message, message_type):
     MainWindow._label_message(self.label_status, message, message_type)
@@ -452,7 +452,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     MainWindow._label_message(self.status_tripwire, message, message_type)
 
   def avoidance_enabled(self) -> bool:
-    return self.checkBox_avoid_enabled.isChecked()
+    return self.groupBox_avoidance.isChecked()
 
   def avoidance_list(self) -> List[str]:
     items: List[QtWidgets.QListWidgetItem] = []
@@ -461,14 +461,23 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     return [i.text() for i in items]
 
   def _avoid_system_name(self, sys_name):
-    if sys_name:
-      if sys_name not in self.avoidance_list():
-        QtWidgets.QListWidgetItem(sys_name, self.listWidget_avoid)
-        self._avoid_message("Added", MessageType.OK)
-      else:
-        self._avoid_message("Already in list!", MessageType.ERROR)
-    else:
-      self._avoid_message("Invalid system name :(", MessageType.ERROR)
+    if not sys_name:
+      self._avoid_message(
+        "Avoidance list: invalid system name :(", MessageType.ERROR
+      )
+      return
+
+    if sys_name in self.avoidance_list():
+      self._avoid_message(
+        "Avoidance list: {} is already in the list!".format(sys_name),
+        MessageType.ERROR
+      )
+      return
+
+    QtWidgets.QListWidgetItem(sys_name, self.listWidget_avoid)
+    self._avoid_message(
+      "Avoidance list: {} added".format(sys_name), MessageType.OK
+    )
 
   def avoid_system(self):
     sys_name = self.nav.eve_db.normalize_name(self.lineEdit_avoid_name.text())
@@ -549,7 +558,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
       SpaceType.WH: 1,
     }
 
-    if self.checkBox_security_enabled.isChecked():
+    if self.groupBox_security.isChecked():
       security_prio[SpaceType.HS] = self.spinBox_prio_hs.value()
       security_prio[SpaceType.LS] = self.spinBox_prio_ls.value()
       security_prio[SpaceType.NS] = self.spinBox_prio_ns.value()
