@@ -380,29 +380,59 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_2.addWidget(self.label_3)
 
-        self.lineEdit_avoid_name = QLineEdit(self.groupBox_avoidance)
-        self.lineEdit_avoid_name.setObjectName(u"lineEdit_avoid_name")
+        self.lineEdit_system_avoid_name = QLineEdit(self.groupBox_avoidance)
+        self.lineEdit_system_avoid_name.setObjectName(u"lineEdit_system_avoid_name")
         sizePolicy5 = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
         sizePolicy5.setHorizontalStretch(0)
         sizePolicy5.setVerticalStretch(0)
-        sizePolicy5.setHeightForWidth(self.lineEdit_avoid_name.sizePolicy().hasHeightForWidth())
-        self.lineEdit_avoid_name.setSizePolicy(sizePolicy5)
-        self.lineEdit_avoid_name.setMaxLength(32)
+        sizePolicy5.setHeightForWidth(self.lineEdit_system_avoid_name.sizePolicy().hasHeightForWidth())
+        self.lineEdit_system_avoid_name.setSizePolicy(sizePolicy5)
+        self.lineEdit_system_avoid_name.setMaxLength(32)
 
-        self.horizontalLayout_2.addWidget(self.lineEdit_avoid_name)
+        self.horizontalLayout_2.addWidget(self.lineEdit_system_avoid_name)
 
-        self.pushButton_avoid_add = QPushButton(self.groupBox_avoidance)
-        self.pushButton_avoid_add.setObjectName(u"pushButton_avoid_add")
-        sizePolicy2.setHeightForWidth(self.pushButton_avoid_add.sizePolicy().hasHeightForWidth())
-        self.pushButton_avoid_add.setSizePolicy(sizePolicy2)
-        self.pushButton_avoid_add.setMinimumSize(QSize(32, 0))
-        self.pushButton_avoid_add.setMaximumSize(QSize(32, 16777215))
-        self.pushButton_avoid_add.setLayoutDirection(Qt.LeftToRight)
+        self.pushButton_system_avoid_add = QPushButton(self.groupBox_avoidance)
+        self.pushButton_system_avoid_add.setObjectName(u"pushButton_system_avoid_add")
+        sizePolicy2.setHeightForWidth(self.pushButton_system_avoid_add.sizePolicy().hasHeightForWidth())
+        self.pushButton_system_avoid_add.setSizePolicy(sizePolicy2)
+        self.pushButton_system_avoid_add.setMinimumSize(QSize(32, 0))
+        self.pushButton_system_avoid_add.setMaximumSize(QSize(32, 16777215))
+        self.pushButton_system_avoid_add.setLayoutDirection(Qt.LeftToRight)
 
-        self.horizontalLayout_2.addWidget(self.pushButton_avoid_add)
+        self.horizontalLayout_2.addWidget(self.pushButton_system_avoid_add)
 
 
         self.verticalLayout_4.addLayout(self.horizontalLayout_2)
+
+        self.horizontalLayout_5 = QHBoxLayout()
+        self.horizontalLayout_5.setObjectName(u"horizontalLayout_5")
+        self.label_11 = QLabel(self.groupBox_avoidance)
+        self.label_11.setObjectName(u"label_11")
+        sizePolicy4.setHeightForWidth(self.label_11.sizePolicy().hasHeightForWidth())
+        self.label_11.setSizePolicy(sizePolicy4)
+
+        self.horizontalLayout_5.addWidget(self.label_11)
+
+        self.lineEdit_region_avoid_name = QLineEdit(self.groupBox_avoidance)
+        self.lineEdit_region_avoid_name.setObjectName(u"lineEdit_region_avoid_name")
+        sizePolicy5.setHeightForWidth(self.lineEdit_region_avoid_name.sizePolicy().hasHeightForWidth())
+        self.lineEdit_region_avoid_name.setSizePolicy(sizePolicy5)
+        self.lineEdit_region_avoid_name.setMaxLength(32)
+
+        self.horizontalLayout_5.addWidget(self.lineEdit_region_avoid_name)
+
+        self.pushButton_region_avoid_add = QPushButton(self.groupBox_avoidance)
+        self.pushButton_region_avoid_add.setObjectName(u"pushButton_region_avoid_add")
+        sizePolicy2.setHeightForWidth(self.pushButton_region_avoid_add.sizePolicy().hasHeightForWidth())
+        self.pushButton_region_avoid_add.setSizePolicy(sizePolicy2)
+        self.pushButton_region_avoid_add.setMinimumSize(QSize(32, 0))
+        self.pushButton_region_avoid_add.setMaximumSize(QSize(32, 16777215))
+        self.pushButton_region_avoid_add.setLayoutDirection(Qt.LeftToRight)
+
+        self.horizontalLayout_5.addWidget(self.pushButton_region_avoid_add)
+
+
+        self.verticalLayout_4.addLayout(self.horizontalLayout_5)
 
         self.listWidget_avoid = QListWidget(self.groupBox_avoidance)
         self.listWidget_avoid.setObjectName(u"listWidget_avoid")
@@ -490,7 +520,9 @@ class Ui_MainWindow(object):
         self.label_9.setText(QCoreApplication.translate("MainWindow", u"WH:", None))
         self.groupBox_avoidance.setTitle(QCoreApplication.translate("MainWindow", u"Avoidance list", None))
         self.label_3.setText(QCoreApplication.translate("MainWindow", u"System:", None))
-        self.pushButton_avoid_add.setText(QCoreApplication.translate("MainWindow", u"+", None))
+        self.pushButton_system_avoid_add.setText(QCoreApplication.translate("MainWindow", u"+", None))
+        self.label_11.setText(QCoreApplication.translate("MainWindow", u"Region:", None))
+        self.pushButton_region_avoid_add.setText(QCoreApplication.translate("MainWindow", u"+", None))
         self.pushButton_avoid_delete.setText(QCoreApplication.translate("MainWindow", u"Delete selected", None))
         self.pushButton_avoid_clear.setText(QCoreApplication.translate("MainWindow", u"Clear list", None))
         self.pushButton_reset.setText(QCoreApplication.translate("MainWindow", u"Reset chain", None))

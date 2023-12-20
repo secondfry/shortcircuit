@@ -237,7 +237,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     for line_edit_field in [
         self.lineEdit_source,
         self.lineEdit_destination,
-        self.lineEdit_avoid_name,
+        self.lineEdit_system_avoid_name,
         self.lineEdit_set_dest,
     ]:
       completer = QtWidgets.QCompleter(system_list, self)
@@ -247,6 +247,14 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
       )
       line_edit_field.setCompleter(completer)
 
+    region_list = self.nav.eve_db.region_name_list()
+    region_list.sort(key=str.lower)
+    completer = QtWidgets.QCompleter(region_list, self)
+    completer.setCaseSensitivity(QtCore.Qt.CaseInsensitive)
+    completer.setModelSorting(QtWidgets.QCompleter.CaseInsensitivelySortedModel)
+    completer.setFilterMode(QtCore.Qt.MatchContains)
+    self.lineEdit_region_avoid_name.setCompleter(completer)
+
     # Signals
     self.pushButton_eve_login.clicked.connect(self.btn_eve_login_clicked)
     self.pushButton_player_location.clicked.connect(
@@ -255,7 +263,12 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     self.pushButton_find_path.clicked.connect(self.btn_find_path_clicked)
     self.pushButton_trip_config.clicked.connect(self.btn_trip_config_clicked)
     self.pushButton_trip_get.clicked.connect(self.btn_trip_get_clicked)
-    self.pushButton_avoid_add.clicked.connect(self.btn_avoid_add_clicked)
+    self.pushButton_system_avoid_add.clicked.connect(
+      self.btn_system_avoid_add_clicked
+    )
+    self.pushButton_region_avoid_add.clicked.connect(
+      self.btn_region_avoid_add_clicked
+    )
     self.pushButton_avoid_delete.clicked.connect(self.btn_avoid_delete_clicked)
     self.pushButton_avoid_clear.clicked.connect(self.btn_avoid_clear_clicked)
     self.pushButton_set_dest.clicked.connect(self.btn_set_dest_clicked)
@@ -264,8 +277,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     self.lineEdit_destination.returnPressed.connect(
       self.line_edit_destination_return
     )
-    self.lineEdit_avoid_name.returnPressed.connect(
-      self.line_edit_avoid_name_return
+    self.lineEdit_system_avoid_name.returnPressed.connect(
+      self.line_edit_system_avoid_name_return
+    )
+    self.lineEdit_region_avoid_name.returnPressed.connect(
+      self.line_edit_region_avoid_name_return
     )
     self.lineEdit_set_dest.returnPressed.connect(self.btn_set_dest_clicked)
     self.tableWidget_path.itemSelectionChanged.connect(
@@ -327,9 +343,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     self.groupBox_avoidance.setChecked(
       self.settings.value("avoidance_enabled", "false") == "true"
     )
-    for sys_name in self.settings.value("avoidance_list", "").split(','):
-      if sys_name != "":
-        self._avoid_system_name(sys_name)
+    for entity in self.settings.value("avoidance_list", "").split(','):
+      if entity != "":
+        self._avoid_entity_name(entity)
 
     # Restrictions
     self.comboBox_size.setCurrentIndex(
@@ -455,33 +471,38 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     return self.groupBox_avoidance.isChecked()
 
   def avoidance_list(self) -> List[str]:
-    items: List[QtWidgets.QListWidgetItem] = []
-    for index in range(self.listWidget_avoid.count()):
-      items.append(self.listWidget_avoid.item(index))
-    return [i.text() for i in items]
+    items: List[str] = []
+    for idx in range(self.listWidget_avoid.count()):
+      item: QtWidgets.QListWidgetItem = self.listWidget_avoid.item(idx)
+      items.append(item.text())
+    return items
 
-  def _avoid_system_name(self, sys_name):
-    if not sys_name:
-      self._avoid_message(
-        "Avoidance list: invalid system name :(", MessageType.ERROR
-      )
+  def _avoid_entity_name(self, name):
+    if not name:
+      self._avoid_message("Avoidance list: invalid name :(", MessageType.ERROR)
       return
 
-    if sys_name in self.avoidance_list():
+    if name in self.avoidance_list():
       self._avoid_message(
-        "Avoidance list: {} is already in the list!".format(sys_name),
+        "Avoidance list: {} is already in the list!".format(name),
         MessageType.ERROR
       )
       return
 
-    QtWidgets.QListWidgetItem(sys_name, self.listWidget_avoid)
-    self._avoid_message(
-      "Avoidance list: {} added".format(sys_name), MessageType.OK
-    )
+    QtWidgets.QListWidgetItem(name, self.listWidget_avoid)
+    self._avoid_message("Avoidance list: {} added".format(name), MessageType.OK)
 
   def avoid_system(self):
-    sys_name = self.nav.eve_db.normalize_name(self.lineEdit_avoid_name.text())
-    self._avoid_system_name(sys_name)
+    sys_name = self.nav.eve_db.normalize_name(
+      self.lineEdit_system_avoid_name.text()
+    )
+    self._avoid_entity_name(sys_name)
+
+  def avoid_region(self):
+    region_name = self.nav.eve_db.normalize_region_name(
+      self.lineEdit_region_avoid_name.text()
+    )
+    self._avoid_entity_name(region_name)
 
   @staticmethod
   def get_system_class_color(sclass):
@@ -567,12 +588,25 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     return security_prio
 
   def get_restrictions_avoidance(self) -> List[int]:
-    avoidance_list: List[str] = []
+    if not self.avoidance_enabled():
+      return []
 
-    if self.avoidance_enabled():
-      avoidance_list = self.avoidance_list()
+    res = []
+    for entity in self.avoidance_list():
+      idx = self.eve_db.name2id(entity)
 
-    return [self.eve_db.name2id(x) for x in avoidance_list]
+      if idx:
+        res.append(idx)
+        continue
+
+      idx = self.eve_db.region_name_to_id(entity)
+
+      if not idx:
+        continue
+
+      res.extend(self.eve_db.get_region_system_ids(idx))
+
+    return res
 
   def get_restrictions(self) -> Restrictions:
     size_restriction = self.get_restrictions_size()
@@ -833,8 +867,12 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
       self._status_tripwire_update()
 
   @QtCore.Slot()
-  def btn_avoid_add_clicked(self):
+  def btn_system_avoid_add_clicked(self):
     self.avoid_system()
+
+  @QtCore.Slot()
+  def btn_region_avoid_add_clicked(self):
+    self.avoid_region()
 
   @QtCore.Slot()
   def btn_avoid_delete_clicked(self):
@@ -864,8 +902,12 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
       self._status_tripwire_update()
 
   @QtCore.Slot()
-  def line_edit_avoid_name_return(self):
+  def line_edit_system_avoid_name_return(self):
     self.avoid_system()
+
+  @QtCore.Slot()
+  def line_edit_region_avoid_name_return(self):
+    self.avoid_region()
 
   @QtCore.Slot()
   def line_edit_source_return(self):

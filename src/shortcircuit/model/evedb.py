@@ -3,7 +3,7 @@
 import csv
 from enum import Enum
 from os import path
-from typing import Dict, List, TypedDict, Union
+from typing import Dict, List, Optional, TypedDict, Union
 from typing_extensions import deprecated
 
 from .logger import Logger
@@ -225,6 +225,61 @@ class SolarSystem:
     return '??'
 
 
+class Region:
+
+  def __init__(
+    self,
+    regionID: int,
+    regionName: str,
+    x: float,
+    y: float,
+    z: float,
+    xMin: float,
+    xMax: float,
+    yMin: float,
+    yMax: float,
+    zMin: float,
+    zMax: float,
+    factionID: Optional[int],
+    nebula: str,
+    radius: Optional[float]
+  ):
+    self.regionID = regionID
+    self.regionName = regionName
+    self.x = x
+    self.y = y
+    self.z = z
+    self.xMin = xMin
+    self.xMax = xMax
+    self.yMin = yMin
+    self.yMax = yMax
+    self.zMin = zMin
+    self.zMax = zMax
+    self.factionID = factionID
+    self.nebula = nebula
+    self.radius = radius
+
+  @staticmethod
+  def from_row(row: List[str]):
+    regionID, regionName, x, y, z, xMin, xMax, yMin, yMax, zMin, zMax, factionID, nebula, radius = row
+    return Region(
+      regionID=int(regionID),
+      regionName=regionName,
+      x=float(x),
+      y=float(y),
+      z=float(z),
+      xMin=float(xMin),
+      xMax=float(xMax),
+      yMin=float(yMin),
+      yMax=float(yMax),
+      zMin=float(zMin),
+      zMax=float(zMax),
+      factionID=int(factionID) if factionID != 'None' else None,
+      nebula=nebula,
+      radius=float(radius) if radius != 'None' else None
+    )
+
+
 class EveDb(metaclass=Singleton):
   """
   Eve Database Handler
@@ -361,10 +416,12 @@ class EveDb(metaclass=Singleton):
     # @see https://www.fuzzwork.co.uk/dump/
     filename_gates = 'mapSolarSystemJumps.csv'
     filename_descriptions = 'mapSolarSystems.csv'
+    filename_regions = 'mapRegions.csv'
 
     self._init_gates(get_csv_reader(filename_gates))
     self._init_system_descriptions(get_csv_reader(filename_descriptions))
     self._init_renames(get_csv_reader(filaname_renames))
+    self._init_regions(get_csv_reader(filename_regions))
 
     self.wh_codes: Dict[str, WormholeSize] = {
       rows[0]: WormholeSize(int(rows[1]))
@@ -385,9 +442,10 @@ class EveDb(metaclass=Singleton):
 
   def _init_system_descriptions(self, reader):
     self.system_desc: Dict[int, SystemDescription] = {}
+    self.region_systems: Dict[int, List[SystemDescription]] = {}
     for row in reader:
       system = SolarSystem.from_row(row)
-      self.system_desc[system.solarSystemID] = {
+      description = SystemDescription({
         'class': system.get_system_class(),
         'flags': {
           'triglavian': system.is_triglavian()
@@ -396,13 +454,23 @@ class EveDb(metaclass=Singleton):
         'name': system.solarSystemName,
         'region_id': system.regionID,
         'security': system.security
-      }
+      })
+      self.system_desc[system.solarSystemID] = description
+      if description['region_id'] not in self.region_systems:
+        self.region_systems[description['region_id']] = []
+      self.region_systems[description['region_id']].append(description)
 
   def _init_renames(self, reader):
     for row in reader:
       id = int(row[0])
       name = row[1]
       self.system_desc[id]['name'] = name
+
+  def _init_regions(self, reader):
+    self.regions: Dict[int, Region] = {}
+    for row in reader:
+      region = Region.from_row(row)
+      self.regions[region.regionID] = region
 
   def get_whsize_by_code(self, code: str) -> WormholeSize:
     return self.wh_codes.get(code.upper(), WormholeSize.UNKNOWN)
@@ -440,6 +508,9 @@ class EveDb(metaclass=Singleton):
   def system_name_list(self):
     return [x['name'] for x in self.system_desc.values()]
 
+  def region_name_list(self):
+    return [x.regionName for x in self.regions.values()]
+
   def get_system_dict_pair_by_partial_name(self, part: str):
     if not part:
       return (None, None)
@@ -470,6 +541,12 @@ class EveDb(metaclass=Singleton):
 
     return system['name']
 
+  def normalize_region_name(self, partial: str):
+    for region in self.regions.values():
+      if partial.lower() in region.regionName.lower():
+        return region.regionName
+    return None
+
   # TODO properly type this
   def name2id(self, name):
     [sid, _] = self.get_system_dict_pair_by_partial_name(name)
@@ -482,3 +559,12 @@ class EveDb(metaclass=Singleton):
     except KeyError:
       sys_name = None
     return sys_name
+
+  def region_name_to_id(self, name: str):
+    for region in self.regions.values():
+      if name == region.regionName:
+        return region.regionID
+    return None
+
+  def get_region_system_ids(self, idx: int):
+    return [x["id"] for x in self.region_systems[idx]]
