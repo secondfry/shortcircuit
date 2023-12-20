@@ -185,8 +185,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         last_update,
       )
     )
-    self.banner_image.mouseReleaseEvent = MainWindow.banner_click
-    self.banner_button.mouseReleaseEvent = MainWindow.banner_click
+    # FIXME(secondfry): removed heading
+    # self.banner_image.mouseReleaseEvent = MainWindow.banner_click
+    # self.banner_button.mouseReleaseEvent = MainWindow.banner_click
     self._path_message("", MainWindow.MSG_OK)
     self._avoid_message("", MainWindow.MSG_OK)
     self.lineEdit_source.setFocus()
