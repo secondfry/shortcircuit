@@ -51,8 +51,7 @@ class Ui_MainWindow(object):
         self.banner_image.setMaximumSize(QSize(16777215, 45))
         self.banner_image.setCursor(QCursor(Qt.PointingHandCursor))
         self.banner_image.setAutoFillBackground(False)
-        self.banner_image.setStyleSheet(u"background: rgb(255, 255, 255);\n"
-"border: 1px solid #000;")
+        self.banner_image.setStyleSheet(u"background: rgb(255, 255, 255); border: 1px solid #000;")
         self.banner_image.setPixmap(QPixmap(u":/images/banner.png"))
         self.banner_image.setScaledContents(False)
         self.banner_image.setAlignment(Qt.AlignCenter)
