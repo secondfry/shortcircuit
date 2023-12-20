@@ -162,14 +162,17 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     self.additional_gui_setup()
 
     self.status_tripwire = QtWidgets.QLabel()
+    self.status_tripwire.setContentsMargins(5, 0, 5, 0)
     self.statusBar().addPermanentWidget(self.status_tripwire, 0)
     self._status_tripwire_update()
 
     self.status_evescout = QtWidgets.QLabel()
+    self.status_evescout.setContentsMargins(5, 0, 5, 0)
     self.statusBar().addPermanentWidget(self.status_evescout, 0)
     self._status_evescout_update()
 
     self.status_eve_connection = QtWidgets.QLabel()
+    self.status_eve_connection.setContentsMargins(5, 0, 5, 0)
     self.statusBar().addPermanentWidget(self.status_eve_connection, 0)
     self._status_eve_connection_update()
 
