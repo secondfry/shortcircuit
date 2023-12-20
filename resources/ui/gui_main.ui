@@ -30,8 +30,14 @@
       <property name="minimumSize">
        <size>
         <width>420</width>
-        <height>132</height>
+        <height>45</height>
        </size>
+      </property>
+      <property name="maximumSize">
+      <size>
+        <width>16777215</width>
+        <height>45</height>
+      </size>
       </property>
       <layout class="QGridLayout" name="gridLayout_5">
        <property name="leftMargin">
@@ -57,13 +63,13 @@
          <property name="minimumSize">
           <size>
            <width>420</width>
-           <height>132</height>
+           <height>45</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
            <width>16777215</width>
-           <height>132</height>
+           <height>45</height>
           </size>
          </property>
          <property name="cursor">
