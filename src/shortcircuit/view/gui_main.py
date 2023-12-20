@@ -198,18 +198,6 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_3.addLayout(self.gridLayout_4)
 
-        self.label_trip_status = QLabel(self.groupBox__options)
-        self.label_trip_status.setObjectName(u"label_trip_status")
-        self.label_trip_status.setAlignment(Qt.AlignCenter)
-
-        self.verticalLayout_3.addWidget(self.label_trip_status)
-
-        self.label_evescout_status = QLabel(self.groupBox__options)
-        self.label_evescout_status.setObjectName(u"label_evescout_status")
-        self.label_evescout_status.setAlignment(Qt.AlignCenter)
-
-        self.verticalLayout_3.addWidget(self.label_evescout_status)
-
         self.groupBox_restrictions = QGroupBox(self.groupBox__options)
         self.groupBox_restrictions.setObjectName(u"groupBox_restrictions")
         self.groupBox_restrictions.setFlat(True)
@@ -519,8 +507,6 @@ class Ui_MainWindow(object):
         self.pushButton_trip_get.setText(QCoreApplication.translate("MainWindow", u"Get Tripwire Chain", None))
         self.pushButton_eve_login.setText(QCoreApplication.translate("MainWindow", u"Log in with EvE", None))
         self.pushButton_trip_config.setText(QCoreApplication.translate("MainWindow", u"Tripwire", None))
-        self.label_trip_status.setText(QCoreApplication.translate("MainWindow", u"Not connected to Tripwire, yet", None))
-        self.label_evescout_status.setText(QCoreApplication.translate("MainWindow", u"Eve-Scout", None))
         self.groupBox_restrictions.setTitle(QCoreApplication.translate("MainWindow", u"Restrictions", None))
         self.label_5.setText(QCoreApplication.translate("MainWindow", u"Wormhole size at least:", None))
         self.comboBox_size.setItemText(0, QCoreApplication.translate("MainWindow", u"Small [All]", None))

@@ -11,7 +11,7 @@ class ESIProcessor(QtCore.QObject):
   """
   ESI Middleware
   """
-  login_response = QtCore.Signal(str)
+  login_response = QtCore.Signal(bool, str)
   logout_response = QtCore.Signal()
   location_response = QtCore.Signal(str)
   destination_response = QtCore.Signal(bool)
@@ -50,8 +50,8 @@ class ESIProcessor(QtCore.QObject):
     self.destination_response.emit(response)
 
   # TODO properly type this
-  def _login_callback(self, char_name):
-    self.login_response.emit(char_name)
+  def _login_callback(self, is_ok, char_name):
+    self.login_response.emit(is_ok, char_name)
 
   def _logout_callback(self):
     self.logout_response.emit()

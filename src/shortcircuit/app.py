@@ -1,10 +1,11 @@
 # app.py
 
+from enum import Enum
 import json
 import sys
 import time
 from functools import partial
-from typing import Dict, List
+from typing import Dict, List, TypedDict, Union
 
 from PySide2 import QtCore, QtGui, QtWidgets
 
@@ -18,6 +19,23 @@ from .model.versioncheck import VersionCheck
 from .view.gui_about import Ui_AboutDialog
 from .view.gui_main import Ui_MainWindow
 from .view.gui_tripwire import Ui_TripwireDialog
+
+
+class StateEVEConnection(TypedDict):
+  connected: bool
+  char_name: Union[str, None]
+  error: Union[str, None]
+
+
+class StateEVEScout(TypedDict):
+  connections: int
+  enabled: bool
+  error: Union[str, None]
+
+
+class StateTripwire(TypedDict):
+  connections: int
+  error: Union[str, None]
 
 
 class TripwireDialog(QtWidgets.QDialog, Ui_TripwireDialog):
@@ -76,14 +94,16 @@ class AboutDialog(QtWidgets.QDialog, Ui_AboutDialog):
     )
 
 
+class MessageType(Enum):
+  INFO = 0
+  ERROR = 1
+  OK = 2
+
+
 class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
   """
   Main Window GUI
   """
-
-  MSG_OK = 2
-  MSG_ERROR = 1
-  MSG_INFO = 0
 
   @property
   def route_source(self) -> str:
@@ -109,7 +129,14 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     self.tripwire_user = None
     self.tripwire_pass = None
     self.global_proxy = None
-    self.evescout_enabled = None
+
+    self.state_eve_connection = StateEVEConnection({
+      "connected": False, "char_name": None, "error": None
+    })
+    self.state_evescout = StateEVEScout({
+      "connections": 0, "enabled": False, "error": None
+    })
+    self.state_tripwire = StateTripwire({"connections": 0, "error": None})
 
     # Table configuration
     self.tableWidget_path.setColumnCount(5)
@@ -133,12 +160,23 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
     # Additional GUI setup
     self.additional_gui_setup()
-    self.label_status_bar = QtWidgets.QLabel("Not connected to EvE")
-    self.statusBar().addWidget(self.label_status_bar, 1)
-    if self.evescout_enabled:
-      self.label_evescout_status.setText("Eve-Scout: enabled")
-    else:
-      self.label_evescout_status.setText("Eve-Scout: disabled")
+
+    self.status_eve_connection = QtWidgets.QLabel()
+    self.statusBar().addWidget(self.status_eve_connection, 0)
+    self._status_eve_connection_update()
+
+    self.status_tripwire = QtWidgets.QLabel()
+    self.statusBar().addWidget(self.status_tripwire, 0)
+    self._status_tripwire_update()
+
+    self.status_evescout = QtWidgets.QLabel()
+    self.statusBar().addWidget(self.status_evescout, 0)
+    self._status_evescout_update()
+
+    self.status_clipboard = QtWidgets.QLabel()
+    self.statusBar().addWidget(self.status_clipboard, 0)
+    # FIXME(secondfry): control status_clipboard via state
+    # self._status_clipboard_update()
 
     # Icons
     self.icon_wormhole = QtGui.QIcon(":images/wh_icon.png")
@@ -188,8 +226,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     # FIXME(secondfry): removed heading
     # self.banner_image.mouseReleaseEvent = MainWindow.banner_click
     # self.banner_button.mouseReleaseEvent = MainWindow.banner_click
-    self._path_message("", MainWindow.MSG_OK)
-    self._avoid_message("", MainWindow.MSG_OK)
+    self._path_message("", MessageType.OK)
+    self._avoid_message("", MessageType.OK)
     self.lineEdit_source.setFocus()
     self.lineEdit_short_format.mousePressEvent = partial(
       MainWindow.short_format_click, self
@@ -263,7 +301,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     )
     self.tripwire_user = self.settings.value('user')
     self.tripwire_pass = self.settings.value('pass')
-    self.evescout_enabled = self.settings.value(
+    self.state_evescout["enabled"] = self.settings.value(
       'evescout_enabled', 'false'
     ) == 'true'
     self.settings.endGroup()
@@ -329,7 +367,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     self.settings.setValue('url', self.tripwire_url)
     self.settings.setValue('user', self.tripwire_user)
     self.settings.setValue('pass', self.tripwire_pass)
-    self.settings.setValue('evescout_enabled', self.evescout_enabled)
+    self.settings.setValue('evescout_enabled', self.state_evescout["enabled"])
     self.settings.endGroup()
 
   def write_settings(self):
@@ -391,9 +429,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
   @staticmethod
   def _label_message(label, message, message_type):
-    if message_type == MainWindow.MSG_OK:
+    # FIXME(secondfry): set only color, not entire stylesheet.
+    if message_type == MessageType.OK:
       label.setStyleSheet("QLabel {color: green;}")
-    elif message_type == MainWindow.MSG_ERROR:
+    elif message_type == MessageType.ERROR:
       label.setStyleSheet("QLabel {color: red;}")
     else:
       label.setStyleSheet("QLabel {color: black;}")
@@ -405,11 +444,17 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
   def _path_message(self, message, message_type):
     MainWindow._label_message(self.label_status, message, message_type)
 
-  def _trip_message(self, message, message_type):
-    MainWindow._label_message(self.label_trip_status, message, message_type)
+  def _status_clipboard(self, message, message_type=MessageType.INFO):
+    MainWindow._label_message(self.status_clipboard, message, message_type)
 
-  def _statusbar_message(self, message, message_type):
-    MainWindow._label_message(self.label_status_bar, message, message_type)
+  def _status_eve_connection(self, message, message_type=MessageType.INFO):
+    MainWindow._label_message(self.status_eve_connection, message, message_type)
+
+  def _status_evescout(self, message, message_type=MessageType.INFO):
+    MainWindow._label_message(self.status_evescout, message, message_type)
+
+  def _status_tripwire(self, message, message_type=MessageType.INFO):
+    MainWindow._label_message(self.status_tripwire, message, message_type)
 
   def avoidance_enabled(self) -> bool:
     return self.checkBox_avoid_enabled.isChecked()
@@ -424,11 +469,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     if sys_name:
       if sys_name not in self.avoidance_list():
         QtWidgets.QListWidgetItem(sys_name, self.listWidget_avoid)
-        self._avoid_message("Added", MainWindow.MSG_OK)
+        self._avoid_message("Added", MessageType.OK)
       else:
-        self._avoid_message("Already in list!", MainWindow.MSG_ERROR)
+        self._avoid_message("Already in list!", MessageType.ERROR)
     else:
-      self._avoid_message("Invalid system name :(", MainWindow.MSG_ERROR)
+      self._avoid_message("Invalid system name :(", MessageType.ERROR)
 
   def avoid_system(self):
     sys_name = self.nav.eve_db.normalize_name(self.lineEdit_avoid_name.text())
@@ -562,7 +607,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
       if not dest_sys_name:
         error_msg.append("destination")
       error_msg = "Invalid system name in {}.".format(" and ".join(error_msg))
-      self._path_message(error_msg, MainWindow.MSG_ERROR)
+      self._path_message(error_msg, MessageType.ERROR)
       return
 
     [route, short_format] = self.nav.route(
@@ -573,18 +618,18 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     if not route:
       self._clear_results()
       self._path_message(
-        "No path found between the solar systems.", MainWindow.MSG_ERROR
+        "No path found between the solar systems.", MessageType.ERROR
       )
       return
 
     route_length = len(route)
     if route_length == 1:
       self._path_message(
-        "Set the same source and destination :P", MainWindow.MSG_OK
+        "Set the same source and destination :P", MessageType.OK
       )
     else:
       self._path_message(
-        "Total number of jumps: {}".format(route_length - 1), MainWindow.MSG_OK
+        "Total number of jumps: {}".format(route_length - 1), MessageType.OK
       )
 
     self.add_data_to_table(route)
@@ -601,32 +646,76 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
       return
     self.lineEdit_short_format.selectAll()
     self.lineEdit_short_format.copy()
-    self._statusbar_message(
-      "Copied travel info to clipboard!", MainWindow.MSG_INFO
-    )
+    self._status_clipboard("Copied travel info to clipboard!", MessageType.INFO)
 
-  @QtCore.Slot(str)
-  def login_handler(self, char_name):
-    if char_name:
-      self._statusbar_message(
-        "Welcome, {}".format(char_name), MainWindow.MSG_OK
+  def _status_eve_connection_update(self):
+    if self.state_eve_connection["connected"]:
+      self._status_eve_connection(
+        "EVE connection: {}".format(self.state_eve_connection["char_name"]),
+        MessageType.OK
       )
       self.pushButton_eve_login.setText("Logout")
       self.pushButton_player_location.setEnabled(True)
       self.pushButton_set_dest.setEnabled(True)
-      self.eve_connected = True
-    else:
-      self._statusbar_message(
-        "Error: Unable to connect with ESI", MainWindow.MSG_ERROR
-      )
+      return
 
-  @QtCore.Slot()
-  def logout_handler(self):
-    self._statusbar_message("Not connected to EvE", MainWindow.MSG_INFO)
+    if self.state_eve_connection["error"]:
+      self._status_eve_connection(
+        "EVE connection: {}".format(self.state_eve_connection["error"]),
+        MessageType.ERROR
+      )
+      return
+
+    self._status_eve_connection("EVE connection: absent")
     self.pushButton_eve_login.setText("Log in with EvE")
     self.pushButton_player_location.setEnabled(False)
     self.pushButton_set_dest.setEnabled(False)
-    self.eve_connected = False
+
+  def _status_evescout_update(self):
+    if not self.state_evescout["enabled"]:
+      self._status_evescout("Eve-Scout: disabled")
+      return
+
+    if self.state_evescout["error"]:
+      self._status_evescout("Eve-Scout: disabled", MessageType.ERROR)
+      return
+
+    if not self.state_evescout["connections"]:
+      self._status_evescout("Eve-Scout: enabled")
+      return
+
+    self._status_evescout(
+      "Eve-Scout: {} connections".format(self.state_evescout["connections"]),
+      MessageType.OK
+    )
+
+  def _status_tripwire_update(self):
+    if self.state_evescout["error"]:
+      self._status_tripwire("Tripwire: disabled", MessageType.ERROR)
+      return
+
+    if not self.state_evescout["connections"]:
+      self._status_tripwire("Tripwire: enabled")
+      return
+
+    self._status_tripwire(
+      "Tripwire: {} connections".format(self.state_tripwire["connections"]),
+      MessageType.OK
+    )
+
+  @QtCore.Slot(str)
+  def login_handler(self, is_ok, char_name):
+    self.state_eve_connection["connected"] = is_ok
+    self.state_eve_connection["char_name"] = char_name
+    self.state_eve_connection["error"] = "ESI error" if not is_ok else None
+    self._status_eve_connection_update()
+
+  @QtCore.Slot()
+  def logout_handler(self):
+    self.state_eve_connection["connected"] = False
+    self.state_eve_connection["char_name"] = None
+    self.state_eve_connection["error"] = None
+    self._status_eve_connection_update()
 
   @QtCore.Slot(str)
   def location_handler(self, location):
@@ -655,33 +744,24 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     while self.worker_thread.isRunning():
       time.sleep(0.01)
 
-    if self.evescout_enabled:
-      if evescout_connections >= 0:
-        self.label_evescout_status.setText(
-          "Eve-Scout: {} connections".format(evescout_connections)
-        )
-      else:
-        self.label_evescout_status.setText("Eve-Scout: error :(")
-    else:
-      self.label_evescout_status.setText("Eve-Scout: disabled")
-    if connections > 0:
-      self._trip_message(
-        "Retrieved {} Tripwire connections!".format(connections),
-        MainWindow.MSG_OK
-      )
-    elif connections == 0:
-      self._trip_message("No Tripwire connections exist!", MainWindow.MSG_ERROR)
-    else:
-      self._trip_message(
-        "Tripwire error. Check url/user/pass.", MainWindow.MSG_ERROR
-      )
+    self.state_evescout["connections"] = evescout_connections
+    if evescout_connections < 0:
+      # FIXME(secondfry): pass actual error and dispaly it to the user.
+      self.state_evescout["error"] = "error"
+    self._status_evescout_update()
+
+    self.state_tripwire["connections"] = connections
+    if connections < 0:
+      # FIXME(secondfry): pass actual error and dispaly it to the user.
+      self.state_evescout["error"] = "error. Check url/user/pass."
+    self._status_tripwire_update()
 
     self.pushButton_trip_get.setEnabled(True)
     self.pushButton_find_path.setEnabled(True)
 
   @QtCore.Slot()
   def btn_eve_login_clicked(self):
-    if not self.eve_connected:
+    if not self.state_eve_connection["connected"]:
       self.esip.login()
     else:
       self.esip.logout()
@@ -721,7 +801,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
       self.tripwire_user,
       self.tripwire_pass,
       self.global_proxy,
-      self.evescout_enabled,
+      self.state_evescout["enabled"],
     )
 
     if not tripwire_dialog.exec_():
@@ -732,11 +812,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     self.tripwire_pass = tripwire_dialog.lineEdit_pass.text()
     self.global_proxy = tripwire_dialog.lineEdit_proxy.text()
     self.nav.tripwire_set_login()
-    self.evescout_enabled = tripwire_dialog.checkBox_evescout.isChecked()
-    if self.evescout_enabled:
-      self.label_evescout_status.setText("Eve-Scout: enabled")
-    else:
-      self.label_evescout_status.setText("Eve-Scout: disabled")
+    self.state_evescout["enabled"
+                        ] = tripwire_dialog.checkBox_evescout.isChecked()
+    self._status_evescout_update()
     self.write_settings_tripwire()
 
   @QtCore.Slot()
@@ -744,10 +822,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     if not self.worker_thread.isRunning():
       self.pushButton_trip_get.setEnabled(False)
       self.pushButton_find_path.setEnabled(False)
-      self.nav_processor.evescout_enable = self.evescout_enabled
+      self.nav_processor.evescout_enable = self.state_evescout["enabled"]
       self.worker_thread.start()
     else:
-      self._trip_message("Error! Process already running", MainWindow.MSG_ERROR)
+      self.state_tripwire['error'] = "error. Process is already running."
+      self._status_tripwire_update()
 
   @QtCore.Slot()
   def btn_avoid_add_clicked(self):
@@ -775,7 +854,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
     if ret == QtWidgets.QMessageBox.Yes:
       self.nav.reset_chain()
-      self._trip_message("Not connected to Tripwire, yet", MainWindow.MSG_INFO)
+      self.state_evescout["connections"] = 0
+      self.state_tripwire["connections"] = 0
+      self._status_evescout_update()
+      self._status_tripwire_update()
 
   @QtCore.Slot()
   def line_edit_avoid_name_return(self):

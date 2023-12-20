@@ -103,13 +103,15 @@ class ESI:
         data = r.json()
         self.char_id = data['CharacterID']
         self.char_name = data['CharacterName']
+
+        self.login_callback(True, self.char_name)
       else:
         self.token = None
         self.sso_timer = None
         self.char_id = None
         self.char_name = None
 
-      self.login_callback(self.char_name)
+        self.login_callback(False, None)
 
     self.stop_server()
 
