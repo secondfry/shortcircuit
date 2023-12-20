@@ -161,22 +161,17 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     # Additional GUI setup
     self.additional_gui_setup()
 
-    self.status_eve_connection = QtWidgets.QLabel()
-    self.statusBar().addWidget(self.status_eve_connection, 0)
-    self._status_eve_connection_update()
-
     self.status_tripwire = QtWidgets.QLabel()
-    self.statusBar().addWidget(self.status_tripwire, 0)
+    self.statusBar().addPermanentWidget(self.status_tripwire, 0)
     self._status_tripwire_update()
 
     self.status_evescout = QtWidgets.QLabel()
-    self.statusBar().addWidget(self.status_evescout, 0)
+    self.statusBar().addPermanentWidget(self.status_evescout, 0)
     self._status_evescout_update()
 
-    self.status_clipboard = QtWidgets.QLabel()
-    self.statusBar().addWidget(self.status_clipboard, 0)
-    # FIXME(secondfry): control status_clipboard via state
-    # self._status_clipboard_update()
+    self.status_eve_connection = QtWidgets.QLabel()
+    self.statusBar().addPermanentWidget(self.status_eve_connection, 0)
+    self._status_eve_connection_update()
 
     # Icons
     self.icon_wormhole = QtGui.QIcon(":images/wh_icon.png")
@@ -444,9 +439,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
   def _path_message(self, message, message_type):
     MainWindow._label_message(self.label_status, message, message_type)
 
-  def _status_clipboard(self, message, message_type=MessageType.INFO):
-    MainWindow._label_message(self.status_clipboard, message, message_type)
-
   def _status_eve_connection(self, message, message_type=MessageType.INFO):
     MainWindow._label_message(self.status_eve_connection, message, message_type)
 
@@ -646,7 +638,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
       return
     self.lineEdit_short_format.selectAll()
     self.lineEdit_short_format.copy()
-    self._status_clipboard("Copied travel info to clipboard!", MessageType.INFO)
+    self.statusBar().showMessage("Copied travel info to clipboard!", 5000)
 
   def _status_eve_connection_update(self):
     if self.state_eve_connection["connected"]:
