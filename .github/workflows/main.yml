@@ -13,15 +13,15 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [windows-latest, macos-latest]
+        os: [windows-latest, macos-13]
     steps:
+      - uses: actions/checkout@v3
+
       - name: Setup Python
-        uses: actions/setup-python@v3
+        uses: actions/setup-python@v5
         with:
           python-version: "3.10"
           architecture: x64
-
-      - uses: actions/checkout@v3
 
       - name: Download UPX [windows-latest]
         uses: i3h/download-release-asset@v1
@@ -52,23 +52,23 @@ jobs:
         run: python -m pipenv run build_win_installer.bat
 
       - name: Upload a Build Artifact [windows-latest]
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: ${{ matrix.os == 'windows-latest' }}
         with:
           name: shortcircuit.exe
           path: ./dist/shortcircuit.exe
 
-      - name: Additional dependencies [macos-latest]
-        if: ${{ matrix.os == 'macos-latest' }}
+      - name: Additional dependencies [macos-13]
+        if: ${{ matrix.os == 'macos-13' }}
         run: python -m pipenv install macholib
 
-      - name: Build [macos-latest]
-        if: ${{ matrix.os == 'macos-latest' }}
+      - name: Build [macos-13]
+        if: ${{ matrix.os == 'macos-13' }}
         run: python -m pipenv run ./build_mac_installer.sh
 
-      - name: Upload a Build Artifact [macos-latest]
-        uses: actions/upload-artifact@v3
-        if: ${{ matrix.os == 'macos-latest' }}
+      - name: Upload a Build Artifact [macos-13]
+        uses: actions/upload-artifact@v4
+        if: ${{ matrix.os == 'macos-13' }}
         with:
           name: shortcircuit.app.tar.gz
           path: ./dist/shortcircuit.app.tar.gz
