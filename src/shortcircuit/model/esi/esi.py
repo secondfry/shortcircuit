@@ -26,7 +26,7 @@ class ESI:
   ENDPOINT_ESI_UNIVERSE_NAMES = 'https://esi.evetech.net/latest/universe/names/'
   ENDPOINT_ESI_UI_WAYPOINT = 'https://esi.evetech.net/latest/ui/autopilot/waypoint/'
 
-  ENDPOINT_EVE_AUTH_FORMAT = 'https://login.eveonline.com/oauth/authorize' \
+  ENDPOINT_EVE_AUTH_FORMAT = 'https://login.eveonline.com/v2/oauth/authorize' \
                              '?response_type=token&redirect_uri={}&client_id={}&scope={}&state={}'
   CLIENT_CALLBACK = 'http://127.0.0.1:7444/callback/'
   CLIENT_ID = 'd802bba44b7c4f6cbfa2944b0e5ea83f'
