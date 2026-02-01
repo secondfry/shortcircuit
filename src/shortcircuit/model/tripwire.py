@@ -127,6 +127,102 @@ class Tripwire:
     self.chain = self.fetch_api_refresh(system_id)
     return self.chain
 
+  def _process_wormhole(self, wormhole, solar_map: SolarMap):
+    """
+    Process a single wormhole connection from Tripwire and add it to the solar map.
+    
+    :param wormhole: Wormhole data from Tripwire API
+    :param solar_map: SolarMap to add the connection to
+    :return: True if connection was added, False otherwise
+    """
+    if str(wormhole['initialID']) not in self.chain['signatures']:
+      return False
+
+    if str(wormhole['secondaryID']) not in self.chain['signatures']:
+      return False
+
+    if wormhole['parent']:
+      parent = '{}ID'.format(wormhole['parent'])
+    else:
+      parent = 'initialID'
+    sibling = 'secondaryID' if parent == 'initialID' else 'initialID'
+    signature_in = self.chain['signatures'][str(wormhole[parent])]
+    signature_out = self.chain['signatures'][str(wormhole[sibling])]
+
+    system_from = convert_to_int(signature_in['systemID'])
+    system_to = convert_to_int(signature_out['systemID'])
+
+    if system_from == 0 or system_from < 10000 or system_to == 0 or system_to < 10000:
+      return False
+
+    sig_id_in = self.format_tripwire_signature(signature_in['signatureID'])
+    sig_id_out = self.format_tripwire_signature(
+      signature_out['signatureID']
+    )
+
+    # Handle GATE type wormholes (permanent connections like JB networks)
+    is_gate = wormhole['type'] == 'GATE'
+
+    if wormhole['type']:
+      wh_type_in = wormhole['type']
+    else:
+      wh_type_in = Tripwire.WTYPE_UNKNOWN
+    
+    # For GATE type, both sides are marked as GATE
+    if is_gate:
+      wh_type_out = 'GATE'
+    else:
+      wh_type_out = Tripwire.WTYPE_UNKNOWN if wh_type_in == Tripwire.WTYPE_UNKNOWN else 'K162'
+
+    # GATE type wormholes are permanent and stable
+    if is_gate:
+      wh_life = WormholeTimespan.STABLE
+      wh_mass = WormholeMassspan.STABLE
+    else:
+      wh_life = {
+        'stable': WormholeTimespan.STABLE,
+        'critical': WormholeTimespan.CRITICAL,
+      }.get(wormhole['life'], WormholeTimespan.CRITICAL)
+
+      wh_mass = {
+        'stable': WormholeMassspan.STABLE,
+        'destab': WormholeMassspan.DESTAB,
+        'critical': WormholeMassspan.CRITICAL,
+      }.get(wormhole['mass'], WormholeMassspan.CRITICAL)
+
+    # Compute time elapsed from this moment to when the signature was updated
+    last_modified = datetime.strptime(
+      signature_in['modifiedTime'], "%Y-%m-%d %H:%M:%S"
+    )
+    delta = datetime.utcnow() - last_modified
+    time_elapsed = round(delta.total_seconds() / 3600.0, 1)
+
+    # Determine wormhole size
+    wh_size = WormholeSize.UNKNOWN
+    if wormhole['type'] and not is_gate:
+      wh_size = self.eve_db.get_whsize_by_code(wormhole['type'])
+    if not WormholeSize.valid(wh_size):
+      # Wormhole codes are unknown => determine size based on class of wormholes
+      wh_size = self.eve_db.get_whsize_by_system(system_from, system_to)
+
+    # Add wormhole connection to solar system
+    solar_map.add_connection(
+      system_from,
+      system_to,
+      ConnectionType.WORMHOLE,
+      [
+        sig_id_in,
+        wh_type_in,
+        sig_id_out,
+        wh_type_out,
+        wh_size,
+        wh_life,
+        wh_mass,
+        time_elapsed,
+      ],
+    )
+    return True
+
   def augment_map(self, solar_map: SolarMap):
     """
     :param solar_map: SolarMap
@@ -148,94 +244,8 @@ class Tripwire:
     # Process wormholes
     for _, wormhole in self.chain['wormholes'].items():
       try:
-        if str(wormhole['initialID']) not in self.chain['signatures']:
-          continue
-
-        if str(wormhole['secondaryID']) not in self.chain['signatures']:
-          continue
-
-        if wormhole['parent']:
-          parent = '{}ID'.format(wormhole['parent'])
-        else:
-          parent = 'initialID'
-        sibling = 'secondaryID' if parent == 'initialID' else 'initialID'
-        signature_in = self.chain['signatures'][str(wormhole[parent])]
-        signature_out = self.chain['signatures'][str(wormhole[sibling])]
-
-        system_from = convert_to_int(signature_in['systemID'])
-        system_to = convert_to_int(signature_out['systemID'])
-
-        if system_from == 0 or system_from < 10000 or system_to == 0 or system_to < 10000:
-          continue
-
-        sig_id_in = self.format_tripwire_signature(signature_in['signatureID'])
-        sig_id_out = self.format_tripwire_signature(
-          signature_out['signatureID']
-        )
-
-        # Handle GATE type wormholes (permanent connections like JB networks)
-        is_gate = wormhole['type'] == 'GATE'
-
-        if wormhole['type']:
-          wh_type_in = wormhole['type']
-        else:
-          wh_type_in = Tripwire.WTYPE_UNKNOWN
-        # For GATE type, the return side should also be marked as GATE or unknown
-        # since GATE is not a real wormhole code
-        if is_gate:
-          wh_type_out = Tripwire.WTYPE_UNKNOWN
-        else:
-          wh_type_out = Tripwire.WTYPE_UNKNOWN if wh_type_in == Tripwire.WTYPE_UNKNOWN else 'K162'
-
-        connections += 1
-
-        # GATE type wormholes are permanent and stable
-        if is_gate:
-          wh_life = WormholeTimespan.STABLE
-          wh_mass = WormholeMassspan.STABLE
-        else:
-          wh_life = {
-            'stable': WormholeTimespan.STABLE,
-            'critical': WormholeTimespan.CRITICAL,
-          }.get(wormhole['life'], WormholeTimespan.CRITICAL)
-
-          wh_mass = {
-            'stable': WormholeMassspan.STABLE,
-            'destab': WormholeMassspan.DESTAB,
-            'critical': WormholeMassspan.CRITICAL,
-          }.get(wormhole['mass'], WormholeMassspan.CRITICAL)
-
-        # Compute time elapsed from this moment to when the signature was updated
-        last_modified = datetime.strptime(
-          signature_in['modifiedTime'], "%Y-%m-%d %H:%M:%S"
-        )
-        delta = datetime.utcnow() - last_modified
-        time_elapsed = round(delta.total_seconds() / 3600.0, 1)
-
-        # Determine wormhole size
-        wh_size = WormholeSize.UNKNOWN
-        if wormhole['type'] and not is_gate:
-          wh_size = self.eve_db.get_whsize_by_code(wormhole['type'])
-        if not WormholeSize.valid(wh_size):
-          # Wormhole codes are unknown => determine size based on class of wormholes
-          wh_size = self.eve_db.get_whsize_by_system(system_from, system_to)
-
-        # Add wormhole connection to solar system
-        solar_map.add_connection(
-          system_from,
-          system_to,
-          ConnectionType.WORMHOLE,
-          [
-            sig_id_in,
-            wh_type_in,
-            sig_id_out,
-            wh_type_out,
-            wh_size,
-            wh_life,
-            wh_mass,
-            time_elapsed,
-          ],
-        )
+        if self._process_wormhole(wormhole, solar_map):
+          connections += 1
       except Exception as e:
         Logger.error('pepega', exc_info=e)
 

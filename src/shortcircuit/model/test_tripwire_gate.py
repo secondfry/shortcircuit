@@ -83,7 +83,7 @@ def test_gate_wormhole_is_processed():
     assert sig_in == 'ABC----', "Signature in should be formatted as ABC----"
     assert code_in == 'GATE', "Wormhole code should be GATE"
     assert sig_out == 'DEF----', "Signature out should be formatted as DEF----"
-    assert code_out == '----', "Wormhole code out should be unknown for GATE"
+    assert code_out == 'GATE', "Wormhole code out should be GATE (both sides are GATE)"
     assert wh_life == WormholeTimespan.STABLE, "GATE wormholes should have STABLE timespan (permanent)"
     assert wh_mass == WormholeMassspan.STABLE, "GATE wormholes should have STABLE massspan (permanent)"
     assert wh_size == WormholeSize.LARGE, "Size should be determined by system class"
