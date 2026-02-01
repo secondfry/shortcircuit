@@ -148,9 +148,6 @@ class Tripwire:
     # Process wormholes
     for _, wormhole in self.chain['wormholes'].items():
       try:
-        if wormhole['type'] == 'GATE':
-          continue
-
         if str(wormhole['initialID']) not in self.chain['signatures']:
           continue
 
@@ -176,24 +173,37 @@ class Tripwire:
           signature_out['signatureID']
         )
 
+        # Handle GATE type wormholes (permanent connections like JB networks)
+        is_gate = wormhole['type'] == 'GATE'
+
         if wormhole['type']:
           wh_type_in = wormhole['type']
         else:
           wh_type_in = Tripwire.WTYPE_UNKNOWN
-        wh_type_out = Tripwire.WTYPE_UNKNOWN if wh_type_in == Tripwire.WTYPE_UNKNOWN else 'K162'
+        # For GATE type, the return side should also be marked as GATE or unknown
+        # since GATE is not a real wormhole code
+        if is_gate:
+          wh_type_out = Tripwire.WTYPE_UNKNOWN
+        else:
+          wh_type_out = Tripwire.WTYPE_UNKNOWN if wh_type_in == Tripwire.WTYPE_UNKNOWN else 'K162'
 
         connections += 1
 
-        wh_life = {
-          'stable': WormholeTimespan.STABLE,
-          'critical': WormholeTimespan.CRITICAL,
-        }.get(wormhole['life'], WormholeTimespan.CRITICAL)
+        # GATE type wormholes are permanent and stable
+        if is_gate:
+          wh_life = WormholeTimespan.STABLE
+          wh_mass = WormholeMassspan.STABLE
+        else:
+          wh_life = {
+            'stable': WormholeTimespan.STABLE,
+            'critical': WormholeTimespan.CRITICAL,
+          }.get(wormhole['life'], WormholeTimespan.CRITICAL)
 
-        wh_mass = {
-          'stable': WormholeMassspan.STABLE,
-          'destab': WormholeMassspan.DESTAB,
-          'critical': WormholeMassspan.CRITICAL,
-        }.get(wormhole['mass'], WormholeMassspan.CRITICAL)
+          wh_mass = {
+            'stable': WormholeMassspan.STABLE,
+            'destab': WormholeMassspan.DESTAB,
+            'critical': WormholeMassspan.CRITICAL,
+          }.get(wormhole['mass'], WormholeMassspan.CRITICAL)
 
         # Compute time elapsed from this moment to when the signature was updated
         last_modified = datetime.strptime(
@@ -204,7 +214,7 @@ class Tripwire:
 
         # Determine wormhole size
         wh_size = WormholeSize.UNKNOWN
-        if wormhole['type']:
+        if wormhole['type'] and not is_gate:
           wh_size = self.eve_db.get_whsize_by_code(wormhole['type'])
         if not WormholeSize.valid(wh_size):
           # Wormhole codes are unknown => determine size based on class of wormholes
