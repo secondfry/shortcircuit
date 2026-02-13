@@ -258,14 +258,16 @@ class Tripwire:
       'discord_integration': raw_chain['discord_integration'],
     }
 
-  def get_chain(self, system_id="30000142") -> TripwireChain:
+  def get_chain(self, system_id="30000142") -> bool:
     """
+    Fetch and normalize the Tripwire chain data.
+    
     :param system_id: str Numerical solar system ID
-    :return: Normalized TripwireChain object
+    :return: True if fetch was successful, False on connection/auth failure
     """
     raw_chain = self.fetch_api_refresh(system_id)
     self.chain = self._normalize_chain(raw_chain)
-    return self.chain
+    return raw_chain is not None
 
   def _get_parent_sibling_keys(self, wormhole: TripwireWormhole) -> tuple[SignatureKey, SignatureKey]:
     """
@@ -410,11 +412,16 @@ class Tripwire:
 
   def augment_map(self, solar_map: SolarMap):
     """
-    :param solar_map: SolarMap
-    :return: Number of connections in case of success, -1 in case of failure
+    Augment the solar map with wormhole connections from Tripwire.
+    
+    :param solar_map: SolarMap to augment
+    :return: Number of connections added, or -1 on connection/auth failure
     """
-    self.get_chain()
-
+    success = self.get_chain()
+    
+    if not success:
+      return -1
+    
     if len(self.chain['wormholes']) == 0:
       return 0
 

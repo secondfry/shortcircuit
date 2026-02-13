@@ -56,9 +56,9 @@ def test_gate_wormhole_is_processed():
     tripwire.eve_db.get_whsize_by_code.return_value = WormholeSize.UNKNOWN
     tripwire.eve_db.get_whsize_by_system.return_value = WormholeSize.LARGE
     
-    # Mock the get_chain method to return our test data
+    # Mock the get_chain method to return success and set the chain
     tripwire.chain = mock_chain
-    with patch.object(tripwire, 'get_chain', return_value=mock_chain):
+    with patch.object(tripwire, 'get_chain', return_value=True):
         # Call augment_map
         result = tripwire.augment_map(solar_map)
     
@@ -133,9 +133,9 @@ def test_regular_wormhole_respects_life_and_mass():
     tripwire.eve_db.get_whsize_by_code.return_value = WormholeSize.SMALL
     tripwire.eve_db.get_whsize_by_system.return_value = WormholeSize.LARGE
     
-    # Mock the get_chain method to return our test data
+    # Mock the get_chain method to return success and set the chain
     tripwire.chain = mock_chain
-    with patch.object(tripwire, 'get_chain', return_value=mock_chain):
+    with patch.object(tripwire, 'get_chain', return_value=True):
         # Call augment_map
         result = tripwire.augment_map(solar_map)
     
@@ -205,3 +205,22 @@ def test_gate_wormhole_in_route_calculation():
     
     # The path should use the GATE wormhole (direct connection)
     assert named_path == ["Jita", "Dodixie"], f"Expected direct path via GATE wormhole, got {named_path}"
+
+
+def test_connection_failure_returns_negative_one():
+    """Test that connection/auth failures return -1 for proper UI error display"""
+    with patch('shortcircuit.model.tripwire.requests') as mock_requests:
+        mock_session = Mock()
+        mock_session.post.return_value.status_code = 200
+        mock_requests.session.return_value = mock_session
+        tripwire = Tripwire("test_user", "test_pass", "http://test.url")
+    
+    # Mock get_chain to return False (connection failure)
+    solar_map = Mock(spec=SolarMap)
+    
+    with patch.object(tripwire, 'get_chain', return_value=False):
+        result = tripwire.augment_map(solar_map)
+    
+    # Should return -1 on failure for UI error display
+    assert result == -1, f"Expected -1 on connection failure, got {result}"
+    assert not solar_map.add_connection.called, "No connections should be added on failure"

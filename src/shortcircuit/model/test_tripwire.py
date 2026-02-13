@@ -448,7 +448,7 @@ class TestEmptyChainHandling:
             'wormholes': []  # Empty list when no connections
         }
         
-        with patch.object(self.tripwire, 'get_chain', return_value=self.tripwire.chain):
+        with patch.object(self.tripwire, 'get_chain', return_value=True):
             solar_map = Mock(spec=SolarMap)
             result = self.tripwire.augment_map(solar_map)
         
@@ -466,8 +466,9 @@ class TestEmptyChainHandling:
             'proccessTime': '',
             'discord_integration': False,
         }
+        self.tripwire.chain = empty_chain
 
-        with patch.object(self.tripwire, 'get_chain', return_value=empty_chain):
+        with patch.object(self.tripwire, 'get_chain', return_value=True):
             solar_map = Mock(spec=SolarMap)
             result = self.tripwire.augment_map(solar_map)
 
