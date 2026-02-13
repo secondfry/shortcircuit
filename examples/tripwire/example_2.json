@@ -1,0 +1,20 @@
+{
+  "esi": {
+    "91435934": {
+      "characterID": "91435934",
+      "characterName": "Lenai Chelien",
+      "accessToken": "eyJhbGci...",
+      "refreshToken": "OWqksY8...",
+      "tokenExpire": "2026-02-13 18:44:07"
+    }
+  },
+  "sync": "Feb 13, 2026 18:35:22 +0000",
+  "signatures": [],
+  "wormholes": [],
+  "flares": {
+    "flares": [],
+    "last_modified": "02/13/2026 18:35:21 UTC"
+  },
+  "proccessTime": "0.0109",
+  "discord_integration": false
+}

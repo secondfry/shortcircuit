@@ -1,0 +1,258 @@
+{
+  "esi": {
+    "91435934": {
+      "characterID": "91435934",
+      "characterName": "Lenai Chelien",
+      "accessToken": "eyJhbGci...",
+      "refreshToken": "OWqksY8...",
+      "tokenExpire": "2026-02-13 18:44:07"
+    }
+  },
+  "sync": "Feb 13, 2026 18:36:46 +0000",
+  "signatures": {
+    "2175641": {
+      "id": "2175641",
+      "signatureID": null,
+      "systemID": "30000222",
+      "type": "wormhole",
+      "name": null,
+      "bookmark": null,
+      "lifeTime": "2026-02-13 18:35:40",
+      "lifeLeft": "2026-02-14 10:35:40",
+      "lifeLength": "57600",
+      "createdByID": "91435934",
+      "createdByName": "Lenai Chelien",
+      "modifiedByID": "91435934",
+      "modifiedByName": "Lenai Chelien",
+      "modifiedTime": "2026-02-13 18:35:40",
+      "maskID": "98524402.2"
+    },
+    "2175642": {
+      "id": "2175642",
+      "signatureID": null,
+      "systemID": "31000005",
+      "type": "wormhole",
+      "name": null,
+      "bookmark": null,
+      "lifeTime": "2026-02-13 18:35:40",
+      "lifeLeft": "2026-02-14 10:35:40",
+      "lifeLength": "57600",
+      "createdByID": "91435934",
+      "createdByName": "Lenai Chelien",
+      "modifiedByID": "91435934",
+      "modifiedByName": "Lenai Chelien",
+      "modifiedTime": "2026-02-13 18:35:40",
+      "maskID": "98524402.2"
+    },
+    "2175643": {
+      "id": "2175643",
+      "signatureID": null,
+      "systemID": "30000222",
+      "type": "wormhole",
+      "name": null,
+      "bookmark": null,
+      "lifeTime": "2026-02-13 18:35:58",
+      "lifeLeft": "2026-02-14 10:35:58",
+      "lifeLength": "57600",
+      "createdByID": "91435934",
+      "createdByName": "Lenai Chelien",
+      "modifiedByID": "91435934",
+      "modifiedByName": "Lenai Chelien",
+      "modifiedTime": "2026-02-13 18:35:58",
+      "maskID": "98524402.2"
+    },
+    "2175644": {
+      "id": "2175644",
+      "signatureID": null,
+      "systemID": "30000109",
+      "type": "wormhole",
+      "name": null,
+      "bookmark": null,
+      "lifeTime": "2026-02-13 18:35:58",
+      "lifeLeft": "2026-02-14 10:35:58",
+      "lifeLength": "57600",
+      "createdByID": "91435934",
+      "createdByName": "Lenai Chelien",
+      "modifiedByID": "91435934",
+      "modifiedByName": "Lenai Chelien",
+      "modifiedTime": "2026-02-13 18:35:58",
+      "maskID": "98524402.2"
+    },
+    "2175645": {
+      "id": "2175645",
+      "signatureID": null,
+      "systemID": "30000222",
+      "type": "wormhole",
+      "name": null,
+      "bookmark": null,
+      "lifeTime": "2026-02-13 18:36:17",
+      "lifeLeft": "2026-02-14 18:36:17",
+      "lifeLength": "86400",
+      "createdByID": "91435934",
+      "createdByName": "Lenai Chelien",
+      "modifiedByID": "91435934",
+      "modifiedByName": "Lenai Chelien",
+      "modifiedTime": "2026-02-13 18:36:17",
+      "maskID": "98524402.2"
+    },
+    "2175646": {
+      "id": "2175646",
+      "signatureID": null,
+      "systemID": "30003792",
+      "type": "wormhole",
+      "name": null,
+      "bookmark": null,
+      "lifeTime": "2026-02-13 18:36:17",
+      "lifeLeft": "2026-02-14 18:36:17",
+      "lifeLength": "86400",
+      "createdByID": "91435934",
+      "createdByName": "Lenai Chelien",
+      "modifiedByID": "91435934",
+      "modifiedByName": "Lenai Chelien",
+      "modifiedTime": "2026-02-13 18:36:17",
+      "maskID": "98524402.2"
+    },
+    "2175647": {
+      "id": "2175647",
+      "signatureID": null,
+      "systemID": "30000222",
+      "type": "wormhole",
+      "name": null,
+      "bookmark": null,
+      "lifeTime": "2026-02-13 18:36:28",
+      "lifeLeft": "2026-02-16 18:36:28",
+      "lifeLength": "259200",
+      "createdByID": "91435934",
+      "createdByName": "Lenai Chelien",
+      "modifiedByID": "91435934",
+      "modifiedByName": "Lenai Chelien",
+      "modifiedTime": "2026-02-13 18:36:28",
+      "maskID": "98524402.2"
+    },
+    "2175648": {
+      "id": "2175648",
+      "signatureID": null,
+      "systemID": "30000351",
+      "type": "wormhole",
+      "name": null,
+      "bookmark": null,
+      "lifeTime": "2026-02-13 18:36:28",
+      "lifeLeft": "2026-02-16 18:36:28",
+      "lifeLength": "259200",
+      "createdByID": "91435934",
+      "createdByName": "Lenai Chelien",
+      "modifiedByID": "91435934",
+      "modifiedByName": "Lenai Chelien",
+      "modifiedTime": "2026-02-13 18:36:28",
+      "maskID": "98524402.2"
+    },
+    "2175649": {
+      "id": "2175649",
+      "signatureID": null,
+      "systemID": "30000222",
+      "type": "wormhole",
+      "name": null,
+      "bookmark": null,
+      "lifeTime": "2026-02-13 18:36:39",
+      "lifeLeft": "2026-02-16 18:36:39",
+      "lifeLength": "259200",
+      "createdByID": "91435934",
+      "createdByName": "Lenai Chelien",
+      "modifiedByID": "91435934",
+      "modifiedByName": "Lenai Chelien",
+      "modifiedTime": "2026-02-13 18:36:39",
+      "maskID": "98524402.2"
+    },
+    "2175650": {
+      "id": "2175650",
+      "signatureID": null,
+      "systemID": "30000045",
+      "type": "wormhole",
+      "name": null,
+      "bookmark": null,
+      "lifeTime": "2026-02-13 18:36:39",
+      "lifeLeft": "2026-02-16 18:36:39",
+      "lifeLength": "259200",
+      "createdByID": "91435934",
+      "createdByName": "Lenai Chelien",
+      "modifiedByID": "91435934",
+      "modifiedByName": "Lenai Chelien",
+      "modifiedTime": "2026-02-13 18:36:39",
+      "maskID": "98524402.2"
+    }
+  },
+  "wormholes": {
+    "629759": {
+      "id": "629759",
+      "initialID": "2175641",
+      "secondaryID": "2175642",
+      "type": "L031",
+      "parent": "initial",
+      "life": "stable",
+      "mass": "stable",
+      "maskID": "98524402.2"
+    },
+    "629760": {
+      "id": "629760",
+      "initialID": "2175643",
+      "secondaryID": "2175644",
+      "type": "B449",
+      "parent": "initial",
+      "life": "stable",
+      "mass": "stable",
+      "maskID": "98524402.2"
+    },
+    "629761": {
+      "id": "629761",
+      "initialID": "2175645",
+      "secondaryID": "2175646",
+      "type": "N944",
+      "parent": "initial",
+      "life": "stable",
+      "mass": "stable",
+      "maskID": "98524402.2"
+    },
+    "629762": {
+      "id": "629762",
+      "initialID": "2175647",
+      "secondaryID": "2175648",
+      "type": null,
+      "parent": null,
+      "life": "stable",
+      "mass": "stable",
+      "maskID": "98524402.2"
+    },
+    "629763": {
+      "id": "629763",
+      "initialID": "2175649",
+      "secondaryID": "2175650",
+      "type": null,
+      "parent": null,
+      "life": "stable",
+      "mass": "stable",
+      "maskID": "98524402.2"
+    }
+  },
+  "flares": {
+    "flares": [
+      {
+        "systemID": "30000109",
+        "flare": "yellow",
+        "time": "2026-02-13 18:36:01"
+      },
+      {
+        "systemID": "30003792",
+        "flare": "green",
+        "time": "2026-02-13 18:36:22"
+      },
+      {
+        "systemID": "31000005",
+        "flare": "red",
+        "time": "2026-02-13 18:35:50"
+      }
+    ],
+    "last_modified": "02/13/2026 18:36:01 UTC"
+  },
+  "proccessTime": "0.0094",
+  "discord_integration": false
+}

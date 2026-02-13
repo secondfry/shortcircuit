@@ -474,7 +474,9 @@ class EveDb(metaclass=Singleton):
       region = Region.from_row(row)
       self.regions[region.regionID] = region
 
-  def get_whsize_by_code(self, code: str) -> WormholeSize:
+  def get_whsize_by_code(self, code: Optional[str]) -> WormholeSize:
+    if not code:
+      return WormholeSize.UNKNOWN
     return self.wh_codes.get(code.upper(), WormholeSize.UNKNOWN)
 
   def get_class(self, system_id: int):

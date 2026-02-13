@@ -80,21 +80,62 @@ Short Circuit reconstructs its own version of the Eve solar map from the 'mapSol
 
 Sample JSON response from Tripwire (converted to YAML for easy reading). This type of response is processed and added to the application's own solar system representation:
 ```yaml
-id: "5642035"
-signatureID: "GGC"
-system: ""
-systemID: "31000857"
-connection: "Hutian"
-connectionID: "30002217"
-sig2ID: "JTC"
-type: "B274"
-nth: null
-sig2Type: "K162"
-nth2: null
-lifeLength: "24"
-life: "Stable"
-mass: "Stable"
-...
+esi:
+  "91435934":
+    characterID: "91435934"
+    characterName: "Lenai Chelien"
+    accessToken: "eyJhbGci..."
+    refreshToken: "OWqksY8..."
+    tokenExpire: "2026-02-13 18:29:03"
+sync: "Feb 13, 2026 18:21:12 +0000"
+signatures:
+  "2175524":
+    id: "2175524"
+    signatureID: "???"
+    systemID: "30002659"
+    type: "wormhole"
+    name: ""
+    bookmark: null
+    lifeTime: "2026-02-13 18:16:10"
+    lifeLeft: "2026-02-16 18:16:10"
+    lifeLength: "259200"
+    createdByID: "91435934"
+    createdByName: "Lenai Chelien"
+    modifiedByID: "91435934"
+    modifiedByName: "Lenai Chelien"
+    modifiedTime: "2026-02-13 18:16:15"
+    maskID: "98524402.2"
+  "2175525":
+    id: "2175525"
+    signatureID: "???"
+    systemID: "30000144"
+    type: "wormhole"
+    name: ""
+    bookmark: null
+    lifeTime: "2026-02-13 18:16:10"
+    lifeLeft: "2026-02-16 18:16:10"
+    lifeLength: "259200"
+    createdByID: "91435934"
+    createdByName: "Lenai Chelien"
+    modifiedByID: "91435934"
+    modifiedByName: "Lenai Chelien"
+    modifiedTime: "2026-02-13 18:16:15"
+    maskID: "98524402.2"
+wormholes:
+  "629720":
+    id: "629720"
+    initialID: "2175524"
+    secondaryID: "2175525"
+    type: ""
+    parent: ""
+    life: "stable"
+    mass: "stable"
+    maskID: "98524402.2"
+flares:
+  flares: []
+  last_modified: "02/13/2026 18:21:11 UTC"
+proccessTime: "0.0148"
+discord_integration: false
 ```
 
 ## EvE Online CREST API Challenge

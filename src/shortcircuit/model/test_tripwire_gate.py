@@ -86,7 +86,7 @@ def test_gate_wormhole_is_processed():
     assert code_out == 'GATE', "Wormhole code out should be GATE (both sides are GATE)"
     assert wh_life == WormholeTimespan.STABLE, "GATE wormholes should have STABLE timespan (permanent)"
     assert wh_mass == WormholeMassspan.STABLE, "GATE wormholes should have STABLE massspan (permanent)"
-    assert wh_size == WormholeSize.LARGE, "Size should be determined by system class"
+    assert wh_size == WormholeSize.UNKNOWN, "GATE wormholes should have UNKNOWN size (permanent connections don't have size restrictions)"
 
 
 def test_regular_wormhole_respects_life_and_mass():
