@@ -12,6 +12,7 @@ from PySide2 import QtCore, QtGui, QtWidgets
 from . import __appname__, __date__ as last_update, __version__
 from .model.esi_processor import ESIProcessor
 from .model.evedb import EveDb, Restrictions, SpaceType, WormholeSize
+from .model.farmer import Farmer
 from .model.logger import Logger
 from .model.navigation import Navigation
 from .model.navprocessor import NavProcessor
@@ -199,6 +200,15 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     self.version_check.finished.connect(self.version_check_done)
     # noinspection PyUnresolvedReferences
     self.version_thread.started.connect(self.version_check.process)
+
+    # Farmer thread
+    self.farmer_thread = QtCore.QThread()
+    Logger.register_thread(self.farmer_thread, 'farmer_thread / Farmer')
+    self.farmer_obj = Farmer(self.nav)
+    self.farmer_obj.moveToThread(self.farmer_thread)
+    # noinspection PyUnresolvedReferences
+    self.farmer_thread.started.connect(self.farmer_obj.process)
+    self.farmer_obj.finished.connect(self.farmer_thread_done)
 
     # ESI
     self.eve_connected = False
@@ -794,8 +804,13 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
       self.state_evescout["error"] = "error. Check url/user/pass."
     self._status_tripwire_update()
 
-    self.pushButton_trip_get.setEnabled(True)
     self.pushButton_find_path.setEnabled(True)
+    self.farmer_thread.start()
+
+  @QtCore.Slot(int)
+  def farmer_thread_done(self):
+    self.farmer_thread.quit()
+    self.pushButton_trip_get.setEnabled(True)
 
   @QtCore.Slot()
   def btn_eve_login_clicked(self):

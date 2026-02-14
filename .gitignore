@@ -187,3 +187,5 @@ $RECYCLE.BIN/
 src/database/universeDataDx.db
 shortcircuit.log*
 .DS_Store
+report.txt
+world.json
