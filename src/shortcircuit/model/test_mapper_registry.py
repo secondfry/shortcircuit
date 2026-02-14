@@ -146,6 +146,9 @@ class TestMapperRegistry(unittest.TestCase):
       
       def get_config(self) -> Dict[str, str]:
         return {}
+      
+      def validate_config(self) -> tuple[bool, Optional[str]]:
+        return True, None
     
     good_source = MockMapperSource("Good Mapper", connections_to_return=5)
     failing_source = FailingMapperSource()
@@ -176,6 +179,33 @@ class TestMapperRegistry(unittest.TestCase):
     self.assertEqual(results, {})
     self.assertEqual(self.registry.get_source_count(), 0)
     self.assertEqual(self.registry.get_sources(), [])
+
+  def test_invalid_config_validation(self):
+    """Test that sources with invalid configurations can still be registered."""
+    class InvalidConfigSource(MapperSource):
+      def augment_map(self, solar_map) -> int:
+        return 0
+      
+      def get_name(self) -> str:
+        return "Invalid Config Source"
+      
+      def get_config(self) -> Dict[str, str]:
+        return {"url": ""}
+      
+      def validate_config(self) -> tuple[bool, Optional[str]]:
+        return False, "URL is required"
+    
+    # Registry allows registration even with invalid config (just logs warning)
+    source = InvalidConfigSource()
+    self.registry.register(source)
+    
+    # Source is registered despite invalid config
+    self.assertEqual(self.registry.get_source_count(), 1)
+    
+    # But we can check validation ourselves
+    is_valid, error = source.validate_config()
+    self.assertFalse(is_valid)
+    self.assertEqual(error, "URL is required")
 
 
 if __name__ == '__main__':
