@@ -262,12 +262,19 @@ class Tripwire:
     """
     Fetch and normalize the Tripwire chain data.
     
+    Updates self.chain only if fetch is successful, preserving existing data on failure.
+    
     :param system_id: str Numerical solar system ID
     :return: True if fetch was successful, False on connection/auth failure
     """
     raw_chain = self.fetch_api_refresh(system_id)
-    self.chain = self._normalize_chain(raw_chain)
-    return raw_chain is not None
+    
+    if raw_chain is not None:
+      self.chain = self._normalize_chain(raw_chain)
+      return True
+    
+    # On failure, keep existing chain data and return False
+    return False
 
   def _get_parent_sibling_keys(self, wormhole: TripwireWormhole) -> tuple[SignatureKey, SignatureKey]:
     """

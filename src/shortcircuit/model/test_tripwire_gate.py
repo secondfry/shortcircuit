@@ -224,3 +224,52 @@ def test_connection_failure_returns_negative_one():
     # Should return -1 on failure for UI error display
     assert result == -1, f"Expected -1 on connection failure, got {result}"
     assert not solar_map.add_connection.called, "No connections should be added on failure"
+
+
+def test_connection_failure_preserves_existing_chain():
+    """Test that connection failures preserve existing navigation data"""
+    with patch('shortcircuit.model.tripwire.requests') as mock_requests:
+        mock_session = Mock()
+        mock_session.post.return_value.status_code = 200
+        mock_requests.session.return_value = mock_session
+        tripwire = Tripwire("test_user", "test_pass", "http://test.url")
+    
+    # Set up initial chain data
+    current_time = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+    initial_chain = {
+        'esi': {},
+        'sync': 'test',
+        'signatures': {
+            '100': {
+                'systemID': '30000142',
+                'signatureID': 'ABC-123',
+                'modifiedTime': current_time
+            }
+        },
+        'wormholes': {
+            '1': {
+                'type': 'C140',
+                'initialID': '100',
+                'secondaryID': '200',
+                'parent': None,
+                'life': 'stable',
+                'mass': 'stable'
+            }
+        },
+        'flares': {'flares': [], 'last_modified': ''},
+        'proccessTime': '0.1',
+        'discord_integration': False,
+    }
+    tripwire.chain = initial_chain
+    
+    # Mock fetch_api_refresh to return None (connection failure)
+    with patch.object(tripwire, 'fetch_api_refresh', return_value=None):
+        result = tripwire.get_chain()
+    
+    # Should return False on failure
+    assert result is False, "get_chain should return False on connection failure"
+    
+    # Chain should be preserved (not replaced with empty chain)
+    assert tripwire.chain == initial_chain, "Existing chain data should be preserved on connection failure"
+    assert len(tripwire.chain['wormholes']) == 1, "Wormhole data should be preserved"
+    assert tripwire.chain['sync'] == 'test', "Sync data should be preserved"
