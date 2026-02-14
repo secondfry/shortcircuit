@@ -455,19 +455,6 @@ class Tripwire(MapperSource):
     """
     return self.name
 
-  def get_config(self) -> Dict[str, str]:
-    """
-    Get the current configuration of this Tripwire instance.
-    
-    Returns:
-      Dictionary of configuration parameters
-    """
-    return {
-      'url': self.url,
-      'username': self.username,
-      'name': self.name,
-    }
-
   def validate_config(self) -> tuple[bool, Optional[str]]:
     """
     Validate the Tripwire configuration.

@@ -120,18 +120,6 @@ class EveScout(MapperSource):
     """
     return self.name
 
-  def get_config(self) -> Dict[str, str]:
-    """
-    Get the current configuration of this Eve Scout instance.
-    
-    Returns:
-      Dictionary of configuration parameters
-    """
-    return {
-      'url': self.evescout_url,
-      'name': self.name,
-    }
-
   def validate_config(self) -> tuple[bool, Optional[str]]:
     """
     Validate the Eve Scout configuration.

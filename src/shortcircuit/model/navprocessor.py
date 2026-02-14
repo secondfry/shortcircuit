@@ -15,7 +15,6 @@ class NavProcessor(QtCore.QObject):
 
   def __init__(self, nav: Navigation, parent=None):
     super().__init__(parent)
-    self.evescout_enable = False
     self.nav = nav
 
   def process(self):
@@ -26,17 +25,21 @@ class NavProcessor(QtCore.QObject):
     solar_map = self.nav.reset_chain()
     
     # Setup mappers based on configuration
-    self.nav.setup_mappers(evescout_enable=self.evescout_enable)
+    self.nav.setup_mappers()
     
     # Augment from all registered mappers
-    results = self.nav.augment_from_all_mappers(solar_map)
+    results = self.nav.augment_map(solar_map)
     
-    # Extract connection counts for backward compatibility
+    # Calculate total connections from all sources
+    total_connections = sum(count for count in results.values() if count > 0)
+    
+    # For backward compatibility with UI, extract specific mapper counts
+    # The UI expects (tripwire_connections, evescout_connections)
     tripwire_connections = results.get("Tripwire", 0)
     evescout_connections = results.get("Eve Scout", 0)
     
     # Update solar map if we got any connections
-    if tripwire_connections > 0 or evescout_connections > 0:
+    if total_connections > 0:
       self.nav.solar_map = solar_map
       
     self.finished.emit(tripwire_connections, evescout_connections)

@@ -860,7 +860,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     if not self.worker_thread.isRunning():
       self.pushButton_trip_get.setEnabled(False)
       self.pushButton_find_path.setEnabled(False)
-      self.nav_processor.evescout_enable = self.state_evescout["enabled"]
       self.worker_thread.start()
     else:
       self.state_tripwire['error'] = "error. Process is already running."

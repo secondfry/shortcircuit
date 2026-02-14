@@ -28,9 +28,6 @@ class MockMapperSource(MapperSource):
   def get_name(self) -> str:
     return self.name
 
-  def get_config(self) -> Dict[str, str]:
-    return {"name": self.name}
-
   def validate_config(self) -> tuple[bool, Optional[str]]:
     return True, None
 
@@ -144,9 +141,6 @@ class TestMapperRegistry(unittest.TestCase):
       def get_name(self) -> str:
         return "Failing Mapper"
       
-      def get_config(self) -> Dict[str, str]:
-        return {}
-      
       def validate_config(self) -> tuple[bool, Optional[str]]:
         return True, None
     
@@ -188,9 +182,6 @@ class TestMapperRegistry(unittest.TestCase):
       
       def get_name(self) -> str:
         return "Invalid Config Source"
-      
-      def get_config(self) -> Dict[str, str]:
-        return {"url": ""}
       
       def validate_config(self) -> tuple[bool, Optional[str]]:
         return False, "URL is required"

@@ -14,7 +14,10 @@ if TYPE_CHECKING:
 
 class Navigation:
   """
-  Navigation
+  Navigation - handles pathfinding and wormhole mapper integration.
+  
+  This class manages the solar map and integrates with multiple wormhole
+  mapping sources (Tripwire, Eve Scout, etc.) through the MapperRegistry.
   """
 
   def __init__(self, app_obj: 'MainWindow', eve_db: EveDb):
@@ -22,7 +25,6 @@ class Navigation:
     self.eve_db = eve_db
 
     self.solar_map = SolarMap(self.eve_db)
-    self.tripwire_obj = None
     self.mapper_registry = MapperRegistry()
 
     self.tripwire_url = self.app_obj.tripwire_url
@@ -30,6 +32,7 @@ class Navigation:
     self.tripwire_password = self.app_obj.tripwire_pass
 
   def reset_chain(self):
+    """Reset the solar map to its initial state."""
     self.solar_map = SolarMap(self.eve_db)
     return self.solar_map
 
@@ -39,6 +42,7 @@ class Navigation:
     user: str = None,
     password: str = None,
   ):
+    """Update Tripwire login credentials."""
     if not url:
       url = self.app_obj.tripwire_url
     self.tripwire_url = url
@@ -51,32 +55,33 @@ class Navigation:
       password = self.app_obj.tripwire_pass
     self.tripwire_password = password
 
-  def setup_mappers(self, evescout_enable: bool = False):
+  def setup_mappers(self):
     """
     Configure mapper sources in the registry based on current settings.
     
-    Args:
-      evescout_enable: Whether to enable Eve Scout
+    This method reads configuration from the app and sets up all enabled
+    mapper sources (Tripwire, Eve Scout, etc.) in the registry.
     """
     # Clear existing mappers
     self.mapper_registry.clear()
     
     # Add Tripwire if configured
     if self.tripwire_url and self.tripwire_user and self.tripwire_password:
-      self.tripwire_obj = Tripwire(
+      tripwire = Tripwire(
         self.tripwire_user,
         self.tripwire_password,
         self.tripwire_url,
         name="Tripwire"
       )
-      self.mapper_registry.register(self.tripwire_obj)
+      self.mapper_registry.register(tripwire)
     
     # Add Eve Scout if enabled
-    if evescout_enable:
+    evescout_enabled = self.app_obj.state_evescout.get("enabled", False)
+    if evescout_enabled:
       evescout = EveScout(name="Eve Scout")
       self.mapper_registry.register(evescout)
 
-  def augment_from_all_mappers(self, solar_map: SolarMap) -> Dict[str, int]:
+  def augment_map(self, solar_map: SolarMap) -> Dict[str, int]:
     """
     Augment the solar map from all registered mapper sources.
     
@@ -87,19 +92,6 @@ class Navigation:
       Dictionary mapping source names to connection counts
     """
     return self.mapper_registry.augment_map(solar_map)
-
-  def tripwire_augment(self, solar_map: SolarMap):
-    """
-    Legacy method for backward compatibility.
-    Augments map from Tripwire only.
-    """
-    self.tripwire_obj = Tripwire(
-      self.tripwire_user,
-      self.tripwire_password,
-      self.tripwire_url,
-    )
-    connections = self.tripwire_obj.augment_map(solar_map)
-    return connections
 
   # FIXME refactor neighbor info - weights
   @staticmethod

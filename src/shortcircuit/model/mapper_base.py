@@ -1,7 +1,7 @@
 # mapper_base.py
 
 from abc import ABC, abstractmethod
-from typing import Dict, Optional
+from typing import Optional
 
 from .solarmap import SolarMap
 
@@ -10,7 +10,7 @@ class MapperSource(ABC):
   """
   Abstract base class for wormhole mapper data sources.
   
-  This class defines the interface that all mapper sources (Tripwire, eve-whmapper, etc.)
+  This class defines the interface that all mapper sources (Tripwire, Eve Scout, etc.)
   must implement to integrate with Short Circuit. The primary method is augment_map(),
   which adds wormhole connections from the external mapper to the solar map.
   """
@@ -34,17 +34,7 @@ class MapperSource(ABC):
     Get the human-readable name of this mapper source.
     
     Returns:
-      The name of the mapper source (e.g., "Tripwire", "eve-whmapper")
-    """
-    pass
-
-  @abstractmethod
-  def get_config(self) -> Dict[str, str]:
-    """
-    Get the current configuration of this mapper source.
-    
-    Returns:
-      Dictionary of configuration key-value pairs
+      The name of the mapper source (e.g., "Tripwire", "Eve Scout")
     """
     pass
 
@@ -56,3 +46,4 @@ class MapperSource(ABC):
       Tuple of (is_valid, error_message). If valid, error_message is None.
     """
     return True, None
+
