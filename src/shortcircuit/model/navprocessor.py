@@ -34,7 +34,8 @@ class NavProcessor(QtCore.QObject):
     total_connections = sum(count for count in results.values() if count > 0)
     
     # For backward compatibility with UI, extract specific mapper counts
-    # The UI expects (tripwire_connections, evescout_connections)
+    # TODO: rethink status bar to support dynamic list of mappers
+    # The UI currently expects (tripwire_connections, evescout_connections)
     tripwire_connections = results.get("Tripwire", 0)
     evescout_connections = results.get("Eve Scout", 0)
     

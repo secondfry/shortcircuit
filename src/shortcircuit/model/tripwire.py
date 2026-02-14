@@ -122,7 +122,7 @@ SignatureKey = Literal['initialID', 'secondaryID']
 
 class Tripwire(MapperSource):
   """
-  Tripwire handler - implements MapperSource interface
+  Tripwire wormhole mapper client.
   """
 
   WTYPE_UNKNOWN = '----'

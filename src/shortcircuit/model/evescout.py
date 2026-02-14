@@ -14,7 +14,9 @@ from .solarmap import ConnectionType, SolarMap
 
 class EveScout(MapperSource):
   """
-  Eve Scout Thera Connections - implements MapperSource interface
+  Eve Scout wormhole connections provider.
+  
+  Provides public wormhole connections to Thera and Turnur systems.
   """
   TIMEOUT = 2
 

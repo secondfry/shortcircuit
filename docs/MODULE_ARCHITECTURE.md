@@ -34,8 +34,9 @@ navigation.setup_mappers() - configures mapper sources
 Navigation.setup_mappers()
   ↓
 Reads config from app_obj (MainWindow):
-  - tripwire_url, tripwire_user, tripwire_password
-  - state_evescout["enabled"]
+  - Mapper configurations (type, url, credentials, enabled)
+  - Currently: single Tripwire + Eve Scout
+  - Future: multiple instances via table window interface
   ↓
 Creates mapper instances:
   - Tripwire(user, pass, url, name="Tripwire")
@@ -92,8 +93,8 @@ worker_thread_done() handler updates:
   - Thread management for background tasks
   - Status display updates
 - **Key State**:
-  - `tripwire_url`, `tripwire_user`, `tripwire_pass`
-  - `state_evescout["enabled"]`
+  - Mapper configurations (currently: single Tripwire instance + Eve Scout)
+  - Future: should store multiple instances of multiple mapper types
   - `state_tripwire`, `state_evescout` (connection counts, errors)
 
 ### navigation.py (Navigation)
@@ -213,43 +214,7 @@ Configuration is:
 
 ## Adding a New Mapper
 
-To add support for a new wormhole mapping tool:
-
-1. **Create mapper class** inheriting from `MapperSource`:
-   ```python
-   class NewMapper(MapperSource):
-       def __init__(self, url, api_key, name="New Mapper"):
-           self.url = url
-           self.api_key = api_key
-           self.name = name
-           
-       def augment_map(self, solar_map: SolarMap) -> int:
-           # Fetch data from API
-           # Parse and add connections to solar_map
-           # Return connection count or -1 on error
-           
-       def get_name(self) -> str:
-           return self.name
-   ```
-
-2. **Update Navigation.setup_mappers()**:
-   ```python
-   def setup_mappers(self):
-       # ... existing code ...
-       
-       # Add new mapper if configured
-       if self.app_obj.newmapper_api_key:
-           newmapper = NewMapper(
-               url="https://api.newmapper.com",
-               api_key=self.app_obj.newmapper_api_key,
-               name="New Mapper"
-           )
-           self.mapper_registry.register(newmapper)
-   ```
-
-3. **Add configuration UI** in app.py for the new mapper's settings
-
-4. **Update status display** to show connection count for the new mapper
+See `docs/MAPPER_MODULES.md` for detailed guide on implementing new mapper sources.
 
 ## Threading Model
 
@@ -271,23 +236,3 @@ This separation ensures the UI remains responsive while fetching data from exter
 - **Network errors**: Each mapper returns -1 on failure
 - **Authentication errors**: Logged and reported in UI status
 - **Invalid data**: Gracefully skipped, logged for debugging
-
-## Future Considerations
-
-### Multiple Tripwire Instances
-
-To support multiple Tripwire servers simultaneously:
-
-1. Store list of Tripwire configurations in QSettings
-2. Update Navigation.setup_mappers() to loop through configurations
-3. Register multiple Tripwire instances with different names:
-   - `Tripwire(user1, pass1, url1, name="Corp Tripwire")`
-   - `Tripwire(user2, pass2, url2, name="Alliance Tripwire")`
-4. UI would need to manage multiple Tripwire configurations
-
-### Connection Deduplication
-
-Currently, if two mappers provide the same connection, it's added twice. Future enhancement could:
-- Track connection source in metadata
-- Deduplicate based on (source_system, dest_system, sig_ids)
-- Show "confidence" based on multiple sources confirming same connection
