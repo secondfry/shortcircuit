@@ -269,12 +269,11 @@ class Tripwire:
     """
     raw_chain = self.fetch_api_refresh(system_id)
     
-    if raw_chain is not None:
-      self.chain = self._normalize_chain(raw_chain)
-      return True
+    if raw_chain is None:
+      return False
     
-    # On failure, keep existing chain data and return False
-    return False
+    self.chain = self._normalize_chain(raw_chain)
+    return True
 
   def _get_parent_sibling_keys(self, wormhole: TripwireWormhole) -> tuple[SignatureKey, SignatureKey]:
     """
