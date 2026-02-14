@@ -1,9 +1,10 @@
 # navigation.py
 
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, Dict, List
 
 from .evedb import EveDb, SystemDescription, WormholeMassspan, WormholeSize, WormholeTimespan
 from .evescout import EveScout
+from .mapper_registry import MapperRegistry
 from .solarmap import ConnectionType, SolarMap
 from .tripwire import Tripwire
 
@@ -22,6 +23,7 @@ class Navigation:
 
     self.solar_map = SolarMap(self.eve_db)
     self.tripwire_obj = None
+    self.mapper_registry = MapperRegistry()
 
     self.tripwire_url = self.app_obj.tripwire_url
     self.tripwire_user = self.app_obj.tripwire_user
@@ -49,7 +51,48 @@ class Navigation:
       password = self.app_obj.tripwire_pass
     self.tripwire_password = password
 
+  def setup_mappers(self, evescout_enable: bool = False):
+    """
+    Configure mapper sources in the registry based on current settings.
+    
+    Args:
+      evescout_enable: Whether to enable Eve Scout
+    """
+    # Clear existing mappers
+    self.mapper_registry.clear()
+    
+    # Add Tripwire if configured
+    if self.tripwire_url and self.tripwire_user and self.tripwire_password:
+      self.tripwire_obj = Tripwire(
+        self.tripwire_user,
+        self.tripwire_password,
+        self.tripwire_url,
+        name="Tripwire"
+      )
+      self.mapper_registry.register(self.tripwire_obj)
+    
+    # Add Eve Scout if enabled
+    if evescout_enable:
+      evescout = EveScout(name="Eve Scout")
+      self.mapper_registry.register(evescout)
+
+  def augment_from_all_mappers(self, solar_map: SolarMap) -> Dict[str, int]:
+    """
+    Augment the solar map from all registered mapper sources.
+    
+    Args:
+      solar_map: The solar map to augment
+      
+    Returns:
+      Dictionary mapping source names to connection counts
+    """
+    return self.mapper_registry.augment_map(solar_map)
+
   def tripwire_augment(self, solar_map: SolarMap):
+    """
+    Legacy method for backward compatibility.
+    Augments map from Tripwire only.
+    """
     self.tripwire_obj = Tripwire(
       self.tripwire_user,
       self.tripwire_password,
