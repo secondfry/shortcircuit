@@ -11,34 +11,15 @@ Currently, if two mappers provide the same connection, it's added twice to the s
 - Show "confidence" level based on multiple sources confirming the same connection
 - Allow users to see which mappers reported each connection
 
-### Multiple Mapper Instance Management
+### Multiple Mapper Instance Management — still open
 
-The architecture supports multiple instances of the same mapper type (e.g., multiple Tripwire servers), but the UI currently only supports configuring one instance of each type.
+Shipped in the Mappers dialog: add/remove/edit and enable/disable of an arbitrary number of instances, list-based QSettings (JSON blob under `MapperConfigs`), dynamic status-bar summary aggregating all enabled mappers. Still missing:
 
-To fully support multiple instances:
-
-1. **UI Enhancement**: Create a table window interface for managing mapper configurations
-   - Add/remove/edit mapper instances
-   - Enable/disable individual instances
-   - Test connectivity for each instance
-
-2. **Configuration Storage**: Update QSettings to store list of mapper configurations
-   - Each configuration includes: type, name, URL, credentials, enabled state
-   - Support multiple instances of same mapper type
-
-3. **Status Bar Improvement**: Rethink status bar to dynamically show all active mappers
-   - Current implementation hardcodes Tripwire and Eve Scout
-   - Should iterate over all registered sources
+- Per-instance "Test Connection" button (reach out to the server and report auth/HTTP result before saving).
+- Reordering / drag-and-drop in the Mappers table.
+- Import / export of the mapper list (share configs with corp).
 
 ## UI/UX Improvements
-
-### Dynamic Mapper Status Display
-
-Current status bar shows hardcoded Tripwire and Eve Scout connection counts. Should be refactored to:
-- Dynamically display all active mapper sources
-- Show connection count per source
-- Indicate errors per source
-- Update automatically when mappers are added/removed
 
 ### Configuration Validation
 

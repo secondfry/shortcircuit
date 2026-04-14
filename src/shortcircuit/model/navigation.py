@@ -1,9 +1,11 @@
 # navigation.py
 
-from typing import TYPE_CHECKING, Dict, List
+from typing import TYPE_CHECKING, Callable, Dict, List
 
 from .evedb import EveDb, SystemDescription, WormholeMassspan, WormholeSize, WormholeTimespan
 from .evescout import EveScout
+from .mapper_base import MapperSource
+from .mapper_config import TYPE_EVESCOUT, TYPE_TRIPWIRE, MapperConfig
 from .mapper_registry import MapperRegistry
 from .solarmap import ConnectionType, SolarMap
 from .tripwire import Tripwire
@@ -12,12 +14,35 @@ if TYPE_CHECKING:
   from shortcircuit.app import MainWindow
 
 
+def _build_tripwire(cfg: MapperConfig) -> MapperSource:
+  return Tripwire(
+    username=cfg.user,
+    password=cfg.password,
+    url=cfg.url,
+    name=cfg.name,
+  )
+
+
+def _build_evescout(cfg: MapperConfig) -> MapperSource:
+  # Eve Scout takes an optional URL override; fall back to the client default.
+  if cfg.url:
+    return EveScout(url=cfg.url, name=cfg.name)
+  return EveScout(name=cfg.name)
+
+
+MAPPER_BUILDERS: Dict[str, Callable[[MapperConfig], MapperSource]] = {
+  TYPE_TRIPWIRE: _build_tripwire,
+  TYPE_EVESCOUT: _build_evescout,
+}
+
+
 class Navigation:
   """
   Navigation - handles pathfinding and wormhole mapper integration.
-  
-  This class manages the solar map and integrates with multiple wormhole
-  mapping sources (Tripwire, Eve Scout, etc.) through the MapperRegistry.
+
+  Owns the SolarMap and a MapperRegistry. setup_mappers() rebuilds the
+  registry from the current list of MapperConfig entries exposed by the
+  host app, so multi-instance / mixed-type setups come for free.
   """
 
   def __init__(self, app_obj: 'MainWindow', eve_db: EveDb):
@@ -27,59 +52,38 @@ class Navigation:
     self.solar_map = SolarMap(self.eve_db)
     self.mapper_registry = MapperRegistry()
 
-    self.tripwire_url = self.app_obj.tripwire_url
-    self.tripwire_user = self.app_obj.tripwire_user
-    self.tripwire_password = self.app_obj.tripwire_pass
-
   def reset_chain(self):
     """Reset the solar map to its initial state."""
     self.solar_map = SolarMap(self.eve_db)
     return self.solar_map
 
-  def tripwire_set_login(
-    self,
-    url: str = None,
-    user: str = None,
-    password: str = None,
-  ):
-    """Update Tripwire login credentials."""
-    if not url:
-      url = self.app_obj.tripwire_url
-    self.tripwire_url = url
-
-    if not user:
-      user = self.app_obj.tripwire_user
-    self.tripwire_user = user
-
-    if not password:
-      password = self.app_obj.tripwire_pass
-    self.tripwire_password = password
-
   def setup_mappers(self):
     """
-    Configure mapper sources in the registry based on current settings.
-    
-    This method reads configuration from the app and sets up all enabled
-    mapper sources (Tripwire, Eve Scout, etc.) in the registry.
+    Rebuild the registry from app_obj.mapper_configs.
+
+    Disabled configs and unknown types are skipped (unknown types are
+    logged but non-fatal, so a settings file from a newer version won't
+    crash an older binary). Instantiation errors on one config don't
+    prevent the rest from being registered.
     """
-    # Clear existing mappers
+    from .logger import Logger
+
     self.mapper_registry.clear()
-    
-    # Add Tripwire if configured
-    if self.tripwire_url and self.tripwire_user and self.tripwire_password:
-      tripwire = Tripwire(
-        self.tripwire_user,
-        self.tripwire_password,
-        self.tripwire_url,
-        name="Tripwire"
-      )
-      self.mapper_registry.register(tripwire)
-    
-    # Add Eve Scout if enabled
-    evescout_enabled = self.app_obj.state_evescout.get("enabled", False)
-    if evescout_enabled:
-      evescout = EveScout(name="Eve Scout")
-      self.mapper_registry.register(evescout)
+
+    configs: List[MapperConfig] = getattr(self.app_obj, 'mapper_configs', []) or []
+    for cfg in configs:
+      if not cfg.enabled:
+        continue
+      builder = MAPPER_BUILDERS.get(cfg.type)
+      if builder is None:
+        Logger.warning(f"Unknown mapper type '{cfg.type}' for '{cfg.name}', skipping")
+        continue
+      try:
+        source = builder(cfg)
+      except Exception as e:
+        Logger.error(f"Failed to build mapper '{cfg.name}' (type={cfg.type}): {e}")
+        continue
+      self.mapper_registry.register(source)
 
   def augment_map(self, solar_map: SolarMap) -> Dict[str, int]:
     """
@@ -227,9 +231,3 @@ class Navigation:
     short_format = 'Short Circuit: `{}`'.format(' '.join(short_format))
 
     return (route, short_format)
-
-
-# TODO move this augment_map somewhere
-def evescout_augment(solar_map: SolarMap):
-  evescout = EveScout()
-  return evescout.augment_map(solar_map)

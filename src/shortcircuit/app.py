@@ -3,9 +3,8 @@
 from enum import Enum
 import json
 import sys
-import time
 from functools import partial
-from typing import Dict, List, TypedDict, Union
+from typing import Dict, List, Optional, TypedDict, Union
 
 from PySide2 import QtCore, QtGui, QtWidgets
 
@@ -13,11 +12,21 @@ from . import __appname__, __date__ as last_update, __version__
 from .model.esi_processor import ESIProcessor
 from .model.evedb import EveDb, Restrictions, SpaceType, WormholeSize
 from .model.logger import Logger
+from .model.mapper_config import (
+  MapperConfig,
+  TYPE_EVESCOUT,
+  TYPE_TRIPWIRE,
+  default_configs,
+  load_configs,
+  migrate_legacy,
+  save_configs,
+)
 from .model.navigation import Navigation
 from .model.navprocessor import NavProcessor
 from .model.versioncheck import VersionCheck
 from .view.gui_about import Ui_AboutDialog
 from .view.gui_main import Ui_MainWindow
+from .view.gui_mappers import Ui_MappersDialog
 from .view.gui_tripwire import Ui_TripwireDialog
 
 
@@ -27,44 +36,239 @@ class StateEVEConnection(TypedDict):
   error: Union[str, None]
 
 
-class StateEVEScout(TypedDict):
+class StateMapper(TypedDict):
   connections: int
-  enabled: bool
   error: Union[str, None]
 
 
-class StateTripwire(TypedDict):
-  connections: int
-  error: Union[str, None]
+MAPPER_TYPE_LABELS = {
+  TYPE_TRIPWIRE: "Tripwire",
+  TYPE_EVESCOUT: "Eve Scout",
+}
 
 
 class TripwireDialog(QtWidgets.QDialog, Ui_TripwireDialog):
   """
-  Tripwire Configuration Window
+  Per-instance Tripwire edit dialog, opened from MappersDialog.
+
+  The dialog edits one Tripwire MapperConfig's name + credentials plus the
+  global proxy value (proxy is persisted separately because a single
+  requests session config applies to every Tripwire instance).
   """
 
   def __init__(
     self,
-    trip_url,
-    trip_user,
-    trip_pass,
-    proxy,
-    evescout_enabled,
+    name: str,
+    trip_url: str,
+    trip_user: str,
+    trip_pass: str,
+    proxy: str,
     parent=None,
   ):
     super().__init__(parent)
     self.setupUi(self)
-    self.lineEdit_url.setText(trip_url)
-    self.lineEdit_user.setText(trip_user)
-    self.lineEdit_pass.setText(trip_pass)
-    self.lineEdit_proxy.setText(proxy)
-    self.checkBox_evescout.setChecked(evescout_enabled)
-    self.label_evescout_logo.mouseReleaseEvent = TripwireDialog.logo_click
+    self.lineEdit_name.setText(name or "")
+    self.lineEdit_url.setText(trip_url or "")
+    self.lineEdit_user.setText(trip_user or "")
+    self.lineEdit_pass.setText(trip_pass or "")
+    self.lineEdit_proxy.setText(proxy or "")
 
-  @staticmethod
-  def logo_click(event):
-    event.accept()
-    QtGui.QDesktopServices.openUrl(QtCore.QUrl("https://www.eve-scout.com/"))
+
+class MappersDialog(QtWidgets.QDialog, Ui_MappersDialog):
+  """
+  Multi-mapper management dialog.
+
+  Edits a working copy of the config list so Cancel actually discards
+  changes. On OK, the caller reads self.configs and persists. Tripwire
+  edits delegate to TripwireDialog; Eve Scout edits use a plain
+  QInputDialog since only the name is user-editable (URL has a safe
+  default).
+  """
+
+  COL_ENABLED = 0
+  COL_NAME = 1
+  COL_TYPE = 2
+  COL_URL = 3
+
+  def __init__(
+    self,
+    configs: List[MapperConfig],
+    proxy: str,
+    parent=None,
+  ):
+    super().__init__(parent)
+    self.setupUi(self)
+    self.configs: List[MapperConfig] = [MapperConfig(**c.to_dict()) for c in configs]
+    self.proxy = proxy or ""
+
+    self.tableWidget_mappers.setColumnCount(4)
+    self.tableWidget_mappers.setHorizontalHeaderLabels([
+      "Enabled", "Name", "Type", "URL",
+    ])
+    header = self.tableWidget_mappers.horizontalHeader()
+    header.setSectionResizeMode(self.COL_ENABLED, QtWidgets.QHeaderView.ResizeToContents)
+    header.setSectionResizeMode(self.COL_NAME, QtWidgets.QHeaderView.ResizeToContents)
+    header.setSectionResizeMode(self.COL_TYPE, QtWidgets.QHeaderView.ResizeToContents)
+    header.setSectionResizeMode(self.COL_URL, QtWidgets.QHeaderView.Stretch)
+
+    self.pushButton_add.clicked.connect(self._on_add)
+    self.pushButton_edit.clicked.connect(self._on_edit)
+    self.pushButton_remove.clicked.connect(self._on_remove)
+    self.tableWidget_mappers.itemChanged.connect(self._on_item_changed)
+    self.tableWidget_mappers.doubleClicked.connect(lambda _: self._on_edit())
+
+    self._suppress_item_change = False
+    self._refresh_table()
+
+  def _refresh_table(self):
+    self._suppress_item_change = True
+    try:
+      self.tableWidget_mappers.setRowCount(len(self.configs))
+      for row, cfg in enumerate(self.configs):
+        enabled_item = QtWidgets.QTableWidgetItem()
+        enabled_item.setFlags(
+          QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
+        )
+        enabled_item.setCheckState(
+          QtCore.Qt.Checked if cfg.enabled else QtCore.Qt.Unchecked
+        )
+        self.tableWidget_mappers.setItem(row, self.COL_ENABLED, enabled_item)
+
+        name_item = QtWidgets.QTableWidgetItem(cfg.name)
+        name_item.setFlags(name_item.flags() & ~QtCore.Qt.ItemIsEditable)
+        self.tableWidget_mappers.setItem(row, self.COL_NAME, name_item)
+
+        type_item = QtWidgets.QTableWidgetItem(
+          MAPPER_TYPE_LABELS.get(cfg.type, cfg.type)
+        )
+        type_item.setFlags(type_item.flags() & ~QtCore.Qt.ItemIsEditable)
+        self.tableWidget_mappers.setItem(row, self.COL_TYPE, type_item)
+
+        url_item = QtWidgets.QTableWidgetItem(cfg.url)
+        url_item.setFlags(url_item.flags() & ~QtCore.Qt.ItemIsEditable)
+        self.tableWidget_mappers.setItem(row, self.COL_URL, url_item)
+    finally:
+      self._suppress_item_change = False
+
+  def _on_item_changed(self, item: QtWidgets.QTableWidgetItem):
+    if self._suppress_item_change:
+      return
+    if item.column() != self.COL_ENABLED:
+      return
+    row = item.row()
+    if 0 <= row < len(self.configs):
+      self.configs[row].enabled = item.checkState() == QtCore.Qt.Checked
+
+  @QtCore.Slot()
+  def _on_add(self):
+    type_label, ok = QtWidgets.QInputDialog.getItem(
+      self,
+      "Add mapper",
+      "Type:",
+      list(MAPPER_TYPE_LABELS.values()),
+      0,
+      False,
+    )
+    if not ok:
+      return
+    type_key = next(
+      (k for k, v in MAPPER_TYPE_LABELS.items() if v == type_label),
+      None,
+    )
+    if type_key is None:
+      return
+
+    if type_key == TYPE_TRIPWIRE:
+      cfg = MapperConfig(
+        type=TYPE_TRIPWIRE,
+        name=self._unique_name("Tripwire"),
+        enabled=True,
+        url="https://tripwire.eve-apps.com",
+      )
+      edited = self._edit_tripwire(cfg)
+    else:
+      cfg = MapperConfig(
+        type=TYPE_EVESCOUT,
+        name=self._unique_name("Eve Scout"),
+        enabled=True,
+        url="https://api.eve-scout.com/v2/public/signatures",
+      )
+      edited = self._edit_evescout(cfg)
+
+    if edited is not None:
+      self.configs.append(edited)
+      self._refresh_table()
+
+  @QtCore.Slot()
+  def _on_edit(self):
+    row = self.tableWidget_mappers.currentRow()
+    if row < 0 or row >= len(self.configs):
+      return
+    cfg = self.configs[row]
+    if cfg.type == TYPE_TRIPWIRE:
+      edited = self._edit_tripwire(cfg)
+    elif cfg.type == TYPE_EVESCOUT:
+      edited = self._edit_evescout(cfg)
+    else:
+      edited = None
+    if edited is not None:
+      self.configs[row] = edited
+      self._refresh_table()
+
+  @QtCore.Slot()
+  def _on_remove(self):
+    row = self.tableWidget_mappers.currentRow()
+    if row < 0 or row >= len(self.configs):
+      return
+    del self.configs[row]
+    self._refresh_table()
+
+  def _edit_tripwire(self, cfg: MapperConfig) -> Optional[MapperConfig]:
+    dlg = TripwireDialog(
+      name=cfg.name,
+      trip_url=cfg.url,
+      trip_user=cfg.user,
+      trip_pass=cfg.password,
+      proxy=self.proxy,
+      parent=self,
+    )
+    if not dlg.exec_():
+      return None
+    self.proxy = dlg.lineEdit_proxy.text()
+    return MapperConfig(
+      type=TYPE_TRIPWIRE,
+      name=dlg.lineEdit_name.text().strip() or cfg.name,
+      enabled=cfg.enabled,
+      url=dlg.lineEdit_url.text().strip(),
+      user=dlg.lineEdit_user.text(),
+      password=dlg.lineEdit_pass.text(),
+    )
+
+  def _edit_evescout(self, cfg: MapperConfig) -> Optional[MapperConfig]:
+    name, ok = QtWidgets.QInputDialog.getText(
+      self,
+      "Eve Scout",
+      "Name:",
+      QtWidgets.QLineEdit.Normal,
+      cfg.name,
+    )
+    if not ok:
+      return None
+    return MapperConfig(
+      type=TYPE_EVESCOUT,
+      name=name.strip() or cfg.name,
+      enabled=cfg.enabled,
+      url=cfg.url or "https://api.eve-scout.com/v2/public/signatures",
+    )
+
+  def _unique_name(self, base: str) -> str:
+    existing = {c.name for c in self.configs}
+    if base not in existing:
+      return base
+    n = 2
+    while f"{base} #{n}" in existing:
+      n += 1
+    return f"{base} #{n}"
 
 
 class AboutDialog(QtWidgets.QDialog, Ui_AboutDialog):
@@ -125,18 +329,13 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
       __appname__,
     )
 
-    self.tripwire_url = None
-    self.tripwire_user = None
-    self.tripwire_pass = None
-    self.global_proxy = None
+    self.global_proxy: str = ""
+    self.mapper_configs: List[MapperConfig] = []
+    self.mapper_states: Dict[str, StateMapper] = {}
 
     self.state_eve_connection = StateEVEConnection({
       "connected": False, "char_name": None, "error": None
     })
-    self.state_evescout = StateEVEScout({
-      "connections": 0, "enabled": False, "error": None
-    })
-    self.state_tripwire = StateTripwire({"connections": 0, "error": None})
 
     # Table configuration
     self.tableWidget_path.setColumnCount(5)
@@ -161,15 +360,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     # Additional GUI setup
     self.additional_gui_setup()
 
-    self.status_tripwire = QtWidgets.QLabel()
-    self.status_tripwire.setContentsMargins(5, 0, 5, 0)
-    self.statusBar().addPermanentWidget(self.status_tripwire, 0)
-    self._status_tripwire_update()
-
-    self.status_evescout = QtWidgets.QLabel()
-    self.status_evescout.setContentsMargins(5, 0, 5, 0)
-    self.statusBar().addPermanentWidget(self.status_evescout, 0)
-    self._status_evescout_update()
+    self.status_mappers = QtWidgets.QLabel()
+    self.status_mappers.setContentsMargins(5, 0, 5, 0)
+    self.statusBar().addPermanentWidget(self.status_mappers, 0)
+    self._status_mappers_update()
 
     self.status_eve_connection = QtWidgets.QLabel()
     self.status_eve_connection.setContentsMargins(5, 0, 5, 0)
@@ -221,6 +415,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         last_update,
       )
     )
+    self.pushButton_trip_get.setText("Fetch Mappers")
+    self.pushButton_trip_config.setText("Mappers\u2026")
     # FIXME(secondfry): removed heading
     # self.banner_image.mouseReleaseEvent = MainWindow.banner_click
     # self.banner_button.mouseReleaseEvent = MainWindow.banner_click
@@ -288,42 +484,21 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
       self.table_item_selection_changed
     )
 
-  def migrate_settings_tripwire(self):
-    Logger.info('Mirgating Tripwire dialog settings to their own category')
-    tripwire_url = self.settings.value('MainWindow/tripwire_url')
-    tripwire_user = self.settings.value('MainWindow/tripwire_user')
-    tripwire_pass = self.settings.value('MainWindow/tripwire_pass')
-    evescout_enabled = self.settings.value(
-      'MainWindow/evescout_enable', 'false'
-    ) == 'true'
-    self.settings.beginGroup('Tripwire')
-    self.settings.setValue('url', tripwire_url)
-    self.settings.setValue('user', tripwire_user)
-    self.settings.setValue('pass', tripwire_pass)
-    self.settings.setValue('evescout_enabled', evescout_enabled)
-    self.settings.endGroup()
-    self.settings.remove('MainWindow/tripwire_url')
-    self.settings.remove('MainWindow/tripwire_user')
-    self.settings.remove('MainWindow/tripwire_pass')
-    self.settings.remove('MainWindow/evescout_enable')
-
-  def read_settings_tripwire(self):
-    self.global_proxy = self.settings.value('proxy')
-    self.settings.beginGroup('Tripwire')
-    self.tripwire_url = self.settings.value(
-      'url', 'https://tripwire.eve-apps.com'
-    )
-    self.tripwire_user = self.settings.value('user')
-    self.tripwire_pass = self.settings.value('pass')
-    self.state_evescout["enabled"] = self.settings.value(
-      'evescout_enabled', 'false'
-    ) == 'true'
-    self.settings.endGroup()
+  def read_settings_mappers(self):
+    self.global_proxy = self.settings.value('proxy') or ""
+    migrated = migrate_legacy(self.settings)
+    if migrated is not None:
+      self.mapper_configs = migrated
+    else:
+      loaded = load_configs(self.settings)
+      self.mapper_configs = loaded if loaded else default_configs()
+    self.mapper_states = {
+      cfg.name: StateMapper({"connections": 0, "error": None})
+      for cfg in self.mapper_configs
+    }
 
   def read_settings(self):
-    if self.settings.value('MainWindow/tripwire_url'):
-      self.migrate_settings_tripwire()
-    self.read_settings_tripwire()
+    self.read_settings_mappers()
 
     self.settings.beginGroup("MainWindow")
 
@@ -375,17 +550,12 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
     self.settings.endGroup()
 
-  def write_settings_tripwire(self):
+  def write_settings_mappers(self):
     self.settings.setValue('proxy', self.global_proxy)
-    self.settings.beginGroup('Tripwire')
-    self.settings.setValue('url', self.tripwire_url)
-    self.settings.setValue('user', self.tripwire_user)
-    self.settings.setValue('pass', self.tripwire_pass)
-    self.settings.setValue('evescout_enabled', self.state_evescout["enabled"])
-    self.settings.endGroup()
+    save_configs(self.settings, self.mapper_configs)
 
   def write_settings(self):
-    self.write_settings_tripwire()
+    self.write_settings_mappers()
 
     self.settings.beginGroup("MainWindow")
 
@@ -461,11 +631,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
   def _status_eve_connection(self, message, message_type=MessageType.INFO):
     MainWindow._label_message(self.status_eve_connection, message, message_type)
 
-  def _status_evescout(self, message, message_type=MessageType.INFO):
-    MainWindow._label_message(self.status_evescout, message, message_type)
-
-  def _status_tripwire(self, message, message_type=MessageType.INFO):
-    MainWindow._label_message(self.status_tripwire, message, message_type)
+  def _status_mappers(self, message, message_type=MessageType.INFO):
+    MainWindow._label_message(self.status_mappers, message, message_type)
 
   def avoidance_enabled(self) -> bool:
     return self.groupBox_avoidance.isChecked()
@@ -709,37 +876,44 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     self.pushButton_player_location.setEnabled(False)
     self.pushButton_set_dest.setEnabled(False)
 
-  def _status_evescout_update(self):
-    if not self.state_evescout["enabled"]:
-      self._status_evescout("Eve-Scout: disabled")
+  def _status_mappers_update(self):
+    """Summarize every enabled mapper into the single status-bar label.
+
+    One entry per enabled config: 'Name: N' when we have a count, 'Name:
+    error' on failure, 'Name: enabled' before the first fetch. Colour is
+    OK when every fetched source succeeded, ERROR if any failed, INFO
+    otherwise (idle/mixed)."""
+    enabled = [c for c in self.mapper_configs if c.enabled]
+    if not enabled:
+      self._status_mappers("Mappers: none enabled")
       return
 
-    if self.state_evescout["error"]:
-      self._status_evescout("Eve-Scout: disabled", MessageType.ERROR)
-      return
+    any_error = False
+    any_success = False
+    parts: List[str] = []
+    for cfg in enabled:
+      state = self.mapper_states.get(cfg.name)
+      if state is None:
+        parts.append(f"{cfg.name}: enabled")
+        continue
+      if state["error"]:
+        parts.append(f"{cfg.name}: error")
+        any_error = True
+        continue
+      count = state["connections"]
+      if count <= 0:
+        parts.append(f"{cfg.name}: enabled")
+      else:
+        parts.append(f"{cfg.name}: {count}")
+        any_success = True
 
-    if not self.state_evescout["connections"]:
-      self._status_evescout("Eve-Scout: enabled")
-      return
-
-    self._status_evescout(
-      "Eve-Scout: {} connections".format(self.state_evescout["connections"]),
-      MessageType.OK
-    )
-
-  def _status_tripwire_update(self):
-    if self.state_evescout["error"]:
-      self._status_tripwire("Tripwire: disabled", MessageType.ERROR)
-      return
-
-    if not self.state_evescout["connections"]:
-      self._status_tripwire("Tripwire: enabled")
-      return
-
-    self._status_tripwire(
-      "Tripwire: {} connections".format(self.state_tripwire["connections"]),
-      MessageType.OK
-    )
+    message = " · ".join(parts)
+    if any_error:
+      self._status_mappers(message, MessageType.ERROR)
+    elif any_success:
+      self._status_mappers(message, MessageType.OK)
+    else:
+      self._status_mappers(message)
 
   @QtCore.Slot(str)
   def login_handler(self, is_ok, char_name):
@@ -774,25 +948,26 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
       )
     self.pushButton_set_dest.setEnabled(True)
 
-  @QtCore.Slot(int)
-  def worker_thread_done(self, connections, evescout_connections):
+  @QtCore.Slot(dict)
+  def worker_thread_done(self, results):
     self.worker_thread.quit()
+    self.worker_thread.wait()
 
-    # wait for thread to finish
-    while self.worker_thread.isRunning():
-      time.sleep(0.01)
-
-    self.state_evescout["connections"] = evescout_connections
-    if evescout_connections < 0:
-      # FIXME(secondfry): pass actual error and dispaly it to the user.
-      self.state_evescout["error"] = "error"
-    self._status_evescout_update()
-
-    self.state_tripwire["connections"] = connections
-    if connections < 0:
-      # FIXME(secondfry): pass actual error and dispaly it to the user.
-      self.state_evescout["error"] = "error. Check url/user/pass."
-    self._status_tripwire_update()
+    for name in list(self.mapper_states.keys()):
+      if name not in results:
+        continue
+      count = results[name]
+      if count < 0:
+        self.mapper_states[name] = StateMapper({
+          "connections": 0,
+          "error": "error",
+        })
+      else:
+        self.mapper_states[name] = StateMapper({
+          "connections": count,
+          "error": None,
+        })
+    self._status_mappers_update()
 
     self.pushButton_trip_get.setEnabled(True)
     self.pushButton_find_path.setEnabled(True)
@@ -834,26 +1009,24 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
   @QtCore.Slot()
   def btn_trip_config_clicked(self):
-    tripwire_dialog = TripwireDialog(
-      self.tripwire_url,
-      self.tripwire_user,
-      self.tripwire_pass,
-      self.global_proxy,
-      self.state_evescout["enabled"],
-    )
-
-    if not tripwire_dialog.exec_():
+    dialog = MappersDialog(self.mapper_configs, self.global_proxy, parent=self)
+    if not dialog.exec_():
       return
 
-    self.tripwire_url = tripwire_dialog.lineEdit_url.text()
-    self.tripwire_user = tripwire_dialog.lineEdit_user.text()
-    self.tripwire_pass = tripwire_dialog.lineEdit_pass.text()
-    self.global_proxy = tripwire_dialog.lineEdit_proxy.text()
-    self.nav.tripwire_set_login()
-    self.state_evescout["enabled"
-                        ] = tripwire_dialog.checkBox_evescout.isChecked()
-    self._status_evescout_update()
-    self.write_settings_tripwire()
+    self.mapper_configs = dialog.configs
+    self.global_proxy = dialog.proxy
+
+    # Preserve per-mapper state across renames/removals by keeping entries
+    # only for configs that still exist; add fresh empty state for new ones.
+    new_states: Dict[str, StateMapper] = {}
+    for cfg in self.mapper_configs:
+      new_states[cfg.name] = self.mapper_states.get(
+        cfg.name, StateMapper({"connections": 0, "error": None})
+      )
+    self.mapper_states = new_states
+
+    self.write_settings_mappers()
+    self._status_mappers_update()
 
   @QtCore.Slot()
   def btn_trip_get_clicked(self):
@@ -862,8 +1035,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
       self.pushButton_find_path.setEnabled(False)
       self.worker_thread.start()
     else:
-      self.state_tripwire['error'] = "error. Process is already running."
-      self._status_tripwire_update()
+      self._status_mappers("Fetch already running", MessageType.ERROR)
 
   @QtCore.Slot()
   def btn_system_avoid_add_clicked(self):
@@ -886,7 +1058,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
   def btn_reset_clicked(self):
     msg_box = QtWidgets.QMessageBox(self)
     msg_box.setWindowTitle("Reset chain")
-    msg_box.setText("Are you sure you want to clear all Tripwire data?")
+    msg_box.setText("Are you sure you want to clear all mapper data?")
     msg_box.setStandardButtons(
       QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No
     )
@@ -895,10 +1067,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
     if ret == QtWidgets.QMessageBox.Yes:
       self.nav.reset_chain()
-      self.state_evescout["connections"] = 0
-      self.state_tripwire["connections"] = 0
-      self._status_evescout_update()
-      self._status_tripwire_update()
+      for name in self.mapper_states:
+        self.mapper_states[name] = StateMapper({"connections": 0, "error": None})
+      self._status_mappers_update()
 
   @QtCore.Slot()
   def line_edit_system_avoid_name_return(self):
