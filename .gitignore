@@ -187,3 +187,4 @@ $RECYCLE.BIN/
 src/database/universeDataDx.db
 shortcircuit.log*
 .DS_Store
+.claude/settings.local.json
