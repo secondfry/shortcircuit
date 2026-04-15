@@ -409,8 +409,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         last_update,
       )
     )
-    self.pushButton_trip_get.setText("Fetch Mappers")
-    self.pushButton_trip_config.setText("Mappers\u2026")
     # FIXME(secondfry): removed heading
     # self.banner_image.mouseReleaseEvent = MainWindow.banner_click
     # self.banner_button.mouseReleaseEvent = MainWindow.banner_click
