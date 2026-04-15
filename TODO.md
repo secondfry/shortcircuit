@@ -11,11 +11,11 @@ Currently, if two mappers provide the same connection, it's added twice to the s
 - Show "confidence" level based on multiple sources confirming the same connection
 - Allow users to see which mappers reported each connection
 
-### Multiple Mapper Instance Management — still open
+### Multiple Mapper Instance Management — remaining enhancements
 
 Shipped in the Mappers dialog: add/remove/edit and enable/disable of an arbitrary number of instances, list-based QSettings (JSON blob under `MapperConfigs`), dynamic status-bar summary aggregating all enabled mappers. Still missing:
 
-- Per-instance "Test Connection" button (reach out to the server and report auth/HTTP result before saving).
+- Per-instance "Test Connection" button (reach out to the server and report auth/HTTP result before saving) — subsumes the credential-test piece of "Configuration Validation" below.
 - Reordering / drag-and-drop in the Mappers table.
 - Import / export of the mapper list (share configs with corp).
 
@@ -23,11 +23,12 @@ Shipped in the Mappers dialog: add/remove/edit and enable/disable of an arbitrar
 
 ### Configuration Validation
 
-Current validation happens at mapper instantiation time. Consider:
-- Validate configuration in UI before saving
-- URL validation (format, reachability)
-- Credential validation (test login)
-- Provide immediate feedback to users
+Validation currently happens at mapper instantiation time, after save. Move it forward:
+- Validate configuration in the dialog before accepting OK.
+- URL format check (scheme, host), optional reachability probe.
+- Provide immediate inline feedback rather than silent acceptance + later error in the status bar.
+
+(Live credential testing is tracked as the "Test Connection" bullet under Multiple Mapper Instance Management.)
 
 ## Performance
 
