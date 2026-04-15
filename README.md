@@ -27,11 +27,6 @@ Some users reported having troubles when installing PySide on Linux/Mac. Try usi
 $ sudo apt-get install python-pyside
 ```
 
-For *Arch Linux* users: Short Circuit is available on [AUR](https://aur.archlinux.org/packages/shortcircuit/) (Credits to [Sanxion](https://gate.eveonline.com/Profile/Sanxion)):
-```bash
-yaourt -S shortcircuit
-```
-
 ## Releases
 Binaries (executables) can be downloaded from [here](https://github.com/secondfry/shortcircuit/releases).
 
