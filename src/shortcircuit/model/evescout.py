@@ -1,27 +1,33 @@
 # evescout.py
 
 from datetime import datetime
+from typing import Dict, Optional
 
 import requests
 from shortcircuit import USER_AGENT
 
 from .evedb import EveDb, WormholeSize, WormholeMassspan, WormholeTimespan
 from .logger import Logger
+from .mapper_base import MapperSource
 from .solarmap import ConnectionType, SolarMap
 
 
-class EveScout:
+class EveScout(MapperSource):
   """
-  Eve Scout Thera Connections
+  Eve Scout wormhole connections provider.
+  
+  Provides public wormhole connections to Thera and Turnur systems.
   """
   TIMEOUT = 2
 
   def __init__(
     self,
     url: str = 'https://api.eve-scout.com/v2/public/signatures',
+    name: str = "Eve Scout",
   ):
     self.eve_db = EveDb()
     self.evescout_url = url
+    self.name = name
 
   def augment_map(self, solar_map: SolarMap):
     """
@@ -106,3 +112,24 @@ class EveScout:
         )
 
     return connections
+
+  def get_name(self) -> str:
+    """
+    Get the name of this Eve Scout instance.
+    
+    Returns:
+      The name of this mapper source
+    """
+    return self.name
+
+  def validate_config(self) -> tuple[bool, Optional[str]]:
+    """
+    Validate the Eve Scout configuration.
+    
+    Returns:
+      Tuple of (is_valid, error_message)
+    """
+    if not self.evescout_url:
+      return False, "URL is required"
+    return True, None
+

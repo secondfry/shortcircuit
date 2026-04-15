@@ -9,6 +9,7 @@ from shortcircuit import USER_AGENT
 
 from .evedb import EveDb, WormholeSize, WormholeMassspan, WormholeTimespan
 from .logger import Logger
+from .mapper_base import MapperSource
 from .solarmap import ConnectionType, SolarMap
 from .utility.configuration import Configuration
 
@@ -119,19 +120,20 @@ class TripwireChain(TypedDict):
 SignatureKey = Literal['initialID', 'secondaryID']
 
 
-class Tripwire:
+class Tripwire(MapperSource):
   """
-  Tripwire handler
+  Tripwire wormhole mapper client.
   """
 
   WTYPE_UNKNOWN = '----'
   SIG_UNKNOWN = '-------'
 
-  def __init__(self, username: str, password: str, url: str):
+  def __init__(self, username: str, password: str, url: str, name: str = "Tripwire"):
     self.eve_db = EveDb()
     self.username = username
     self.password = password
     self.url = url
+    self.name = name
     self.session_requests = self.login()
     self.chain: TripwireChain = self._empty_chain()
 
@@ -443,6 +445,30 @@ class Tripwire:
         Logger.error('pepega', exc_info=e)
 
     return connections
+
+  def get_name(self) -> str:
+    """
+    Get the name of this Tripwire instance.
+    
+    Returns:
+      The name of this mapper source
+    """
+    return self.name
+
+  def validate_config(self) -> tuple[bool, Optional[str]]:
+    """
+    Validate the Tripwire configuration.
+    
+    Returns:
+      Tuple of (is_valid, error_message)
+    """
+    if not self.url:
+      return False, "URL is required"
+    if not self.username:
+      return False, "Username is required"
+    if not self.password:
+      return False, "Password is required"
+    return True, None
 
   @staticmethod
   def format_tripwire_wormhole_type(wtype):

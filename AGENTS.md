@@ -1,4 +1,82 @@
-# Guidelines for AI Agents
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Project Overview
+
+Short Circuit (formerly Pathfinder) is a PySide2 desktop application that finds the shortest path between Eve Online solar systems, including wormhole connections fetched from third-party mappers (Tripwire, Eve Scout). Python 3.10, packaged with PyInstaller.
+
+## Common Commands
+
+Environment setup (the project uses Pipenv with a local `.venv`):
+```bash
+pip install pipenv
+mkdir .venv
+pipenv install --dev
+pipenv shell
+```
+
+Run the application:
+```bash
+cd src
+python main.py
+```
+
+Regenerate Qt UI and resource modules after editing files under `resources/ui/` or `resources/resources.qrc`:
+```bash
+./generate_gui.sh      # or generate_gui.bat on Windows
+```
+This runs `pyside2-uic` / `pyside2-rcc` and writes to `src/shortcircuit/view/gui_*.py` and `resources_rc.py`. Do not edit those generated files by hand — edit the `.ui` / `.qrc` source and regenerate.
+
+Run tests (pytest, collocated with source under `src/shortcircuit/model/test_*.py`):
+```bash
+pipenv run pytest src/shortcircuit/model
+pipenv run pytest src/shortcircuit/model/test_tripwire.py          # single file
+pipenv run pytest src/shortcircuit/model/test_tripwire.py::TestX   # single test
+```
+
+Build standalone binaries:
+```bash
+./build_win_installer.bat   # Windows, PyInstaller --onefile
+./build_mac_installer.sh    # macOS
+```
+
+## Architecture
+
+The app follows a three-layer split under `src/shortcircuit/`: `view/` (Qt widgets, mostly generated from `.ui` files), `model/` (domain logic, networking, graph algorithms), and `app.py` as the `MainWindow` glue. Entry point is `src/main.py`.
+
+### Wormhole data fetch pipeline
+
+The control flow from a button click to an updated solar map spans several modules — understanding this chain is important before modifying any piece:
+
+1. `app.py` (`MainWindow`) handles the button click and starts a Qt `worker_thread` so the UI stays responsive.
+2. `navprocessor.py` (`NavProcessor`, runs on that worker thread) coordinates the workflow and emits a `finished` signal back to the main thread.
+3. `navigation.py` (`Navigation`) owns the `SolarMap`, calls `setup_mappers()` to read config from `app_obj` (the `MainWindow`), and delegates fetching to the registry.
+4. `mapper_registry.py` (`MapperRegistry`) iterates over registered `MapperSource` instances, calls `augment_map(solar_map)` on each, aggregates counts, and isolates failures so one broken mapper doesn't kill the others.
+5. `mapper_base.py` defines the abstract `MapperSource` interface: `augment_map`, `get_name`, `get_config`, `validate_config`. Every mapper implementation inherits from it.
+6. Concrete mappers (`tripwire.py`, `evescout.py`) authenticate if needed, fetch JSON, and call `solar_map.add_connection(...)` for each wormhole.
+7. `solarmap.py` (`SolarMap`) is the graph itself — holds systems/connections, runs Dijkstra with weights influenced by security prioritization, wormhole size/life/mass restrictions, and the avoidance list.
+
+The detailed flow and diagrams live in `docs/MODULE_ARCHITECTURE.md`; adding a new mapper is documented in `docs/MAPPER_MODULES.md`.
+
+### Threading rules
+
+UI code runs on the main thread; anything that blocks on network I/O (mappers, ESI calls) must run on a worker thread and communicate back via signals. Do not call mapper or ESI methods directly from UI event handlers.
+
+### ESI and configuration
+
+`model/esi/` wraps the optional Eve Online ESI integration (implicit OAuth flow, 20-minute sessions, used for reading player location and setting in-game destination). Configuration (Tripwire credentials, Eve Scout toggle, proxy, restrictions, avoid list) is persisted via Qt's `QSettings`, loaded in `MainWindow.read_settings()`, and accessed by `Navigation` through its `app_obj` reference.
+
+### Static data
+
+Eve SDE CSVs (`mapSolarSystems.csv`, `mapSolarSystemJumps.csv`, `mapLocationWormholeClasses.csv`) live in `src/database/` and are loaded by `evedb.py`. Refresh them from https://www.fuzzwork.co.uk/dump/latest/ when the SDE updates — see README.
+
+## Conventions
+
+- Python 3.10, 2-space indentation (see existing files).
+- Qt-generated files under `view/` are regenerated artifacts — never edit directly.
+- Tests live next to the code they test (`test_*.py` in `src/shortcircuit/model/`), not in a separate top-level tests directory.
+- Known follow-ups and intentionally deferred work are tracked in `TODO.md` (connection deduplication, multi-instance mapper UI, parallel fetching, caching). Prefer aligning with what's listed there over introducing a parallel plan.
 
 ## Commit Message Guidelines
 
@@ -13,20 +91,6 @@ The "why" is often harder to infer than the "what", and it requires proper docum
 - **Contextual Background**: Why was this change necessary? What problem or feature was being addressed?
 - **Decision-Making Process**: What options were considered? Why was this particular solution chosen?
 - **Implications and Considerations**: What are the potential impacts or limitations of this change? Were there any trade-offs?
-
-### Benefits of Detailed Commit Messages
-
-1. **Knowing Past Intentions**: You won't remember every change you worked on in a few months or years. Detailed messages from the past help you understand your own reasoning and make better decisions.
-
-2. **Providing Context for Other Engineers**: Commit messages are a form of asynchronous communication. They help other engineers understand what was in your head when you made the change, especially if you're away or have left the team.
-
-3. **Looking Back at Accomplishments**: Running `git log --author=name` provides a clear chronological list of all your contributions with high fidelity.
-
-4. **Spreading Knowledge and Awareness**: Good commit messages help team members learn from each other and build awareness of what's being done, especially in remote-heavy environments.
-
-5. **Focusing Code Changes**: Writing a commit message forces you to think about the work. If you can't write a concise explanation of what you're doing and why, maybe you need to reconsider the change or break it into smaller logical pieces.
-
-6. **Information at Your Fingertips**: Git is at your fingertips throughout development. Having detailed information in commit messages is faster and more convenient than clicking through to external tickets or PRs.
 
 ### How NOT to Write Commit Messages
 
@@ -61,13 +125,12 @@ to proceed, preventing the race condition.
 - Explain the problem being solved and why this solution was chosen
 - Include relevant trade-offs or limitations if applicable
 - Write for your future self and other engineers who may need to maintain this code
-- Remember: the git log is a valuable learning resource and debugging tool
 
 ## Pull Request Description Guidelines
 
-Pull request descriptions should follow the same principles as commit messages: **focus on the "why", not just the "what"**.
+PR descriptions follow the same principles as commit messages: **focus on the "why", not just the "what"**.
 
-### What to Include in PR Descriptions
+### What to Include
 
 1. **Summary**: A concise overview of what the PR accomplishes and why it's needed
 2. **Context**: Background information about the problem being solved or feature being added
@@ -76,28 +139,8 @@ Pull request descriptions should follow the same principles as commit messages: 
 5. **Testing**: How the changes were tested and what scenarios were covered
 6. **Risks**: Any potential impacts on existing functionality or deployment considerations
 
-### How NOT to Write PR Descriptions
+### Example
 
-❌ **Bad**: Minimal description
-```
-Fix bug
-```
-
-❌ **Bad**: Only ticket reference
-```
-Fixes #456
-```
-
-❌ **Bad**: Just listing changes
-```
-- Updated auth.py
-- Modified login form
-- Added new test
-```
-
-The problem: These descriptions don't provide context or reasoning. Reviewers and future maintainers need to understand why the changes were necessary.
-
-✅ **Good**: Comprehensive description
 ```
 Fix race condition in authentication flow
 
@@ -124,11 +167,3 @@ and lower overhead.
 ## Risks
 Low risk - the mutex is only held briefly during token operations.
 ```
-
-### Guidelines
-
-- Treat PR descriptions as documentation for the changes
-- Provide enough context that reviewers don't need to read every line of code to understand the change
-- Explain your decision-making process, especially for non-obvious solutions
-- Include test plan details so reviewers can verify the testing was thorough
-- Remember: PR descriptions complement commit messages - use both effectively

@@ -145,10 +145,20 @@ discord_integration: false
 
 <a href="https://www.youtube.com/watch?v=qw0OhRGeDgA&t=7m0s" target="_blank"><img src="http://img.youtube.com/vi/qw0OhRGeDgA/1.jpg" alt="Pathfinder on the o7 Show" width="480" height="360" border="10" /></a>
 
+## Mapper Support
+
+Short Circuit supports consuming wormhole data from multiple instances of multiple mapper sources simultaneously:
+- Tripwire.
+- Eve Scout.
+
+TBD:
+- pathfinder.
+- eve-whmapper - waiting for public API.
+
+See [docs/MAPPER_MODULES.md](docs/MAPPER_MODULES.md) for details on the modular mapper architecture.
+
 ## Future development
-1. Add support for more 3rd party wormhole mapping tools.
-2. Combine data from multiple sources (multiple Tripwire accounts, etc.).
-3. Suggestions?
+1. Suggestions?
 
 ## Contacts
 For any questions please contact Lenai Chelien. I accept PLEX, ISK, Exotic Dancers and ~~drugs~~ boosters.
