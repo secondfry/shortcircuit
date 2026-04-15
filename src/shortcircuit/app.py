@@ -114,50 +114,44 @@ class MappersDialog(QtWidgets.QDialog, Ui_MappersDialog):
     self.pushButton_add.clicked.connect(self._on_add)
     self.pushButton_edit.clicked.connect(self._on_edit)
     self.pushButton_remove.clicked.connect(self._on_remove)
-    self.tableWidget_mappers.itemChanged.connect(self._on_item_changed)
     self.tableWidget_mappers.doubleClicked.connect(lambda _: self._on_edit())
 
-    self._suppress_item_change = False
     self._refresh_table()
 
   def _refresh_table(self):
-    self._suppress_item_change = True
-    try:
-      self.tableWidget_mappers.setRowCount(len(self.configs))
-      for row, cfg in enumerate(self.configs):
-        enabled_item = QtWidgets.QTableWidgetItem()
-        enabled_item.setFlags(
-          QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
-        )
-        enabled_item.setCheckState(
-          QtCore.Qt.Checked if cfg.enabled else QtCore.Qt.Unchecked
-        )
-        self.tableWidget_mappers.setItem(row, self.COL_ENABLED, enabled_item)
+    self.tableWidget_mappers.setRowCount(len(self.configs))
+    for row, cfg in enumerate(self.configs):
+      # Centered checkbox widget — a plain checkable QTableWidgetItem
+      # pins the box to the left and leaves the rest of the cell empty,
+      # which looks sloppy when the header text ("Enabled") is wider
+      # than the box itself.
+      container = QtWidgets.QWidget()
+      layout = QtWidgets.QHBoxLayout(container)
+      layout.setContentsMargins(0, 0, 0, 0)
+      layout.setAlignment(QtCore.Qt.AlignCenter)
+      checkbox = QtWidgets.QCheckBox()
+      checkbox.setChecked(cfg.enabled)
+      checkbox.toggled.connect(partial(self._set_enabled, row))
+      layout.addWidget(checkbox)
+      self.tableWidget_mappers.setCellWidget(row, self.COL_ENABLED, container)
 
-        name_item = QtWidgets.QTableWidgetItem(cfg.name)
-        name_item.setFlags(name_item.flags() & ~QtCore.Qt.ItemIsEditable)
-        self.tableWidget_mappers.setItem(row, self.COL_NAME, name_item)
+      name_item = QtWidgets.QTableWidgetItem(cfg.name)
+      name_item.setFlags(name_item.flags() & ~QtCore.Qt.ItemIsEditable)
+      self.tableWidget_mappers.setItem(row, self.COL_NAME, name_item)
 
-        type_item = QtWidgets.QTableWidgetItem(
-          MAPPER_TYPE_LABELS.get(cfg.type, cfg.type)
-        )
-        type_item.setFlags(type_item.flags() & ~QtCore.Qt.ItemIsEditable)
-        self.tableWidget_mappers.setItem(row, self.COL_TYPE, type_item)
+      type_item = QtWidgets.QTableWidgetItem(
+        MAPPER_TYPE_LABELS.get(cfg.type, cfg.type)
+      )
+      type_item.setFlags(type_item.flags() & ~QtCore.Qt.ItemIsEditable)
+      self.tableWidget_mappers.setItem(row, self.COL_TYPE, type_item)
 
-        url_item = QtWidgets.QTableWidgetItem(cfg.url)
-        url_item.setFlags(url_item.flags() & ~QtCore.Qt.ItemIsEditable)
-        self.tableWidget_mappers.setItem(row, self.COL_URL, url_item)
-    finally:
-      self._suppress_item_change = False
+      url_item = QtWidgets.QTableWidgetItem(cfg.url)
+      url_item.setFlags(url_item.flags() & ~QtCore.Qt.ItemIsEditable)
+      self.tableWidget_mappers.setItem(row, self.COL_URL, url_item)
 
-  def _on_item_changed(self, item: QtWidgets.QTableWidgetItem):
-    if self._suppress_item_change:
-      return
-    if item.column() != self.COL_ENABLED:
-      return
-    row = item.row()
+  def _set_enabled(self, row: int, checked: bool):
     if 0 <= row < len(self.configs):
-      self.configs[row].enabled = item.checkState() == QtCore.Qt.Checked
+      self.configs[row].enabled = checked
 
   @QtCore.Slot()
   def _on_add(self):

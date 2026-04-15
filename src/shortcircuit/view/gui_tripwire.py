@@ -18,14 +18,13 @@ class Ui_TripwireDialog(object):
     def setupUi(self, TripwireDialog):
         if not TripwireDialog.objectName():
             TripwireDialog.setObjectName(u"TripwireDialog")
-        TripwireDialog.resize(400, 240)
-        sizePolicy = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        TripwireDialog.resize(480, 420)
+        sizePolicy = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(TripwireDialog.sizePolicy().hasHeightForWidth())
         TripwireDialog.setSizePolicy(sizePolicy)
-        TripwireDialog.setMinimumSize(QSize(400, 240))
-        TripwireDialog.setMaximumSize(QSize(400, 240))
+        TripwireDialog.setMinimumSize(QSize(480, 420))
         font = QFont()
         font.setFamily(u"Segoe UI")
         font.setPointSize(9)
@@ -38,7 +37,15 @@ class Ui_TripwireDialog(object):
         self.gridLayout.setObjectName(u"gridLayout")
         self.label_4 = QLabel(TripwireDialog)
         self.label_4.setObjectName(u"label_4")
+        sizePolicy1 = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
+        sizePolicy1.setHorizontalStretch(0)
+        sizePolicy1.setVerticalStretch(0)
+        sizePolicy1.setHeightForWidth(self.label_4.sizePolicy().hasHeightForWidth())
+        self.label_4.setSizePolicy(sizePolicy1)
+        self.label_4.setMinimumSize(QSize(382, 100))
+        self.label_4.setMaximumSize(QSize(16777215, 100))
         self.label_4.setPixmap(QPixmap(u":/images/tripwire_banner.png"))
+        self.label_4.setAlignment(Qt.AlignCenter)
 
         self.gridLayout.addWidget(self.label_4, 0, 0, 1, 2)
 
