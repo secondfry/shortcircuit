@@ -4,16 +4,9 @@
 
 ### Connection Deduplication
 
-Currently, if two mappers provide the same connection, it's added twice to the solar map. Future enhancement could:
+- A confidence-style score across mappers is intentionally *not* planned — see WHY-OWNED-SERVICE.md for the rationale (and what would change if Short Circuit became a hosted service).
 
-- Track connection source in metadata
-- Deduplicate based on (source_system, dest_system, sig_ids)
-- Show "confidence" level based on multiple sources confirming the same connection
-- Allow users to see which mappers reported each connection
-
-### Multiple Mapper Instance Management — remaining enhancements
-
-Shipped in the Mappers dialog: add/remove/edit and enable/disable of an arbitrary number of instances, list-based QSettings (JSON blob under `MapperConfigs`), dynamic status-bar summary aggregating all enabled mappers. Still missing:
+### Multiple Mapper Instance Management
 
 - Per-instance "Test Connection" button (reach out to the server and report auth/HTTP result before saving) — subsumes the credential-test piece of "Configuration Validation" below.
 - Reordering / drag-and-drop in the Mappers table.

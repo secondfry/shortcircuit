@@ -107,7 +107,7 @@ class Navigation:
       return "Jump gate"
 
     if weight[0] == ConnectionType.WORMHOLE:
-      [wh_sig, wh_code, _, _, _, _] = weight[1]
+      wh_sig, wh_code = weight[1][0], weight[1][1]
       return "Jump wormhole\n{} [{}]".format(wh_sig, wh_code)
 
     return "Instructions unclear, initiate self-destruct"
@@ -121,7 +121,10 @@ class Navigation:
     if weight_back[0] != ConnectionType.WORMHOLE:
       return
 
-    [wh_sig, wh_code, wh_size, wh_life, wh_mass, time_elapsed] = weight_back[1]
+    info = weight_back[1]
+    wh_sig, wh_code = info[0], info[1]
+    wh_size, wh_life, wh_mass, time_elapsed = info[2], info[3], info[4], info[5]
+    sources = info[6] if len(info) >= 7 else []
     # Wormhole size
     wh_size_text = "Unknown"
     if wh_size == WormholeSize.SMALL:
@@ -150,12 +153,15 @@ class Navigation:
       wh_mass_text = "Critical"
 
     # Return signature
-    return "Return sig: {0} [{1}], Updated: {5}h ago\nSize: {2}, Life: {3}, Mass: {4}".format(
+    base = "Return sig: {0} [{1}], Updated: {5}h ago\nSize: {2}, Life: {3}, Mass: {4}".format(
       wh_sig, wh_code, wh_size_text, wh_life_text, wh_mass_text, time_elapsed
     )
+    if sources:
+      base += "\nReported by: {}".format(", ".join(sources))
+    return base
 
   def route(self, source: int, destination: int):
-    path = self.solar_map.shortest_path(
+    path, path_edges = self.solar_map.shortest_path(
       source,
       destination,
       self.app_obj.get_restrictions(),
@@ -168,10 +174,7 @@ class Navigation:
         weight = None
         weight_back = None
       else:
-        source = self.solar_map.get_system(x)
-        dest = self.solar_map.get_system(path[idx + 1])
-        weight = source.get_weight(dest)
-        weight_back = dest.get_weight(source)
+        weight, weight_back = path_edges[idx]
 
       route_step = self.eve_db.system_desc[x]
       route_step['path_action'] = Navigation._get_instructions(weight)

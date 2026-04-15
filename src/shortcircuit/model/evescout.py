@@ -109,6 +109,7 @@ class EveScout(MapperSource):
             wh_mass,
             time_elapsed,
           ],
+          source_name=self.name,
         )
 
     return connections

@@ -178,7 +178,7 @@ def test_gate_wormhole_in_route_calculation():
     
     # Calculate a route that should use the GATE wormhole
     from shortcircuit.model.evedb import SpaceType
-    path = solar_map.shortest_path(
+    path, _ = solar_map.shortest_path(
         eve_db.name2id("Jita"),
         eve_db.name2id("Dodixie"),
         {

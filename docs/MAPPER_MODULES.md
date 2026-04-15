@@ -51,7 +51,37 @@ results = registry.augment_map(solar_map)
 # Returns: {"Corp Tripwire": 15, "Alliance Tripwire": 23, "Eve Scout": 8}
 ```
 
-### 3. Mapper Implementations
+### 3. Deduplication and source tracking
+
+`SolarSystem.connected_to` stores a *list* of parallel edges per neighbor,
+so two physically distinct wormholes between the same system pair coexist
+as separate edges and the router can choose between them.
+
+`SolarMap.add_connection` deduplicates wormhole reports by sig compatibility,
+not by system pair alone. Two reports refer to the same wormhole iff at
+least one sig slot concretely matches (signature IDs are unique per system,
+so a concrete match on either side is decisive). When a new report matches
+an existing parallel edge, `_merge_wormhole_at` unions the sources list,
+upgrades any placeholder sig/code slots to concrete values, and keeps the
+fresher payload (smaller `time_elapsed`) for size/life/mass. When no match
+is found, a new parallel edge is appended.
+
+If two reports match concretely on one side but disagree on the other,
+that's a scan error — fresher wins and a warning is logged.
+
+Dijkstra's relaxation step iterates parallel edges per neighbor (see
+`_pick_best_edge`) and chooses the cheapest traversable one, so a
+size/life/mass restriction on one parallel edge can route the user via
+another. `shortest_path` returns `(path_ids, path_edges)` so callers like
+`Navigation.route` can describe the specific edge that was used.
+
+The route-table `path_info` column surfaces the stored `sources` list as
+"Reported by: X, Y" so users can see which mappers contributed each hop.
+
+See `WHY-OWNED-SERVICE.md` for the design rationale on why we don't compute
+a "confidence" score and what would be possible server-side.
+
+### 4. Mapper Implementations
 
 Each mapper tool has its own implementation:
 
@@ -339,13 +369,10 @@ class TestMyMapper(unittest.TestCase):
 
 Potential improvements to the modular mapper system:
 
-1. **UI for managing multiple sources**: GUI for adding/removing/configuring mappers
-2. **Connection deduplication**: Detect and merge duplicate connections from different sources
-3. **Source prioritization**: Prefer data from certain sources when conflicts occur
-4. **Connection metadata**: Track which source provided each connection
-5. **Performance optimization**: Parallel fetching from multiple sources
-6. **Rate limiting**: Respect API rate limits for each source
-7. **Caching**: Cache mapper responses to reduce API calls
+1. **Source prioritization**: prefer data from certain sources when conflicts occur (currently "fresher wins"; an explicit priority order could override that).
+2. **Parallel fetching**: fetch from all mappers concurrently instead of sequentially.
+3. **Rate limiting**: respect API rate limits for each source.
+4. **Caching**: cache mapper responses to reduce API calls.
 
 ## Questions?
 

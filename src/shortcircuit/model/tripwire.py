@@ -415,6 +415,7 @@ class Tripwire(MapperSource):
         wh_mass,
         time_elapsed,
       ],
+      source_name=self.name,
     )
     return True
 
