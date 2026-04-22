@@ -31,23 +31,7 @@ HTML = '''
     <p>If you see this message then it means you should be logged in with ESI. You may close this window and return to the application.</p>
   </div>
 </div>
-<script type="text/javascript">
-function extractFromHash(name, hash) {
-  var match = hash.match(new RegExp(name + "=([^&]+)"));
-  return !!match && match[1];
-}
 
-var hash = window.location.hash;
-var token = extractFromHash("access_token", hash);
-
-if (token){
-  var redirect = window.location.origin.concat('/?', window.location.hash.substr(1));
-  window.location = redirect;
-}
-else {
-  console.log("do nothing");
-}
-</script>
 </body>
 </html>
 '''
