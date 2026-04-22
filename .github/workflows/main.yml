@@ -18,7 +18,7 @@ jobs:
       matrix:
         os: [windows-latest, macos-15-intel]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -27,13 +27,8 @@ jobs:
           architecture: x64
 
       - name: Download UPX [windows-latest]
-        uses: i3h/download-release-asset@v1
         if: ${{ matrix.os == 'windows-latest' }}
-        with:
-          owner: upx
-          repo: upx
-          tag: v4.2.1
-          file: upx-4.2.1-win64.zip
+        run: curl -L -o upx-4.2.1-win64.zip https://github.com/upx/upx/releases/download/v4.2.1/upx-4.2.1-win64.zip
 
       - name: Extract UPX [windows-latest]
         if: ${{ matrix.os == 'windows-latest' }}
