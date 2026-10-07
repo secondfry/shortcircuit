@@ -3,16 +3,23 @@
 ################################################################################
 ## Form generated from reading UI file 'gui_mappers.ui'
 ##
-## Created by: Qt User Interface Compiler version 5.15.2
+## Created by: Qt User Interface Compiler version 6.11.2
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 
-from PySide2.QtCore import *
-from PySide2.QtGui import *
-from PySide2.QtWidgets import *
-
-from  . import resources_rc
+from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
+    QMetaObject, QObject, QPoint, QRect,
+    QSize, QTime, QUrl, Qt)
+from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
+    QFont, QFontDatabase, QGradient, QIcon,
+    QImage, QKeySequence, QLinearGradient, QPainter,
+    QPalette, QPixmap, QRadialGradient, QTransform)
+from PySide6.QtWidgets import (QAbstractButton, QAbstractItemView, QApplication, QDialog,
+    QDialogButtonBox, QHBoxLayout, QHeaderView, QLabel,
+    QPushButton, QSizePolicy, QSpacerItem, QTableWidget,
+    QTableWidgetItem, QVBoxLayout, QWidget)
+from . import resources_rc
 
 class Ui_MappersDialog(object):
     def setupUi(self, MappersDialog):
@@ -21,11 +28,11 @@ class Ui_MappersDialog(object):
         MappersDialog.resize(560, 360)
         MappersDialog.setMinimumSize(QSize(560, 360))
         font = QFont()
-        font.setFamily(u"Segoe UI")
+        font.setFamilies([u"Segoe UI"])
         font.setPointSize(9)
         MappersDialog.setFont(font)
         icon = QIcon()
-        icon.addFile(u":/images/app_icon.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon.addFile(u":/images/app_icon.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
         MappersDialog.setWindowIcon(icon)
         self.verticalLayout = QVBoxLayout(MappersDialog)
         self.verticalLayout.setObjectName(u"verticalLayout")
@@ -61,7 +68,7 @@ class Ui_MappersDialog(object):
 
         self.horizontalLayout_buttons.addWidget(self.pushButton_remove)
 
-        self.horizontalSpacer = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.horizontalSpacer = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
         self.horizontalLayout_buttons.addItem(self.horizontalSpacer)
 
@@ -90,4 +97,3 @@ class Ui_MappersDialog(object):
         self.pushButton_edit.setText(QCoreApplication.translate("MappersDialog", u"Edit\u2026", None))
         self.pushButton_remove.setText(QCoreApplication.translate("MappersDialog", u"Remove", None))
     # retranslateUi
-

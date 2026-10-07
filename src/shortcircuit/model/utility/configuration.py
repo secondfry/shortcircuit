@@ -1,4 +1,4 @@
-from PySide2 import QtCore
+from PySide6 import QtCore
 
 from shortcircuit import __appname__
 from shortcircuit.model.utility.singleton import Singleton

@@ -16,15 +16,21 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [windows-latest, macos-15-intel]
+        include:
+          - os: windows-latest
+          - os: macos-15
+            arch: arm64
+          - os: macos-15-intel
+            arch: x86_64
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
         with:
-          python-version: "3.10"
-          architecture: x64
+          python-version: "3.13"
           cache: pipenv
 
       - name: Download UPX [windows-latest]
@@ -51,23 +57,19 @@ jobs:
         run: python -m pipenv run build_win_installer.bat
 
       - name: Upload a Build Artifact [windows-latest]
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: ${{ matrix.os == 'windows-latest' }}
         with:
           name: shortcircuit.exe
           path: ./dist/shortcircuit.exe
 
-      - name: Additional dependencies [macos-15-intel]
-        if: ${{ matrix.os == 'macos-15-intel' }}
-        run: python -m pipenv install macholib
+      - name: Build [macos]
+        if: ${{ startsWith(matrix.os, 'macos') }}
+        run: python -m pipenv run ./build_mac_installer.sh ${{ matrix.arch }}
 
-      - name: Build [macos-15-intel]
-        if: ${{ matrix.os == 'macos-15-intel' }}
-        run: python -m pipenv run ./build_mac_installer.sh
-
-      - name: Upload a Build Artifact [macos-15-intel]
-        uses: actions/upload-artifact@v4
-        if: ${{ matrix.os == 'macos-15-intel' }}
+      - name: Upload a Build Artifact [macos]
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: ${{ startsWith(matrix.os, 'macos') }}
         with:
-          name: shortcircuit.app.tar.gz
+          name: shortcircuit-${{ matrix.arch }}.app.tar.gz
           path: ./dist/shortcircuit.app.tar.gz

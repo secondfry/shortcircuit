@@ -4,7 +4,7 @@ import json
 from dataclasses import asdict, dataclass, field
 from typing import List, Optional
 
-from PySide2 import QtCore
+from PySide6 import QtCore
 
 from .logger import Logger
 

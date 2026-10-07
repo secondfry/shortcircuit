@@ -4,7 +4,7 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
-pyinstaller = "*"
+pyinstaller = ">=6.4"
 pylint = "*"
 yapf = "*"
 pytest = "*"
@@ -14,10 +14,9 @@ debugpy = "*"
 requests = {extras = ["socks"], version = "*"}
 semver = "*"
 python-dateutil = "*"
-pyside2 = "*"
+pyside6 = "*"
 typing-extensions = "*"
-importlib-resources = "*"
 appdirs = "*"
 
 [requires]
-python_version = "3.10"
+python_version = "3.13"

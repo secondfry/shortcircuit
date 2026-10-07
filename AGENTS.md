@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Short Circuit (formerly Pathfinder) is a PySide2 desktop application that finds the shortest path between Eve Online solar systems, including wormhole connections fetched from third-party mappers (Tripwire, Eve Scout). Python 3.10, packaged with PyInstaller.
+Short Circuit (formerly Pathfinder) is a PySide6 desktop application that finds the shortest path between Eve Online solar systems, including wormhole connections fetched from third-party mappers (Tripwire, Eve Scout). Python 3.13, packaged with PyInstaller.
 
 ## Common Commands
 
@@ -26,7 +26,7 @@ Regenerate Qt UI and resource modules after editing files under `resources/ui/` 
 ```bash
 ./generate_gui.sh      # or generate_gui.bat on Windows
 ```
-This runs `pyside2-uic` / `pyside2-rcc` and writes to `src/shortcircuit/view/gui_*.py` and `resources_rc.py`. Do not edit those generated files by hand — edit the `.ui` / `.qrc` source and regenerate.
+This runs `pyside6-uic` / `pyside6-rcc` and writes to `src/shortcircuit/view/gui_*.py` and `resources_rc.py`. Do not edit those generated files by hand — edit the `.ui` / `.qrc` source and regenerate.
 
 Run tests (pytest, collocated with source under `src/shortcircuit/model/test_*.py`):
 ```bash
@@ -73,7 +73,7 @@ Eve SDE CSVs (`mapSolarSystems.csv`, `mapSolarSystemJumps.csv`, `mapLocationWorm
 
 ## Conventions
 
-- Python 3.10, 2-space indentation (see existing files).
+- Python 3.13, 2-space indentation (see existing files).
 - Qt-generated files under `view/` are regenerated artifacts — never edit directly.
 - Tests live next to the code they test (`test_*.py` in `src/shortcircuit/model/`), not in a separate top-level tests directory.
 - Known follow-ups and intentionally deferred work are tracked in `TODO.md` (connection deduplication, multi-instance mapper UI, parallel fetching, caching). Prefer aligning with what's listed there over introducing a parallel plan.

@@ -5,7 +5,7 @@ import os
 import tempfile
 import unittest
 
-from PySide2 import QtCore
+from PySide6 import QtCore
 
 from shortcircuit.model.mapper_config import (
   SETTINGS_KEY,

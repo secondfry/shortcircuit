@@ -6,7 +6,7 @@ import sys
 from functools import partial
 from typing import Dict, List, Optional, TypedDict, Union
 
-from PySide2 import QtCore, QtGui, QtWidgets
+from PySide6 import QtCore, QtGui, QtWidgets
 
 from . import __appname__, __date__ as last_update, __version__
 from .model.esi_processor import ESIProcessor
@@ -106,10 +106,10 @@ class MappersDialog(QtWidgets.QDialog, Ui_MappersDialog):
       "Enabled", "Name", "Type", "URL",
     ])
     header = self.tableWidget_mappers.horizontalHeader()
-    header.setSectionResizeMode(self.COL_ENABLED, QtWidgets.QHeaderView.ResizeToContents)
-    header.setSectionResizeMode(self.COL_NAME, QtWidgets.QHeaderView.ResizeToContents)
-    header.setSectionResizeMode(self.COL_TYPE, QtWidgets.QHeaderView.ResizeToContents)
-    header.setSectionResizeMode(self.COL_URL, QtWidgets.QHeaderView.Stretch)
+    header.setSectionResizeMode(self.COL_ENABLED, QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
+    header.setSectionResizeMode(self.COL_NAME, QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
+    header.setSectionResizeMode(self.COL_TYPE, QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
+    header.setSectionResizeMode(self.COL_URL, QtWidgets.QHeaderView.ResizeMode.Stretch)
 
     self.pushButton_add.clicked.connect(self._on_add)
     self.pushButton_edit.clicked.connect(self._on_edit)
@@ -128,7 +128,7 @@ class MappersDialog(QtWidgets.QDialog, Ui_MappersDialog):
       container = QtWidgets.QWidget()
       layout = QtWidgets.QHBoxLayout(container)
       layout.setContentsMargins(0, 0, 0, 0)
-      layout.setAlignment(QtCore.Qt.AlignCenter)
+      layout.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
       checkbox = QtWidgets.QCheckBox()
       checkbox.setChecked(cfg.enabled)
       checkbox.toggled.connect(partial(self._set_enabled, row))
@@ -136,17 +136,17 @@ class MappersDialog(QtWidgets.QDialog, Ui_MappersDialog):
       self.tableWidget_mappers.setCellWidget(row, self.COL_ENABLED, container)
 
       name_item = QtWidgets.QTableWidgetItem(cfg.name)
-      name_item.setFlags(name_item.flags() & ~QtCore.Qt.ItemIsEditable)
+      name_item.setFlags(name_item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
       self.tableWidget_mappers.setItem(row, self.COL_NAME, name_item)
 
       type_item = QtWidgets.QTableWidgetItem(
         MAPPER_TYPE_LABELS.get(cfg.type, cfg.type)
       )
-      type_item.setFlags(type_item.flags() & ~QtCore.Qt.ItemIsEditable)
+      type_item.setFlags(type_item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
       self.tableWidget_mappers.setItem(row, self.COL_TYPE, type_item)
 
       url_item = QtWidgets.QTableWidgetItem(cfg.url)
-      url_item.setFlags(url_item.flags() & ~QtCore.Qt.ItemIsEditable)
+      url_item.setFlags(url_item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
       self.tableWidget_mappers.setItem(row, self.COL_URL, url_item)
 
   def _set_enabled(self, row: int, checked: bool):
@@ -226,7 +226,7 @@ class MappersDialog(QtWidgets.QDialog, Ui_MappersDialog):
       proxy=self.proxy,
       parent=self,
     )
-    if not dlg.exec_():
+    if not dlg.exec():
       return None
     self.proxy = dlg.lineEdit_proxy.text()
     return MapperConfig(
@@ -243,7 +243,7 @@ class MappersDialog(QtWidgets.QDialog, Ui_MappersDialog):
       self,
       "Eve Scout",
       "Name:",
-      QtWidgets.QLineEdit.Normal,
+      QtWidgets.QLineEdit.EchoMode.Normal,
       cfg.name,
     )
     if not ok:
@@ -318,8 +318,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     super().__init__(parent)
     self.setupUi(self)
     self.settings = QtCore.QSettings(
-      QtCore.QSettings.IniFormat,
-      QtCore.QSettings.UserScope,
+      QtCore.QSettings.Format.IniFormat,
+      QtCore.QSettings.Scope.UserScope,
       __appname__,
     )
 
@@ -341,7 +341,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
       "Additional information",
     ])
     header: QtWidgets.QHeaderView = self.tableWidget_path.horizontalHeader()
-    header.setSectionResizeMode(QtWidgets.QHeaderView.ResizeToContents)
+    header.setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
     self.tableWidget_path.horizontalHeader().setStretchLastSection(True)
 
     # Read stored settings
@@ -429,18 +429,20 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.lineEdit_set_dest,
     ]:
       completer = QtWidgets.QCompleter(system_list, self)
-      completer.setCaseSensitivity(QtCore.Qt.CaseInsensitive)
+      completer.setCaseSensitivity(QtCore.Qt.CaseSensitivity.CaseInsensitive)
       completer.setModelSorting(
-        QtWidgets.QCompleter.CaseInsensitivelySortedModel
+        QtWidgets.QCompleter.ModelSorting.CaseInsensitivelySortedModel
       )
       line_edit_field.setCompleter(completer)
 
     region_list = self.nav.eve_db.region_name_list()
     region_list.sort(key=str.lower)
     completer = QtWidgets.QCompleter(region_list, self)
-    completer.setCaseSensitivity(QtCore.Qt.CaseInsensitive)
-    completer.setModelSorting(QtWidgets.QCompleter.CaseInsensitivelySortedModel)
-    completer.setFilterMode(QtCore.Qt.MatchContains)
+    completer.setCaseSensitivity(QtCore.Qt.CaseSensitivity.CaseInsensitive)
+    completer.setModelSorting(
+      QtWidgets.QCompleter.ModelSorting.CaseInsensitivelySortedModel
+    )
+    completer.setFilterMode(QtCore.Qt.MatchFlag.MatchContains)
     self.lineEdit_region_avoid_name.setCompleter(completer)
 
     # Signals
@@ -601,7 +603,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     msg_box = QtWidgets.QMessageBox(self)
     msg_box.setWindowTitle(title)
     msg_box.setText(text)
-    return msg_box.exec_()
+    return msg_box.exec()
 
   @staticmethod
   def _label_message(label, message, message_type):
@@ -691,7 +693,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         item = QtWidgets.QTableWidgetItem(text)
 
         if col_id in ['class', 'security']:
-          item.setTextAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
+          item.setTextAlignment(
+            QtCore.Qt.AlignmentFlag.AlignHCenter
+            | QtCore.Qt.AlignmentFlag.AlignVCenter
+          )
 
         if col_id == 'path_action' and 'wormhole' in text:
           item.setIcon(self.icon_wormhole)
@@ -835,7 +840,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
   @staticmethod
   def banner_click(event):
     event.accept()
-    AboutDialog().exec_()
+    AboutDialog().exec()
 
   def short_format_click(self, event):
     event.accept()
@@ -1002,7 +1007,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
   @QtCore.Slot()
   def btn_trip_config_clicked(self):
     dialog = MappersDialog(self.mapper_configs, self.global_proxy, parent=self)
-    if not dialog.exec_():
+    if not dialog.exec():
       return
 
     self.mapper_configs = dialog.configs
@@ -1052,12 +1057,13 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     msg_box.setWindowTitle("Reset chain")
     msg_box.setText("Are you sure you want to clear all mapper data?")
     msg_box.setStandardButtons(
-      QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No
+      QtWidgets.QMessageBox.StandardButton.Yes
+      | QtWidgets.QMessageBox.StandardButton.No
     )
-    msg_box.setDefaultButton(QtWidgets.QMessageBox.No)
-    ret = msg_box.exec_()
+    msg_box.setDefaultButton(QtWidgets.QMessageBox.StandardButton.No)
+    ret = msg_box.exec()
 
-    if ret == QtWidgets.QMessageBox.Yes:
+    if ret == QtWidgets.QMessageBox.StandardButton.Yes:
       self.nav.reset_chain()
       for name in self.mapper_states:
         self.mapper_states[name] = StateMapper({"connections": 0, "error": None})
@@ -1131,11 +1137,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         changelog,
       )
     )
-    version_box.addButton('Download now', QtWidgets.QMessageBox.AcceptRole)
-    version_box.addButton('Remind me later', QtWidgets.QMessageBox.RejectRole)
-    ret = version_box.exec_()
+    version_box.addButton('Download now', QtWidgets.QMessageBox.ButtonRole.AcceptRole)
+    version_box.addButton('Remind me later', QtWidgets.QMessageBox.ButtonRole.RejectRole)
+    ret = version_box.exec()
 
-    if ret != QtWidgets.QMessageBox.AcceptRole:
+    if ret != QtWidgets.QMessageBox.ButtonRole.AcceptRole:
       return
 
     QtGui.QDesktopServices.openUrl(
@@ -1156,7 +1162,7 @@ def run():
   appl = QtWidgets.QApplication(sys.argv)
   form = MainWindow()
   form.show()
-  appl.exec_()
+  appl.exec()
 
 
 if __name__ == "__main__":
