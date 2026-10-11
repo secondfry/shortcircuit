@@ -4,7 +4,6 @@ import csv
 from enum import Enum
 from os import path
 from typing import Dict, List, Optional, TypedDict, Union
-from typing_extensions import deprecated
 
 from .logger import Logger
 from .utility.singleton import Singleton
@@ -493,15 +492,18 @@ class EveDb(metaclass=Singleton):
       sys_class = db_class
     return sys_class
 
-  @deprecated('FIXME(secondfry): this seems to be broken')
   def system_type(self, system_id: int) -> SpaceType:
+    """Security band used to weigh a gate jump into `system_id`.
+
+    Gates only lead to known space, Pochven (▲) and Zarzakh (Z). The last two
+    are -1.0 security with no CONCORD, so they weigh as null-sec. Wormhole
+    jumps are weighed as SpaceType.WH by SolarMap without asking this.
+    """
     db_class = self.system_desc[system_id]['class']
 
     return {
       'HS': SpaceType.HS,
       'LS': SpaceType.LS,
-      'NS': SpaceType.NS,
-      'WH': SpaceType.WH,
     }.get(db_class, SpaceType.NS)
 
   def get_whsize_by_system(self, source_id: int, dest_id: int) -> WormholeSize:
