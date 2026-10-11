@@ -32,7 +32,7 @@ Binaries (executables) can be downloaded from [here](https://github.com/secondfr
 
 | Platform | Requirement | Download |
 | --- | --- | --- |
-| Windows | Windows 10 or newer, 64-bit | a single `shortcircuit.exe` |
+| Windows | Windows 10 version 1809 or newer, 64-bit | a single `shortcircuit.exe` |
 | macOS | macOS 12 Monterey or newer, Apple Silicon or Intel | `shortcircuit.app` (one universal build), packed as `.tar.gz` |
 
 Neither binary is signed with a publisher certificate. On Windows, SmartScreen may warn on first launch; choose "More info" → "Run anyway".
