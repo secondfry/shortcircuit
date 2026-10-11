@@ -22,13 +22,25 @@ $ cd src
 $ python main.py
 ```
 
-Some users reported having troubles when installing PySide on Linux/Mac. Try using your built-in package manager. Example for *debian-based* systems:
+`pipenv install` pulls PySide6 from PyPI on every platform, so there's no system Qt package to install. On Linux, Qt's X11 platform plugin also needs `libxcb-cursor0` (Debian/Ubuntu package name), which some desktop installs lack:
 ```bash
-$ sudo apt-get install python-pyside
+$ sudo apt-get install libxcb-cursor0
 ```
 
 ## Releases
-Binaries (executables) can be downloaded from [here](https://github.com/secondfry/shortcircuit/releases).
+Binaries (executables) can be downloaded from [here](https://github.com/secondfry/shortcircuit/releases). Linux has no prebuilt binary; run it from source as shown above.
+
+| Platform | Requirement | Download |
+| --- | --- | --- |
+| Windows | Windows 10 or newer, 64-bit | a single `shortcircuit.exe` |
+| macOS | macOS 12 Monterey or newer, Apple Silicon or Intel | `shortcircuit.app` (one universal build), packed as `.tar.gz` |
+
+Neither binary is signed with a publisher certificate. On Windows, SmartScreen may warn on first launch; choose "More info" → "Run anyway".
+
+The macOS app is not notarized either, so Gatekeeper blocks the first launch. Open it once, then allow it under System Settings → Privacy & Security → "Open Anyway". Alternatively, clear the quarantine flag after unpacking:
+```bash
+$ xattr -dr com.apple.quarantine shortcircuit.app
+```
 
 ## SDE update
 In case of SDE update, get new `mapLocationWormholeClasses.csv`,
