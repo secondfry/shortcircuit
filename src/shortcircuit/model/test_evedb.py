@@ -28,16 +28,28 @@ def test_system_type_known_space():
   assert eve_db.system_type(eve_db.name2id("1DQ1-A")) == SpaceType.NS
 
 
-def test_system_type_pochven_and_zarzakh_weigh_as_nullsec():
+def test_system_type_pochven_and_zarzakh_are_nullsec():
   eve_db = EveDb()
   assert eve_db.system_type(eve_db.name2id("Kino")) == SpaceType.NS
   assert eve_db.system_type(eve_db.name2id("Zarzakh")) == SpaceType.NS
 
 
-def test_gates_only_lead_to_classes_system_type_expects():
-  # system_type() lumps every class it doesn't name in with null-sec. If an
-  # SDE update adds gates into some new kind of space, decide its weight
-  # there instead of letting it silently count as null-sec.
+def test_system_type_wormhole_space():
   eve_db = EveDb()
-  classes = {eve_db.system_desc[dest]['class'] for _, dest in eve_db.gates}
-  assert classes == {'HS', 'LS', 'NS', '▲', 'Z'}
+  assert eve_db.system_type(eve_db.name2id("Thera")) == SpaceType.WH
+  assert eve_db.system_type(eve_db.name2id("J055520 [Sentinel]")) == SpaceType.WH
+  anoikis = [
+    sid for sid, desc in eve_db.system_desc.items()
+    if desc['class'].startswith('C')
+  ]
+  assert anoikis
+  assert all(eve_db.system_type(sid) == SpaceType.WH for sid in anoikis)
+
+
+def test_system_type_every_gate_destination_has_one():
+  # SolarMap asks for the space type of every system a gate leads to, and
+  # system_type() raises for classes it has no answer for. If an SDE update
+  # adds gates into some new kind of space, this fails before routing does.
+  eve_db = EveDb()
+  for _, dest in eve_db.gates:
+    eve_db.system_type(dest)
