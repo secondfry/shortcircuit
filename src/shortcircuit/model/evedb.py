@@ -501,18 +501,20 @@ class EveDb(metaclass=Singleton):
     """
     db_class = self.system_desc[system_id]['class']
 
-    if db_class == 'HS':
-      return SpaceType.HS
-    if db_class == 'LS':
-      return SpaceType.LS
-    if db_class in ('NS', '▲', 'Z'):
-      return SpaceType.NS
-    if db_class.startswith('C'):
-      return SpaceType.WH
-    # Abyssal, void and other instanced regions are unreachable on the map.
-    raise ValueError(
-      'system {} of class {!r} has no space type'.format(system_id, db_class)
-    )
+    match db_class:
+      case 'HS':
+        return SpaceType.HS
+      case 'LS':
+        return SpaceType.LS
+      case 'NS' | '▲' | 'Z':
+        return SpaceType.NS
+      case _ if db_class.startswith('C'):
+        return SpaceType.WH
+      case _:
+        # Abyssal, void and other instanced regions are unreachable on the map.
+        raise ValueError(
+          'system {} of class {!r} has no space type'.format(system_id, db_class)
+        )
 
   def get_whsize_by_system(self, source_id: int, dest_id: int) -> WormholeSize:
     source_class = self.get_class(source_id)
