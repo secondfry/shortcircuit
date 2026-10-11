@@ -33,7 +33,7 @@ Binaries (executables) can be downloaded from [here](https://github.com/secondfr
 ## SDE update
 In case of SDE update, get new `mapLocationWormholeClasses.csv`,
 `mapSolarSystemJumps.csv`, `mapSolarSystems.csv` from
-https://www.fuzzwork.co.uk/dump/latest/ and overwrite ones in `src/database`.
+https://www.fuzzwork.co.uk/dump/latest/ and overwrite ones in `src/database`.  
 Thank you, @fuzzysteve (Steve Ronuken).
 
 ## About ESI
