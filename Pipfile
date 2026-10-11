@@ -14,7 +14,10 @@ debugpy = "*"
 requests = {extras = ["socks"], version = "*"}
 semver = "*"
 python-dateutil = "*"
-pyside6 = "*"
+# PySide6's universal2 wheel sets the app's minimum macOS. 6.9.x is the last
+# series built for macOS 12 Monterey, which is EVE Online's own minimum;
+# 6.10 raises it to 13 and 6.12 to 14. 6.8.0.2 is the first to support 3.13.
+pyside6 = ">=6.8.0.2,<6.10"
 typing-extensions = "*"
 appdirs = "*"
 
