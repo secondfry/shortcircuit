@@ -11,8 +11,13 @@
 # below roughly halves the bundle.
 
 import argparse
+import os
 import re
 import sys
+
+# The package's __init__ only defines metadata, so importing it is cheap.
+sys.path.insert(0, os.path.join(SPECPATH, 'src'))
+from shortcircuit import __version__
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--target-arch', default=None)
@@ -97,6 +102,7 @@ if sys.platform == 'darwin':
     name='shortcircuit.app',
     icon='resources/images/app_icon.icns',
     bundle_identifier='ru.secondfry.shortcircuit',
+    version=__version__,
   )
 else:
   exe = EXE(
