@@ -38,7 +38,7 @@ pipenv run pytest src/shortcircuit/model/test_tripwire.py::TestX   # single test
 Build standalone binaries:
 ```bash
 ./build_win_installer.bat   # Windows, PyInstaller --onefile
-./build_mac_installer.sh    # macOS
+./build_mac_installer.sh    # macOS; both read shortcircuit.spec, which prunes unused Qt pieces
 ```
 
 ## Architecture
