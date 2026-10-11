@@ -1,6 +1,6 @@
 # evescout.py
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Dict, Optional
 
 import requests
@@ -79,8 +79,8 @@ class EveScout(MapperSource):
       # Compute time elapsed from this moment to when the signature was updated
       last_modified = datetime.strptime(
         connection['updated_at'], "%Y-%m-%dT%H:%M:%S.000Z"
-      )
-      delta = datetime.utcnow() - last_modified
+      ).replace(tzinfo=UTC)
+      delta = datetime.now(UTC) - last_modified
       time_elapsed = round(delta.total_seconds() / 3600.0, 1)
 
       if source != 0 and dest != 0:

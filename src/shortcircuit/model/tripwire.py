@@ -1,7 +1,7 @@
 # tripwire.py
 
 import json
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Dict, List, Literal, Optional, TypedDict, Union
 
 import requests
@@ -396,8 +396,8 @@ class Tripwire(MapperSource):
     # Compute time elapsed from this moment to when the signature was updated
     last_modified = datetime.strptime(
       signature_in['modifiedTime'], "%Y-%m-%d %H:%M:%S"
-    )
-    delta = datetime.utcnow() - last_modified
+    ).replace(tzinfo=UTC)
+    delta = datetime.now(UTC) - last_modified
     time_elapsed = round(delta.total_seconds() / 3600.0, 1)
 
     # Add wormhole connection to solar system
