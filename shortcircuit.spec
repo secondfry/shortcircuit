@@ -19,6 +19,11 @@ import sys
 sys.path.insert(0, os.path.join(SPECPATH, 'src'))
 from shortcircuit import __version__
 
+# Apple wants CFBundleShortVersionString to be exactly three integers, so a
+# release candidate such as 1.4.0-rc.1 is stamped as plain 1.4.0. The window
+# title still shows the full version.
+bundle_version = re.match(r'\d+\.\d+\.\d+', __version__).group()
+
 parser = argparse.ArgumentParser()
 parser.add_argument('--target-arch', default=None)
 target_arch = parser.parse_args().target_arch
@@ -102,7 +107,7 @@ if sys.platform == 'darwin':
     name='shortcircuit.app',
     icon='resources/images/app_icon.icns',
     bundle_identifier='ru.secondfry.shortcircuit',
-    version=__version__,
+    version=bundle_version,
   )
 else:
   exe = EXE(
