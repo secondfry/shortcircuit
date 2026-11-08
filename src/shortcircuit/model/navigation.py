@@ -5,10 +5,11 @@ from typing import TYPE_CHECKING, Callable, Dict, List
 from .evedb import EveDb, SystemDescription, WormholeMassspan, WormholeSize, WormholeTimespan
 from .evescout import EveScout
 from .mapper_base import MapperSource
-from .mapper_config import TYPE_EVESCOUT, TYPE_TRIPWIRE, MapperConfig
+from .mapper_config import TYPE_EVESCOUT, TYPE_TRIPWIRE, TYPE_WANDERER, MapperConfig
 from .mapper_registry import MapperRegistry
 from .solarmap import ConnectionType, SolarMap
 from .tripwire import Tripwire
+from .wanderer import Wanderer
 
 if TYPE_CHECKING:
   from shortcircuit.app import MainWindow
@@ -30,9 +31,21 @@ def _build_evescout(cfg: MapperConfig) -> MapperSource:
   return EveScout(name=cfg.name)
 
 
+def _build_wanderer(cfg: MapperConfig) -> MapperSource:
+  # Wanderer keeps its map slug in the `user` slot and the API bearer token
+  # in the `password` slot; see the MapperConfig docstring.
+  return Wanderer(
+    url=cfg.url,
+    map_slug=cfg.user,
+    token=cfg.password,
+    name=cfg.name,
+  )
+
+
 MAPPER_BUILDERS: Dict[str, Callable[[MapperConfig], MapperSource]] = {
   TYPE_TRIPWIRE: _build_tripwire,
   TYPE_EVESCOUT: _build_evescout,
+  TYPE_WANDERER: _build_wanderer,
 }
 
 
