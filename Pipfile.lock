@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "033b8d5d2d6197253c00bfe8d3f9f97319375aa5751096be5e7d1f563de6fc0f"
+            "sha256": "3587d2e7976a3a10e283dd93e6538e5ee94200b0c6857f2e52cc3b48bdf278ac"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -217,6 +217,47 @@
             ],
             "markers": "python_version >= '3.9'",
             "version": "==3.20"
+        },
+        "jaraco.classes": {
+            "hashes": [
+                "sha256:47a024b51d0239c0dd8c8540c6c7f484be3b8fcf0b2d85c13825780d3b3f3acd",
+                "sha256:f662826b6bed8cace05e7ff873ce0f9283b5c924470fe664fff1c2f00f581790"
+            ],
+            "markers": "python_version >= '3.8'",
+            "version": "==3.4.0"
+        },
+        "jaraco.context": {
+            "hashes": [
+                "sha256:bf8150b79a2d5d91ae48629d8b427a8f7ba0e1097dd6202a9059f29a36379535",
+                "sha256:f1a6c9d391e661cc5b8d39861ff077a7dc24dc23833ccee564b234b81c82dfe3"
+            ],
+            "markers": "python_version >= '3.10'",
+            "version": "==6.1.2"
+        },
+        "jaraco.functools": {
+            "hashes": [
+                "sha256:880c577ec9720b3a052d5bc611fb9f2269b3d87902ef42440df443b88e443280",
+                "sha256:99e3dc0060c5cbe8fcd1cdb36258e2a65ca40f1566b2033b12abb1bb44dd3c30"
+            ],
+            "markers": "python_version >= '3.10'",
+            "version": "==4.6.0"
+        },
+        "keyring": {
+            "hashes": [
+                "sha256:be4a0b195f149690c166e850609a477c532ddbfbaed96a404d4e43f8d5e2689f",
+                "sha256:fe01bd85eb3f8fb3dd0405defdeac9a5b4f6f0439edbb3149577f244a2e8245b"
+            ],
+            "index": "pypi",
+            "markers": "python_version >= '3.9'",
+            "version": "==25.7.0"
+        },
+        "more-itertools": {
+            "hashes": [
+                "sha256:35a7377edd1dd6608dcb2cdf534ded55ea32d49448875ad042cd3f879fb1ded0",
+                "sha256:cbf08fd0af284dc69718b9b76a8e6203df624d70209ea511e4219d350c856f63"
+            ],
+            "markers": "python_version >= '3.11'",
+            "version": "==11.2.1"
         },
         "pyside6": {
             "hashes": [
