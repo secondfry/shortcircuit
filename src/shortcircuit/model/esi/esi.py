@@ -16,6 +16,64 @@ from shortcircuit import USER_AGENT
 
 from .server import AuthHandler, StoppableHTTPServer
 
+# CCP recommends discovering SSO endpoints from the OAuth metadata document
+# rather than hardcoding them. When they retire or move a route (as with the
+# 24 March 2026 spring cleaning that removed /verify and the implicit flow) a
+# deployed client that follows the metadata keeps working without a rebuild.
+# The hardcoded ESI.ENDPOINT_EVE_* values below are only used if the metadata
+# fetch fails.
+# https://developers.eveonline.com/docs/services/sso/
+ENDPOINT_EVE_METADATA = 'https://login.eveonline.com/.well-known/oauth-authorization-server'
+_METADATA_CACHE_TTL_SECONDS = 3600
+
+_metadata_cache_lock = threading.Lock()
+_metadata_cache = {'fetched_at': 0.0, 'endpoints': None}
+
+
+def discover_sso_endpoints(force_refresh=False):
+  """
+  Fetch and cache the EVE SSO OAuth metadata document.
+
+  Returns a dict with at least ``authorization_endpoint`` and
+  ``token_endpoint``. On network failure, returns the hardcoded fallback
+  values so login still works (at least until CCP retires those routes).
+  The cache is per-process, in-memory, and refreshes hourly.
+  """
+  now = time.monotonic()
+  with _metadata_cache_lock:
+    cached = _metadata_cache['endpoints']
+    if (
+      not force_refresh and cached is not None
+      and now - _metadata_cache['fetched_at'] < _METADATA_CACHE_TTL_SECONDS
+    ):
+      return cached
+
+  try:
+    r = requests.get(
+      ENDPOINT_EVE_METADATA,
+      headers={'User-Agent': USER_AGENT},
+      timeout=10.0,
+    )
+    r.raise_for_status()
+    data = r.json()
+    endpoints = {
+      'authorization_endpoint': data['authorization_endpoint'],
+      'token_endpoint': data['token_endpoint'],
+    }
+  except (requests.RequestException, KeyError, ValueError) as e:
+    Logger.warning(
+      'SSO metadata discovery failed ({}); falling back to hardcoded endpoints'.format(e)
+    )
+    endpoints = {
+      'authorization_endpoint': ESI.ENDPOINT_EVE_AUTH,
+      'token_endpoint': ESI.ENDPOINT_EVE_TOKEN,
+    }
+
+  with _metadata_cache_lock:
+    _metadata_cache['fetched_at'] = now
+    _metadata_cache['endpoints'] = endpoints
+  return endpoints
+
 
 class ESI:
 
@@ -110,7 +168,8 @@ class ESI:
       'code_challenge': code_challenge,
       'code_challenge_method': 'S256',
     }
-    endpoint_auth = ESI.ENDPOINT_EVE_AUTH + '?' + urllib.parse.urlencode(params)
+    endpoints = discover_sso_endpoints()
+    endpoint_auth = endpoints['authorization_endpoint'] + '?' + urllib.parse.urlencode(params)
     return webbrowser.open(endpoint_auth)
 
   def timeout_server(self):
@@ -135,8 +194,11 @@ class ESI:
       return
 
     code = message['code'][0]
+    # Reuse the metadata cache warmed by start_server() so we post to the
+    # same token endpoint CCP currently advertises.
+    endpoints = discover_sso_endpoints()
     r = requests.post(
-      ESI.ENDPOINT_EVE_TOKEN,
+      endpoints['token_endpoint'],
       data={
         'grant_type': 'authorization_code',
         'code': code,
@@ -184,8 +246,9 @@ class ESI:
       self._logout()
       return
 
+    endpoints = discover_sso_endpoints()
     r = requests.post(
-      ESI.ENDPOINT_EVE_TOKEN,
+      endpoints['token_endpoint'],
       data={
         'grant_type': 'refresh_token',
         'refresh_token': self.refresh_token,
