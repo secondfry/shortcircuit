@@ -11,10 +11,19 @@ import uuid
 import webbrowser
 
 import requests
+from appdirs import AppDirs
+
 from shortcircuit.model.logger import Logger
-from shortcircuit import USER_AGENT
+from shortcircuit import USER_AGENT, __appslug__
 
 from .server import AuthHandler, StoppableHTTPServer
+
+try:
+  import keyring
+  import keyring.errors as keyring_errors
+except Exception:  # pragma: no cover - keyring is an optional backend
+  keyring = None
+  keyring_errors = None
 
 # CCP recommends discovering SSO endpoints from the OAuth metadata document
 # rather than hardcoding them. When they retire or move a route (as with the
@@ -89,6 +98,17 @@ class ESI:
     'esi-location.read_location.v1',
     'esi-ui.write_waypoint.v1',
   ]
+
+  # Keyring service name for the persisted refresh token. Username is the
+  # EVE character_id as a string, so a future multi-character feature can
+  # store one entry per character without changing the schema.
+  KEYRING_SERVICE = 'shortcircuit-esi'
+  # Filename under appdirs.user_data_dir holding the most-recently-used
+  # character_id. The id itself is public (it appears in killboards, zKill,
+  # ESI URLs); the secret is the refresh token, which lives in the keyring.
+  # Deliberately NOT version-scoped like the log dir: the persisted session
+  # should survive app upgrades.
+  CHAR_ID_META_FILENAME = 'esi_char_id'
 
   def __init__(self, login_callback, logout_callback):
     self.login_callback = login_callback
@@ -226,6 +246,9 @@ class ESI:
       sub = claims.get('sub', '')
       self.char_id = int(sub.split(':')[-1]) if sub.startswith('CHARACTER:EVE:') else None
       self.char_name = claims.get('name')
+      if self.char_id is not None and self.refresh_token:
+        ESI._store_refresh_token(self.char_id, self.refresh_token)
+        ESI._save_persisted_char_id(self.char_id)
       self.login_callback(True, self.char_name)
     else:
       self._clear_tokens()
@@ -242,32 +265,176 @@ class ESI:
     self.sso_timer.start()
 
   def _refresh_access_token(self):
+    """
+    Exchange the stored refresh token for a fresh access token. Called at
+    startup via try_silent_login() and from the background sso_timer before
+    the current access token expires.
+
+    CCP rotates the refresh token on every successful refresh, so the
+    response carries a NEW refresh_token superseding the old one. Persisting
+    the rotated value is mandatory — re-using the old token a second time
+    fails with invalid_grant.
+
+    Returns True iff the refresh succeeded and self.token is now valid; on
+    failure _logout() has already run, which also purges the persisted
+    session so a dead token is not retried on every startup.
+    """
     if not self.refresh_token:
       self._logout()
-      return
+      return False
 
     endpoints = discover_sso_endpoints()
-    r = requests.post(
-      endpoints['token_endpoint'],
-      data={
-        'grant_type': 'refresh_token',
-        'refresh_token': self.refresh_token,
-        'client_id': ESI.CLIENT_ID,
-        'code_verifier': self._code_verifier,
-      },
-      headers={'User-Agent': USER_AGENT},
-    )
+    try:
+      r = requests.post(
+        endpoints['token_endpoint'],
+        data={
+          'grant_type': 'refresh_token',
+          'refresh_token': self.refresh_token,
+          'client_id': ESI.CLIENT_ID,
+          'code_verifier': self._code_verifier,
+        },
+        headers={'User-Agent': USER_AGENT},
+      )
+    except requests.RequestException as e:
+      # A network blip, not necessarily a dead token. Log out so the user
+      # sees an honest disconnected state; they can click Login to retry.
+      # Without this, an offline refresh kills the timer thread and leaves
+      # the UI claiming to be connected with an expired token.
+      Logger.warning('Token refresh request failed: {}'.format(e))
+      self._logout()
+      return False
 
-    if r.status_code == requests.codes.ok:
-      token_data = r.json()
-      self.token = token_data['access_token']
-      self.refresh_token = token_data.get('refresh_token', self.refresh_token)
-      expires_in = token_data.get('expires_in', 1200)
-      self._schedule_refresh(expires_in)
-      Logger.debug('ESI token refreshed for {}'.format(self.char_name))
-    else:
+    if r.status_code != requests.codes.ok:
       Logger.warning('Token refresh failed: {} {}'.format(r.status_code, r.text))
       self._logout()
+      return False
+
+    token_data = r.json()
+    self.token = token_data['access_token']
+    self.refresh_token = token_data.get('refresh_token', self.refresh_token)
+    expires_in = token_data.get('expires_in', 1200)
+    self._schedule_refresh(expires_in)
+
+    if self.char_id is None or self.char_name is None:
+      # Silent-login path: character identity comes from the fresh JWT.
+      claims = self._decode_jwt(self.token)
+      if not claims:
+        self._logout()
+        return False
+      sub = claims.get('sub', '')
+      self.char_id = int(sub.split(':')[-1]) if sub.startswith('CHARACTER:EVE:') else None
+      self.char_name = claims.get('name')
+
+    if self.char_id is not None and self.refresh_token:
+      ESI._store_refresh_token(self.char_id, self.refresh_token)
+      ESI._save_persisted_char_id(self.char_id)
+
+    Logger.debug('ESI token refreshed for {}'.format(self.char_name))
+    return True
+
+  def try_silent_login(self):
+    """
+    Resume a previous session using a persisted refresh token, with no
+    browser interaction. Intended to be called once at app startup. Fires
+    login_callback on success so the UI can flip to its logged-in state.
+    Returns True iff a session was resumed.
+    """
+    char_id = ESI._load_persisted_char_id()
+    if char_id is None:
+      return False
+    refresh_token = ESI._load_refresh_token(char_id)
+    if not refresh_token:
+      # Stale meta file pointing at a character with no keyring entry —
+      # clean it up so we don't keep checking on every startup.
+      ESI._clear_persisted_char_id()
+      return False
+
+    self.refresh_token = refresh_token
+    self.char_id = char_id
+
+    if not self._refresh_access_token():
+      return False
+
+    self.login_callback(True, self.char_name)
+    return True
+
+  # The refresh token is functionally equivalent to a password — anyone
+  # holding it can act as the user against ESI within the granted scopes
+  # until it is revoked. It is therefore stored in the OS keychain (Keychain
+  # on macOS, Credential Manager on Windows, Secret Service on Linux) via
+  # the keyring library, never in a plaintext file. If no keyring backend is
+  # available (eg. a headless Linux session without Secret Service) we
+  # silently degrade to the old behaviour: the user re-auths each session,
+  # but the secret is never written to disk in the clear.
+
+  @staticmethod
+  def _char_id_meta_path():
+    app_dirs = AppDirs(__appslug__, 'secondfry')
+    os.makedirs(app_dirs.user_data_dir, exist_ok=True)
+    return os.path.join(app_dirs.user_data_dir, ESI.CHAR_ID_META_FILENAME)
+
+  @staticmethod
+  def _load_persisted_char_id():
+    try:
+      with open(ESI._char_id_meta_path(), 'r') as f:
+        return int(f.read().strip())
+    except (FileNotFoundError, ValueError, OSError):
+      return None
+
+  @staticmethod
+  def _save_persisted_char_id(char_id):
+    try:
+      with open(ESI._char_id_meta_path(), 'w') as f:
+        f.write(str(char_id))
+    except OSError as e:
+      Logger.warning('Failed to persist char_id: {}'.format(e))
+
+  @staticmethod
+  def _clear_persisted_char_id():
+    try:
+      os.remove(ESI._char_id_meta_path())
+    except FileNotFoundError:
+      pass
+    except OSError as e:
+      Logger.warning('Failed to clear persisted char_id: {}'.format(e))
+
+  @staticmethod
+  def _store_refresh_token(char_id, refresh_token):
+    if keyring is None:
+      Logger.warning(
+        'keyring unavailable; skipping refresh-token persistence '
+        '(user will need to re-auth next session)'
+      )
+      return False
+    try:
+      keyring.set_password(ESI.KEYRING_SERVICE, str(char_id), refresh_token)
+      return True
+    except Exception as e:
+      Logger.warning('Could not store refresh token in keyring: {}'.format(e))
+      return False
+
+  @staticmethod
+  def _load_refresh_token(char_id):
+    if keyring is None:
+      return None
+    try:
+      return keyring.get_password(ESI.KEYRING_SERVICE, str(char_id))
+    except Exception as e:
+      Logger.warning('Could not load refresh token from keyring: {}'.format(e))
+      return None
+
+  @staticmethod
+  def _delete_refresh_token(char_id):
+    if keyring is None:
+      return
+    try:
+      keyring.delete_password(ESI.KEYRING_SERVICE, str(char_id))
+    except Exception as e:
+      # PasswordDeleteError when the entry doesn't exist is benign; other
+      # errors are just logged — there is nothing the user can do.
+      if keyring_errors and isinstance(e, keyring_errors.PasswordDeleteError):
+        return
+      Logger.warning('Could not delete refresh token from keyring: {}'.format(e))
 
   def _clear_tokens(self):
     self.token = None
@@ -323,6 +490,12 @@ class ESI:
     self._logout()
 
   def _logout(self):
+    # Purge persisted credentials so a restart doesn't silently resume a
+    # session the user (or the server) just ended. Both operations are
+    # no-ops when the entries don't exist.
+    if self.char_id is not None:
+      ESI._delete_refresh_token(self.char_id)
+    ESI._clear_persisted_char_id()
     self._clear_tokens()
     self._code_verifier = None
     self.logout_callback()

@@ -395,6 +395,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     self.esip.logout_response.connect(self.logout_handler)
     self.esip.location_response.connect(self.location_handler)
     self.esip.destination_response.connect(self.destination_handler)
+    # Resume the previous EVE session from the persisted refresh token, if
+    # any; fires login_response exactly like an interactive login.
+    self.esip.try_silent_login()
 
     # Start version check
     self.version_thread.start()
