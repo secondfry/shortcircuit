@@ -47,6 +47,21 @@ class MapperConfig:
     )
 
 
+def is_configured(cfg: MapperConfig) -> bool:
+  """
+  Whether a config has what its mapper needs to fetch, decided from the
+  config alone. Building a source to call its validate_config() is not an
+  option: Tripwire logs in from its constructor, so asking would send the
+  very request this check exists to prevent. Mirrors each mapper's own
+  validate_config(); Eve Scout falls back to its public URL.
+  """
+  if cfg.type == TYPE_TRIPWIRE:
+    return bool(cfg.url and cfg.user and cfg.password)
+  if cfg.type == TYPE_EVESCOUT:
+    return True
+  return False
+
+
 def load_configs(settings: QtCore.QSettings) -> List[MapperConfig]:
   raw = settings.value(SETTINGS_KEY)
   if not raw:

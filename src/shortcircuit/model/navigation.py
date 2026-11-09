@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Callable, Dict, List
 from .evedb import EveDb, SystemDescription, WormholeMassspan, WormholeSize, WormholeTimespan
 from .evescout import EveScout
 from .mapper_base import MapperSource
-from .mapper_config import TYPE_EVESCOUT, TYPE_TRIPWIRE, MapperConfig
+from .mapper_config import TYPE_EVESCOUT, TYPE_TRIPWIRE, MapperConfig, is_configured
 from .mapper_registry import MapperRegistry
 from .solarmap import ConnectionType, SolarMap
 from .tripwire import Tripwire
@@ -61,7 +61,8 @@ class Navigation:
     """
     Rebuild the registry from app_obj.mapper_configs.
 
-    Disabled configs and unknown types are skipped (unknown types are
+    Disabled configs, unknown types and configs missing what their
+    mapper needs (see is_configured) are skipped (unknown types are
     logged but non-fatal, so a settings file from a newer version won't
     crash an older binary). Instantiation errors on one config don't
     prevent the rest from being registered.
@@ -77,6 +78,10 @@ class Navigation:
       builder = MAPPER_BUILDERS.get(cfg.type)
       if builder is None:
         Logger.warning(f"Unknown mapper type '{cfg.type}' for '{cfg.name}', skipping")
+        continue
+      if not is_configured(cfg):
+        # Never build it: building a Tripwire source is its login request.
+        Logger.info(f"Mapper '{cfg.name}' is not set up yet, skipping")
         continue
       try:
         source = builder(cfg)

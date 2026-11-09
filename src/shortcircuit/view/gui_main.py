@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'gui_main.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.11.2
+## Created by: Qt User Interface Compiler version 6.9.3
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -85,6 +85,11 @@ class Ui_MainWindow(object):
         self.pushButton_player_location.setIcon(icon1)
 
         self.gridLayout.addWidget(self.pushButton_player_location, 1, 2, 1, 1)
+
+        self.pushButton_swap = QPushButton(self.groupBox)
+        self.pushButton_swap.setObjectName(u"pushButton_swap")
+
+        self.gridLayout.addWidget(self.pushButton_swap, 2, 2, 1, 1)
 
         self.pushButton_find_path = QPushButton(self.groupBox)
         self.pushButton_find_path.setObjectName(u"pushButton_find_path")
@@ -497,6 +502,10 @@ class Ui_MainWindow(object):
         self.lineEdit_destination.setPlaceholderText("")
         self.label_source.setText(QCoreApplication.translate("MainWindow", u"Source:", None))
         self.pushButton_player_location.setText(QCoreApplication.translate("MainWindow", u"Player location", None))
+#if QT_CONFIG(tooltip)
+        self.pushButton_swap.setToolTip(QCoreApplication.translate("MainWindow", u"Swap source and destination", None))
+#endif // QT_CONFIG(tooltip)
+        self.pushButton_swap.setText(QCoreApplication.translate("MainWindow", u"Swap \u21c5", None))
         self.pushButton_find_path.setText(QCoreApplication.translate("MainWindow", u"Find path", None))
         self.label.setText(QCoreApplication.translate("MainWindow", u"Result:", None))
         self.label_status.setText(QCoreApplication.translate("MainWindow", u"Path status", None))
@@ -534,3 +543,4 @@ class Ui_MainWindow(object):
         self.pushButton_avoid_clear.setText(QCoreApplication.translate("MainWindow", u"Clear list", None))
         self.pushButton_reset.setText(QCoreApplication.translate("MainWindow", u"Reset chain", None))
     # retranslateUi
+
