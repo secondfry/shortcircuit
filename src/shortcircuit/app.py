@@ -94,6 +94,58 @@ def read_appearance(settings: QtCore.QSettings) -> str:
   return appearance if appearance in COLOR_SCHEMES else "system"
 
 
+MAPPER_TYPE_DESCRIPTIONS = {
+  TYPE_TRIPWIRE: "Corp/alliance scanning map — needs an account on a Tripwire server",
+  TYPE_EVESCOUT: "Public Thera and Turnur connections — no account needed",
+  TYPE_WANDERER: "Wanderer map API — needs the map slug and an API token",
+}
+
+
+class AddMapperTypeDialog(QtWidgets.QDialog):
+  """
+  Type picker for the Add flow: each mapper kind with a one-line
+  description of what it is and what it needs, instead of a bare
+  dropdown of type names.
+  """
+
+  def __init__(self, parent=None):
+    super().__init__(parent)
+    self.setWindowTitle("Add mapper")
+    self.setMinimumWidth(440)
+    layout = QtWidgets.QVBoxLayout(self)
+    layout.addWidget(QtWidgets.QLabel("What kind of mapper do you want to add?"))
+
+    self.list_types = QtWidgets.QListWidget()
+    self.list_types.setSpacing(2)
+    # Descriptions wrap rather than clip behind a horizontal scrollbar;
+    # how much fits on a line depends on the platform's font.
+    self.list_types.setWordWrap(True)
+    self.list_types.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+    for type_key, label in MAPPER_TYPE_LABELS.items():
+      item = QtWidgets.QListWidgetItem()
+      item.setData(QtCore.Qt.ItemDataRole.UserRole, type_key)
+      description = MAPPER_TYPE_DESCRIPTIONS.get(type_key, "")
+      item.setText("{}\n   {}".format(label, description) if description else label)
+      self.list_types.addItem(item)
+    self.list_types.setCurrentRow(0)
+    self.list_types.itemDoubleClicked.connect(lambda _item: self.accept())
+    layout.addWidget(self.list_types)
+
+    buttons = QtWidgets.QDialogButtonBox(
+      QtWidgets.QDialogButtonBox.StandardButton.Ok
+      | QtWidgets.QDialogButtonBox.StandardButton.Cancel
+    )
+    buttons.accepted.connect(self.accept)
+    buttons.rejected.connect(self.reject)
+    layout.addWidget(buttons)
+
+  def selected_type(self) -> Optional[str]:
+    item = self.list_types.currentItem()
+    if item is None:
+      return None
+    return item.data(QtCore.Qt.ItemDataRole.UserRole)
+
+
 class TripwireDialog(QtWidgets.QDialog, Ui_TripwireDialog):
   """
   Per-instance Tripwire edit dialog, opened from MappersDialog.
@@ -160,7 +212,8 @@ class MappersDialog(QtWidgets.QDialog, Ui_MappersDialog):
   COL_ENABLED = 0
   COL_NAME = 1
   COL_TYPE = 2
-  COL_URL = 3
+  COL_DETAILS = 3
+  COL_URL = 4
 
   def __init__(
     self,
@@ -173,14 +226,20 @@ class MappersDialog(QtWidgets.QDialog, Ui_MappersDialog):
     self.configs: List[MapperConfig] = [MapperConfig(**c.to_dict()) for c in configs]
     self.proxy = proxy or ""
 
-    self.tableWidget_mappers.setColumnCount(4)
+    # A config list, not a spreadsheet: no painted grid, zebra rows for
+    # scanning across, and no row numbers (they mean nothing here).
+    self.tableWidget_mappers.setShowGrid(False)
+    self.tableWidget_mappers.setAlternatingRowColors(True)
+    self.tableWidget_mappers.verticalHeader().setVisible(False)
+    self.tableWidget_mappers.setColumnCount(5)
     self.tableWidget_mappers.setHorizontalHeaderLabels([
-      "Enabled", "Name", "Type", "URL",
+      "Enabled", "Name", "Type", "Details", "URL",
     ])
     header = self.tableWidget_mappers.horizontalHeader()
     header.setSectionResizeMode(self.COL_ENABLED, QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
     header.setSectionResizeMode(self.COL_NAME, QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
     header.setSectionResizeMode(self.COL_TYPE, QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
+    header.setSectionResizeMode(self.COL_DETAILS, QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
     header.setSectionResizeMode(self.COL_URL, QtWidgets.QHeaderView.ResizeMode.Stretch)
 
     self.pushButton_add.clicked.connect(self._on_add)
@@ -217,9 +276,24 @@ class MappersDialog(QtWidgets.QDialog, Ui_MappersDialog):
       type_item.setFlags(type_item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
       self.tableWidget_mappers.setItem(row, self.COL_TYPE, type_item)
 
+      details_item = QtWidgets.QTableWidgetItem(self._cfg_details(cfg))
+      details_item.setFlags(details_item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
+      self.tableWidget_mappers.setItem(row, self.COL_DETAILS, details_item)
+
       url_item = QtWidgets.QTableWidgetItem(cfg.url)
       url_item.setFlags(url_item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
       self.tableWidget_mappers.setItem(row, self.COL_URL, url_item)
+
+  @staticmethod
+  def _cfg_details(cfg: MapperConfig) -> str:
+    """Human-readable per-type summary; never the secret itself."""
+    if cfg.type == TYPE_TRIPWIRE:
+      return "user: {}".format(cfg.user) if cfg.user else "no account set"
+    if cfg.type == TYPE_EVESCOUT:
+      return "public"
+    if cfg.type == TYPE_WANDERER:
+      return "map: {}".format(cfg.user) if cfg.user else "map not set"
+    return ""
 
   def _set_enabled(self, row: int, checked: bool):
     if 0 <= row < len(self.configs):
@@ -227,20 +301,10 @@ class MappersDialog(QtWidgets.QDialog, Ui_MappersDialog):
 
   @QtCore.Slot()
   def _on_add(self):
-    type_label, ok = QtWidgets.QInputDialog.getItem(
-      self,
-      "Add mapper",
-      "Type:",
-      list(MAPPER_TYPE_LABELS.values()),
-      0,
-      False,
-    )
-    if not ok:
+    picker = AddMapperTypeDialog(self)
+    if not picker.exec():
       return
-    type_key = next(
-      (k for k, v in MAPPER_TYPE_LABELS.items() if v == type_label),
-      None,
-    )
+    type_key = picker.selected_type()
     if type_key is None:
       return
 
