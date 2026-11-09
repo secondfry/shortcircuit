@@ -399,6 +399,12 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     # Start version check
     self.version_thread.start()
 
+    # One mapper fetch shortly after launch when mappers are configured, so
+    # a returning user doesn't have to remember to fetch before routing.
+    # A single fetch per launch, not a recurring refresh.
+    if any(cfg.enabled for cfg in self.mapper_configs):
+      QtCore.QTimer.singleShot(1000, self._startup_fetch)
+
   # noinspection PyUnresolvedReferences
   def additional_gui_setup(self):
     # Additional GUI setup
@@ -451,6 +457,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
       self.btn_player_location_clicked
     )
     self.pushButton_find_path.clicked.connect(self.btn_find_path_clicked)
+    self.pushButton_swap.clicked.connect(self.btn_swap_clicked)
     self.pushButton_trip_config.clicked.connect(self.btn_trip_config_clicked)
     self.pushButton_trip_get.clicked.connect(self.btn_trip_get_clicked)
     self.pushButton_system_avoid_add.clicked.connect(
@@ -919,6 +926,14 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     self.state_eve_connection["error"] = "ESI error" if not is_ok else None
     self._status_eve_connection_update()
 
+    # Pre-fill the source with the pilot's location, so the usual flow after
+    # login is just: type a destination, Find path. Runs quietly: a failure
+    # doesn't pop a dialog, and a source the user already typed is kept
+    # (see location_handler).
+    if is_ok:
+      self._auto_location = True
+      self.esip.get_location()
+
   @QtCore.Slot()
   def logout_handler(self):
     self.state_eve_connection["connected"] = False
@@ -928,9 +943,14 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
   @QtCore.Slot(str)
   def location_handler(self, location):
+    automatic = getattr(self, "_auto_location", False)
+    self._auto_location = False
+
     if location:
-      self.lineEdit_source.setText(location)
-    else:
+      # The automatic fill after login never overwrites a typed source.
+      if not (automatic and self.lineEdit_source.text().strip()):
+        self.lineEdit_source.setText(location)
+    elif not automatic:
       self._message_box(
         "Player destination",
         "Unable to get location (character not online or ESI error)"
@@ -978,6 +998,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
   @QtCore.Slot()
   def btn_player_location_clicked(self):
+    self._auto_location = False
     self.pushButton_player_location.setEnabled(False)
     self.esip.get_location()
 
@@ -1003,6 +1024,17 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
   @QtCore.Slot()
   def btn_find_path_clicked(self):
     self.find_path()
+
+  @QtCore.Slot()
+  def btn_swap_clicked(self):
+    source = self.lineEdit_source.text()
+    self.lineEdit_source.setText(self.lineEdit_destination.text())
+    self.lineEdit_destination.setText(source)
+
+  @QtCore.Slot()
+  def _startup_fetch(self):
+    if not self.worker_thread.isRunning():
+      self.btn_trip_get_clicked()
 
   @QtCore.Slot()
   def btn_trip_config_clicked(self):
