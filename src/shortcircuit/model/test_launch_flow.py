@@ -37,9 +37,11 @@ class _Window:
     self._message_box = mock.Mock()
     self._status_eve_connection_update = mock.Mock()
     self.btn_trip_get_clicked = mock.Mock()
+    from shortcircuit.model.mapper_config import TYPE_EVESCOUT, MapperConfig
+    self.mapper_configs = [MapperConfig(type=TYPE_EVESCOUT, name="Eve Scout")]
     for name in (
       "login_handler", "location_handler", "btn_player_location_clicked",
-      "btn_swap_clicked", "_startup_fetch",
+      "btn_swap_clicked", "_startup_fetch", "_mappers_ready",
     ):
       setattr(self, name, getattr(MainWindow, name).__get__(self))
 
@@ -100,6 +102,15 @@ def test_startup_fetch_runs_once_unless_a_fetch_is_already_running(qapp):
 
   w.btn_trip_get_clicked.reset_mock()
   w.worker_thread.isRunning.return_value = True
+  w._startup_fetch()
+  w.btn_trip_get_clicked.assert_not_called()
+
+
+def test_startup_fetch_skips_a_mapper_without_credentials(qapp):
+  # A fresh install: the default Tripwire is enabled but has no account.
+  from shortcircuit.model.mapper_config import default_configs
+  w = _Window()
+  w.mapper_configs = default_configs()
   w._startup_fetch()
   w.btn_trip_get_clicked.assert_not_called()
 
