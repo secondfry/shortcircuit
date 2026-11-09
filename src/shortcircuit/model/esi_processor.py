@@ -23,6 +23,16 @@ class ESIProcessor(QtCore.QObject):
   def login(self):
     return self.esi.start_server()
 
+  def try_silent_login(self):
+    """
+    Resume the previous session from a persisted refresh token, if any.
+    Runs in a background thread because it does a token-endpoint round
+    trip; emits login_response on success just like interactive login.
+    """
+    server_thread = threading.Thread(target=self.esi.try_silent_login)
+    server_thread.setDaemon(True)
+    server_thread.start()
+
   def logout(self):
     self.esi.logout()
 
