@@ -18,6 +18,7 @@ from .model.mapper_config import (
   TYPE_TRIPWIRE,
   TYPE_WANDERER,
   default_configs,
+  is_configured,
   load_configs,
   migrate_legacy,
   save_configs,
@@ -507,8 +508,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
     # One mapper fetch shortly after launch when mappers are configured, so
     # a returning user doesn't have to remember to fetch before routing.
-    # A single fetch per launch, not a recurring refresh.
-    if any(cfg.enabled for cfg in self.mapper_configs):
+    # A single fetch per launch, not a recurring refresh, and never for a
+    # mapper missing its credentials (a fresh install's default Tripwire
+    # has none).
+    if self._mappers_ready():
       QtCore.QTimer.singleShot(1000, self._startup_fetch)
 
   # noinspection PyUnresolvedReferences
@@ -1176,8 +1179,12 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
   @QtCore.Slot()
   def _startup_fetch(self):
-    if not self.worker_thread.isRunning():
+    if self._mappers_ready() and not self.worker_thread.isRunning():
       self.btn_trip_get_clicked()
+
+  def _mappers_ready(self):
+    """Whether any enabled mapper has what it needs to fetch."""
+    return any(cfg.enabled and is_configured(cfg) for cfg in self.mapper_configs)
 
   @QtCore.Slot()
   def btn_trip_config_clicked(self):
