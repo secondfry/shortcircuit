@@ -16,6 +16,7 @@ from .model.mapper_config import (
   MapperConfig,
   TYPE_EVESCOUT,
   TYPE_TRIPWIRE,
+  TYPE_WANDERER,
   default_configs,
   load_configs,
   migrate_legacy,
@@ -28,6 +29,7 @@ from .view.gui_about import Ui_AboutDialog
 from .view.gui_main import Ui_MainWindow
 from .view.gui_mappers import Ui_MappersDialog
 from .view.gui_tripwire import Ui_TripwireDialog
+from .view.gui_wanderer import Ui_WandererDialog
 
 
 class StateEVEConnection(TypedDict):
@@ -44,6 +46,7 @@ class StateMapper(TypedDict):
 MAPPER_TYPE_LABELS = {
   TYPE_TRIPWIRE: "Tripwire",
   TYPE_EVESCOUT: "Eve Scout",
+  TYPE_WANDERER: "Wanderer",
 }
 
 
@@ -72,6 +75,30 @@ class TripwireDialog(QtWidgets.QDialog, Ui_TripwireDialog):
     self.lineEdit_user.setText(trip_user or "")
     self.lineEdit_pass.setText(trip_pass or "")
     self.lineEdit_proxy.setText(proxy or "")
+
+
+class WandererDialog(QtWidgets.QDialog, Ui_WandererDialog):
+  """
+  Per-instance Wanderer edit dialog, opened from MappersDialog.
+
+  Edits one Wanderer MapperConfig: name, instance URL, map slug and API
+  bearer token (generated in Wanderer under Map Settings -> API).
+  """
+
+  def __init__(
+    self,
+    name: str,
+    url: str,
+    map_slug: str,
+    token: str,
+    parent=None,
+  ):
+    super().__init__(parent)
+    self.setupUi(self)
+    self.lineEdit_name.setText(name or "")
+    self.lineEdit_url.setText(url or "")
+    self.lineEdit_map.setText(map_slug or "")
+    self.lineEdit_token.setText(token or "")
 
 
 class MappersDialog(QtWidgets.QDialog, Ui_MappersDialog):
@@ -180,6 +207,13 @@ class MappersDialog(QtWidgets.QDialog, Ui_MappersDialog):
         url="https://tripwire.eve-apps.com",
       )
       edited = self._edit_tripwire(cfg)
+    elif type_key == TYPE_WANDERER:
+      cfg = MapperConfig(
+        type=TYPE_WANDERER,
+        name=self._unique_name("Wanderer"),
+        enabled=True,
+      )
+      edited = self._edit_wanderer(cfg)
     else:
       cfg = MapperConfig(
         type=TYPE_EVESCOUT,
@@ -203,6 +237,8 @@ class MappersDialog(QtWidgets.QDialog, Ui_MappersDialog):
       edited = self._edit_tripwire(cfg)
     elif cfg.type == TYPE_EVESCOUT:
       edited = self._edit_evescout(cfg)
+    elif cfg.type == TYPE_WANDERER:
+      edited = self._edit_wanderer(cfg)
     else:
       edited = None
     if edited is not None:
@@ -236,6 +272,25 @@ class MappersDialog(QtWidgets.QDialog, Ui_MappersDialog):
       url=dlg.lineEdit_url.text().strip(),
       user=dlg.lineEdit_user.text(),
       password=dlg.lineEdit_pass.text(),
+    )
+
+  def _edit_wanderer(self, cfg: MapperConfig) -> Optional[MapperConfig]:
+    dlg = WandererDialog(
+      name=cfg.name,
+      url=cfg.url,
+      map_slug=cfg.user,
+      token=cfg.password,
+      parent=self,
+    )
+    if not dlg.exec():
+      return None
+    return MapperConfig(
+      type=TYPE_WANDERER,
+      name=dlg.lineEdit_name.text().strip() or cfg.name,
+      enabled=cfg.enabled,
+      url=dlg.lineEdit_url.text().strip(),
+      user=dlg.lineEdit_map.text().strip(),
+      password=dlg.lineEdit_token.text().strip(),
     )
 
   def _edit_evescout(self, cfg: MapperConfig) -> Optional[MapperConfig]:

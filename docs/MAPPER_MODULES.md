@@ -127,6 +127,30 @@ evescout = EveScout(
 )
 ```
 
+### Wanderer
+
+**Status**: Fully supported with multiple instances
+
+**Configuration**:
+- URL: Wanderer instance URL (self-hosted or community instance)
+- Map slug: The map identifier from the map's URL
+- API token: Bearer token generated in Wanderer under Map Settings → API
+- Name: Instance identifier (e.g., "Alliance Wanderer")
+
+In the persisted `MapperConfig`, the map slug is stored in the `user` slot
+and the API token in the `password` slot (the token is the secret, so it
+belongs in the slot the UI masks).
+
+**Example**:
+```python
+wanderer = Wanderer(
+    url="https://wanderer.example.com",
+    map_slug="my-map",
+    token="generated-api-token",
+    name="Alliance Wanderer"
+)
+```
+
 ### eve-whmapper
 
 **Status**: Not currently supported - no public API available
