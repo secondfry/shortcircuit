@@ -566,24 +566,27 @@ class EveDb(metaclass=Singleton):
       return WormholeSize.UNKNOWN
     return self.wh_codes.get(code.upper(), WormholeSize.UNKNOWN)
 
+  def has_system(self, system_id: int) -> bool:
+    return system_id in self.system_desc
+
   def get_class(self, system_id: int):
-    if system_id not in self.system_desc:
+    if not self.has_system(system_id):
       return "Unknown"
 
     db_class = self.system_desc[system_id]['class']
-    if db_class == "HS":
-      sys_class = "highsec"
-    elif db_class == "▲":
-      sys_class = "pochven"
-    elif db_class == "LS":
-      sys_class = "lowsec"
-    elif db_class == "NS":
-      sys_class = "nullsec"
-    elif db_class in ["C14", "C15", "C16", "C17", "C18"]:
-      sys_class = "drifter"
-    else:
-      sys_class = db_class
-    return sys_class
+    match db_class:
+      case 'HS':
+        return "highsec"
+      case '▲':
+        return "pochven"
+      case 'LS':
+        return "lowsec"
+      case 'NS':
+        return "nullsec"
+      case 'C14' | 'C15' | 'C16' | 'C17' | 'C18':
+        return "drifter"
+      case _:
+        return db_class
 
   def system_type(self, system_id: int) -> SpaceType:
     """Kind of space `system_id` is in.

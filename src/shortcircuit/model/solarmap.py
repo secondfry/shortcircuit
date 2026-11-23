@@ -115,10 +115,14 @@ class SolarMap:
     source_name: str = None,
   ) -> bool:
     """Add a connection; False if it was skipped."""
+    if con_type not in (ConnectionType.GATE, ConnectionType.WORMHOLE):
+      Logger.error("Unknown connection type provided")
+      return False
+
     # A mapper can report a system the local SDE lacks (e.g. a newly added
     # region); routing through it would fail on the missing system data.
     for system_id in (source, destination):
-      if system_id not in self.eve_db.system_desc:
+      if not self.eve_db.has_system(system_id):
         Logger.warning(
           'Skipping connection {} -> {}: system {} is not in the local SDE'
           .format(source, destination, system_id)
@@ -138,14 +142,10 @@ class SolarMap:
       dst_sys.add_gate_edge(src_sys)
       return True
 
-    if con_type == ConnectionType.WORMHOLE:
-      wh_size = self.eve_db.cap_whsize_for_capital_bans(source, destination, con_info[4])
-      con_info = [*con_info[:4], wh_size, *con_info[5:]]
-      self._add_wormhole(src_sys, dst_sys, con_info, source_name)
-      return True
-
-    Logger.error("Unknown connection type provided")
-    return False
+    wh_size = self.eve_db.cap_whsize_for_capital_bans(source, destination, con_info[4])
+    con_info = [*con_info[:4], wh_size, *con_info[5:]]
+    self._add_wormhole(src_sys, dst_sys, con_info, source_name)
+    return True
 
   def _add_wormhole(
     self,

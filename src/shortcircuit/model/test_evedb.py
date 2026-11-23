@@ -117,6 +117,14 @@ def test_whsize_nullsec_to_c2_c5_unchanged():
   assert _size(C2, "HED-GP") == WormholeSize.LARGE
 
 
+def test_size_matrix_is_square_and_symmetric():
+  matrix = EveDb.SIZE_MATRIX
+  for a, row in matrix.items():
+    assert row.keys() == matrix.keys(), a
+    for b, size in row.items():
+      assert matrix[b][a] == size, (a, b)
+
+
 def test_whsize_unknown_class_is_unknown():
   eve_db = EveDb()
   missing = 1
