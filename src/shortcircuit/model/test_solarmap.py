@@ -1,7 +1,7 @@
 import pytest
 
 from shortcircuit.model.evedb import KNOWN_WH_SIZES, EveDb, SpaceType, WormholeSize, WormholeMassspan, WormholeTimespan
-from shortcircuit.model.solarmap import ConnectionType, SolarMap
+from shortcircuit.model.solarmap import GATE_CODE, ConnectionType, SolarMap
 
 ALL_SIZES = set(KNOWN_WH_SIZES)
 
@@ -797,4 +797,4 @@ def test_unknown_size_hole_allowed_when_any_size_allowed():
 
 def test_ignore_wormholes_keeps_tripwire_gate_edge():
   # Tripwire stores stargates as size-less WORMHOLE edges coded GATE.
-  assert _route_over_unknown_size_hole('GATE', ALL_SIZES) == ['Dodixie', 'Botane', 'Ikuchi', 'Jita']
+  assert _route_over_unknown_size_hole(GATE_CODE, ALL_SIZES) == ['Dodixie', 'Botane', 'Ikuchi', 'Jita']

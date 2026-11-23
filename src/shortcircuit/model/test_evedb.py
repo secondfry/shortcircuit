@@ -83,7 +83,7 @@ def test_whsize_pochven_is_at_most_large():
 
 
 def test_whsize_highsec_to_c5_c6_is_freighter_xlarge():
-  # D792, M555, B041, B520: 1,000,000,000 kg, so freighters fit but capitals don't.
+  # D792, M555, B041, B520: 1,000,000,000 kg: the freighter tier (X-Large).
   assert _size("Jita", C6) == WormholeSize.XLARGE
   assert _size(C6, "Jita") == WormholeSize.XLARGE
   assert _size("Jita", C5) == WormholeSize.XLARGE
