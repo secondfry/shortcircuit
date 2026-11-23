@@ -284,9 +284,14 @@ class EveDb(metaclass=Singleton):
   Eve Database Handler
   """
 
+  # Largest ship a hole between two system classes takes, per EVE University
+  # Wormhole_attributes. "kspace" is low/null-sec: high-sec differs on C6
+  # (B041/B520 are 375,000 t) and Pochven holes are at most Large.
   SIZE_MATRIX: Dict[str, Dict[str, WormholeSize]] = {
     "kspace": {
       "kspace": WormholeSize.XLARGE,
+      "highsec": WormholeSize.XLARGE,
+      "pochven": WormholeSize.LARGE,
       "C1": WormholeSize.MEDIUM,
       "C2": WormholeSize.LARGE,
       "C3": WormholeSize.LARGE,
@@ -297,8 +302,38 @@ class EveDb(metaclass=Singleton):
       "C13": WormholeSize.SMALL,
       "drifter": WormholeSize.LARGE,
     },
+    "highsec": {
+      "kspace": WormholeSize.XLARGE,
+      "highsec": WormholeSize.XLARGE,
+      "pochven": WormholeSize.LARGE,
+      "C1": WormholeSize.MEDIUM,
+      "C2": WormholeSize.LARGE,
+      "C3": WormholeSize.LARGE,
+      "C4": WormholeSize.LARGE,
+      "C5": WormholeSize.XLARGE,
+      "C6": WormholeSize.LARGE,
+      "C12": WormholeSize.LARGE,
+      "C13": WormholeSize.SMALL,
+      "drifter": WormholeSize.LARGE,
+    },
+    "pochven": {
+      "kspace": WormholeSize.LARGE,
+      "highsec": WormholeSize.LARGE,
+      "pochven": WormholeSize.MEDIUM,
+      "C1": WormholeSize.MEDIUM,
+      "C2": WormholeSize.LARGE,
+      "C3": WormholeSize.LARGE,
+      "C4": WormholeSize.LARGE,
+      "C5": WormholeSize.LARGE,
+      "C6": WormholeSize.LARGE,
+      "C12": WormholeSize.LARGE,
+      "C13": WormholeSize.SMALL,
+      "drifter": WormholeSize.LARGE,
+    },
     "C1": {
       "kspace": WormholeSize.MEDIUM,
+      "highsec": WormholeSize.MEDIUM,
+      "pochven": WormholeSize.MEDIUM,
       "C1": WormholeSize.MEDIUM,
       "C2": WormholeSize.MEDIUM,
       "C3": WormholeSize.MEDIUM,
@@ -311,6 +346,8 @@ class EveDb(metaclass=Singleton):
     },
     "C2": {
       "kspace": WormholeSize.LARGE,
+      "highsec": WormholeSize.LARGE,
+      "pochven": WormholeSize.LARGE,
       "C1": WormholeSize.MEDIUM,
       "C2": WormholeSize.LARGE,
       "C3": WormholeSize.LARGE,
@@ -323,6 +360,8 @@ class EveDb(metaclass=Singleton):
     },
     "C3": {
       "kspace": WormholeSize.LARGE,
+      "highsec": WormholeSize.LARGE,
+      "pochven": WormholeSize.LARGE,
       "C1": WormholeSize.MEDIUM,
       "C2": WormholeSize.LARGE,
       "C3": WormholeSize.LARGE,
@@ -335,6 +374,8 @@ class EveDb(metaclass=Singleton):
     },
     "C4": {
       "kspace": WormholeSize.LARGE,
+      "highsec": WormholeSize.LARGE,
+      "pochven": WormholeSize.LARGE,
       "C1": WormholeSize.MEDIUM,
       "C2": WormholeSize.LARGE,
       "C3": WormholeSize.LARGE,
@@ -347,6 +388,8 @@ class EveDb(metaclass=Singleton):
     },
     "C5": {
       "kspace": WormholeSize.XLARGE,
+      "highsec": WormholeSize.XLARGE,
+      "pochven": WormholeSize.LARGE,
       "C1": WormholeSize.MEDIUM,
       "C2": WormholeSize.LARGE,
       "C3": WormholeSize.LARGE,
@@ -359,6 +402,8 @@ class EveDb(metaclass=Singleton):
     },
     "C6": {
       "kspace": WormholeSize.XLARGE,
+      "highsec": WormholeSize.LARGE,
+      "pochven": WormholeSize.LARGE,
       "C1": WormholeSize.MEDIUM,
       "C2": WormholeSize.LARGE,
       "C3": WormholeSize.LARGE,
@@ -371,6 +416,8 @@ class EveDb(metaclass=Singleton):
     },
     "C12": {
       "kspace": WormholeSize.LARGE,
+      "highsec": WormholeSize.LARGE,
+      "pochven": WormholeSize.LARGE,
       "C1": WormholeSize.MEDIUM,
       "C2": WormholeSize.LARGE,
       "C3": WormholeSize.LARGE,
@@ -383,6 +430,8 @@ class EveDb(metaclass=Singleton):
     },
     "C13": {
       "kspace": WormholeSize.SMALL,
+      "highsec": WormholeSize.SMALL,
+      "pochven": WormholeSize.SMALL,
       "C1": WormholeSize.SMALL,
       "C2": WormholeSize.SMALL,
       "C3": WormholeSize.SMALL,
@@ -395,6 +444,8 @@ class EveDb(metaclass=Singleton):
     },
     "drifter": {
       "kspace": WormholeSize.LARGE,
+      "highsec": WormholeSize.LARGE,
+      "pochven": WormholeSize.LARGE,
       "C1": WormholeSize.MEDIUM,
       "C2": WormholeSize.LARGE,
       "C3": WormholeSize.LARGE,
@@ -483,8 +534,11 @@ class EveDb(metaclass=Singleton):
       return "Unknown"
 
     db_class = self.system_desc[system_id]['class']
-    # FIXME learn about triglavian wormhole sizes
-    if db_class in ["HS", "LS", "NS", "▲", "Unknown"]:
+    if db_class == "HS":
+      sys_class = "highsec"
+    elif db_class == "▲":
+      sys_class = "pochven"
+    elif db_class in ["LS", "NS"]:
       sys_class = "kspace"
     elif db_class in ["C14", "C15", "C16", "C17", "C18"]:
       sys_class = "drifter"
@@ -519,7 +573,9 @@ class EveDb(metaclass=Singleton):
   def get_whsize_by_system(self, source_id: int, dest_id: int) -> WormholeSize:
     source_class = self.get_class(source_id)
     dest_class = self.get_class(dest_id)
-    return EveDb.SIZE_MATRIX[source_class][dest_class]
+    # Classes without a row (Zarzakh, C??, systems missing from the SDE) are
+    # unknown rather than an error, so one odd system can't break a mapper.
+    return EveDb.SIZE_MATRIX.get(source_class, {}).get(dest_class, WormholeSize.UNKNOWN)
 
   def system_name_list(self):
     return [x['name'] for x in self.system_desc.values()]

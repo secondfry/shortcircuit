@@ -1,4 +1,4 @@
-from shortcircuit.model.evedb import EveDb, SpaceType
+from shortcircuit.model.evedb import EveDb, SpaceType, WormholeSize
 
 
 def test_dodixie():
@@ -53,3 +53,38 @@ def test_system_type_every_gate_destination_has_one():
   eve_db = EveDb()
   for _, dest in eve_db.gates:
     eve_db.system_type(dest)
+
+
+def _size(a, b):
+  eve_db = EveDb()
+  return eve_db.get_whsize_by_system(eve_db.name2id(a), eve_db.name2id(b))
+
+
+C5 = "J152820"
+C6 = "J104859"
+
+
+def test_whsize_kspace_pairs():
+  assert _size("Jita", "Amarr") == WormholeSize.XLARGE
+
+
+def test_whsize_pochven_is_at_most_large():
+  assert _size("Kino", "HED-GP") == WormholeSize.LARGE
+  assert _size("HED-GP", "Kino") == WormholeSize.LARGE
+  assert _size("Kino", "Ala") == WormholeSize.MEDIUM
+
+
+def test_whsize_highsec_to_c6_is_large():
+  # B041/B520 are 375,000 t, unlike the 1,000,000 t+ k-space<->C5/C6 holes.
+  assert _size("Jita", C6) == WormholeSize.LARGE
+  assert _size(C6, "Jita") == WormholeSize.LARGE
+  assert _size("Jita", C5) == WormholeSize.XLARGE
+  assert _size("HED-GP", C6) == WormholeSize.XLARGE
+
+
+def test_whsize_unknown_class_is_unknown():
+  eve_db = EveDb()
+  zarzakh = eve_db.name2id("Zarzakh")
+  missing = 1
+  assert eve_db.get_whsize_by_system(zarzakh, eve_db.name2id("Jita")) == WormholeSize.UNKNOWN
+  assert eve_db.get_whsize_by_system(missing, eve_db.name2id("Jita")) == WormholeSize.UNKNOWN
