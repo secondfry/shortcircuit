@@ -4,7 +4,7 @@ This test verifies that GATE type wormholes from Tripwire are properly
 recognized and added to the solar map for route calculations.
 """
 
-from datetime import datetime
+from datetime import UTC, datetime
 from unittest.mock import Mock, patch
 from shortcircuit.model.tripwire import Tripwire
 from shortcircuit.model.solarmap import SolarMap, ConnectionType
@@ -21,7 +21,7 @@ def test_gate_wormhole_is_processed():
         tripwire = Tripwire("test_user", "test_pass", "http://test.url")
     
     # Create a mock chain with a GATE type wormhole
-    current_time = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+    current_time = datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S")
     mock_chain = {
         'wormholes': {
             '1': {
@@ -98,7 +98,7 @@ def test_regular_wormhole_respects_life_and_mass():
         tripwire = Tripwire("test_user", "test_pass", "http://test.url")
     
     # Create a mock chain with a regular critical wormhole
-    current_time = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+    current_time = datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S")
     mock_chain = {
         'wormholes': {
             '1': {
@@ -235,7 +235,7 @@ def test_connection_failure_preserves_existing_chain():
         tripwire = Tripwire("test_user", "test_pass", "http://test.url")
     
     # Set up initial chain data
-    current_time = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+    current_time = datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S")
     initial_chain = {
         'esi': {},
         'sync': 'test',

@@ -1,7 +1,7 @@
 # tripwire.py
 
 import json
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Dict, List, Literal, Optional, TypedDict, Union
 
 import requests
@@ -10,7 +10,7 @@ from shortcircuit import USER_AGENT
 from .evedb import EveDb, WormholeSize, WormholeMassspan, WormholeTimespan
 from .logger import Logger
 from .mapper_base import MapperSource
-from .solarmap import ConnectionType, SolarMap
+from .solarmap import GATE_CODE, ConnectionType, SolarMap
 from .utility.configuration import Configuration
 
 
@@ -323,11 +323,11 @@ class Tripwire(MapperSource):
     :param system_to: Destination system ID
     :return: Tuple of (wh_type_in, wh_type_out, wh_life, wh_mass, wh_size)
     """
-    is_gate = wormhole['type'] == 'GATE'
+    is_gate = wormhole['type'] == GATE_CODE
     
     if is_gate:
-      wh_type_in = 'GATE'
-      wh_type_out = 'GATE'
+      wh_type_in = GATE_CODE
+      wh_type_out = GATE_CODE
       wh_life = WormholeTimespan.STABLE
       wh_mass = WormholeMassspan.STABLE
       wh_size = WormholeSize.UNKNOWN  # GATE type doesn't have a size
@@ -396,12 +396,12 @@ class Tripwire(MapperSource):
     # Compute time elapsed from this moment to when the signature was updated
     last_modified = datetime.strptime(
       signature_in['modifiedTime'], "%Y-%m-%d %H:%M:%S"
-    )
-    delta = datetime.utcnow() - last_modified
+    ).replace(tzinfo=UTC)
+    delta = datetime.now(UTC) - last_modified
     time_elapsed = round(delta.total_seconds() / 3600.0, 1)
 
     # Add wormhole connection to solar system
-    solar_map.add_connection(
+    return solar_map.add_connection(
       system_from,
       system_to,
       ConnectionType.WORMHOLE,
@@ -417,7 +417,6 @@ class Tripwire(MapperSource):
       ],
       source_name=self.name,
     )
-    return True
 
   def augment_map(self, solar_map: SolarMap):
     """

@@ -8,7 +8,7 @@ Tests the core functionality of Tripwire integration including:
 - Edge cases and validation
 """
 
-from datetime import datetime
+from datetime import UTC, datetime
 from unittest.mock import Mock, patch
 import pytest
 
@@ -378,7 +378,7 @@ class TestProcessWormhole:
     
     def test_processes_valid_wormhole(self):
         """Test that valid wormhole is processed and added to map"""
-        current_time = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+        current_time = datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S")
         self.tripwire.chain = {
             'signatures': {
                 '100': {'systemID': '30000142', 'signatureID': 'ABC-123', 'modifiedTime': current_time},
@@ -399,6 +399,7 @@ class TestProcessWormhole:
         }
         
         self.tripwire.eve_db.get_whsize_by_code.return_value = WormholeSize.SMALL
+        self.solar_map.add_connection.return_value = True
         
         result = self.tripwire._process_wormhole(wormhole, self.solar_map)
         

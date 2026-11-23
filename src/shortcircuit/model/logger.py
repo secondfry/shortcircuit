@@ -6,7 +6,7 @@ import sys
 from logging.handlers import RotatingFileHandler
 
 from appdirs import AppDirs
-from PySide2 import QtCore
+from PySide6 import QtCore
 
 from shortcircuit import __appslug__, __version__
 from .utility.singleton import Singleton

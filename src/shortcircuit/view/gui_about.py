@@ -3,34 +3,40 @@
 ################################################################################
 ## Form generated from reading UI file 'gui_about.ui'
 ##
-## Created by: Qt User Interface Compiler version 5.15.2
+## Created by: Qt User Interface Compiler version 6.11.2
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 
-from PySide2.QtCore import *
-from PySide2.QtGui import *
-from PySide2.QtWidgets import *
-
-from  . import resources_rc
+from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
+    QMetaObject, QObject, QPoint, QRect,
+    QSize, QTime, QUrl, Qt)
+from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
+    QFont, QFontDatabase, QGradient, QIcon,
+    QImage, QKeySequence, QLinearGradient, QPainter,
+    QPalette, QPixmap, QRadialGradient, QTransform)
+from PySide6.QtWidgets import (QApplication, QDialog, QHBoxLayout, QLabel,
+    QPushButton, QSizePolicy, QSpacerItem, QVBoxLayout,
+    QWidget)
+from . import resources_rc
 
 class Ui_AboutDialog(object):
     def setupUi(self, AboutDialog):
         if not AboutDialog.objectName():
             AboutDialog.setObjectName(u"AboutDialog")
         AboutDialog.resize(400, 380)
-        sizePolicy = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        sizePolicy = QSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(AboutDialog.sizePolicy().hasHeightForWidth())
         AboutDialog.setSizePolicy(sizePolicy)
         AboutDialog.setMinimumSize(QSize(400, 380))
         font = QFont()
-        font.setFamily(u"Segoe UI")
+        font.setFamilies([u"Segoe UI"])
         font.setPointSize(9)
         AboutDialog.setFont(font)
         icon = QIcon()
-        icon.addFile(u":/images/app_icon.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon.addFile(u":/images/app_icon.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
         AboutDialog.setWindowIcon(icon)
         self.verticalLayout = QVBoxLayout(AboutDialog)
         self.verticalLayout.setObjectName(u"verticalLayout")
@@ -38,16 +44,15 @@ class Ui_AboutDialog(object):
         self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
         self.label_title = QLabel(AboutDialog)
         self.label_title.setObjectName(u"label_title")
-        sizePolicy1 = QSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
+        sizePolicy1 = QSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Preferred)
         sizePolicy1.setHorizontalStretch(0)
         sizePolicy1.setVerticalStretch(0)
         sizePolicy1.setHeightForWidth(self.label_title.sizePolicy().hasHeightForWidth())
         self.label_title.setSizePolicy(sizePolicy1)
         font1 = QFont()
-        font1.setFamily(u"Segoe UI")
+        font1.setFamilies([u"Segoe UI"])
         font1.setPointSize(12)
         font1.setBold(True)
-        font1.setWeight(75)
         self.label_title.setFont(font1)
         self.label_title.setAlignment(Qt.AlignCenter)
 
@@ -57,7 +62,7 @@ class Ui_AboutDialog(object):
         self.label_icon.setObjectName(u"label_icon")
         sizePolicy.setHeightForWidth(self.label_icon.sizePolicy().hasHeightForWidth())
         self.label_icon.setSizePolicy(sizePolicy)
-        self.label_icon.setCursor(QCursor(Qt.PointingHandCursor))
+        self.label_icon.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         self.label_icon.setPixmap(QPixmap(u":/images/app_icon_small.png"))
         self.label_icon.setAlignment(Qt.AlignCenter)
 
@@ -71,7 +76,7 @@ class Ui_AboutDialog(object):
         self.label_2 = QLabel(AboutDialog)
         self.label_2.setObjectName(u"label_2")
         self.label_2.setEnabled(True)
-        sizePolicy2 = QSizePolicy(QSizePolicy.Ignored, QSizePolicy.MinimumExpanding)
+        sizePolicy2 = QSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.MinimumExpanding)
         sizePolicy2.setHorizontalStretch(0)
         sizePolicy2.setVerticalStretch(0)
         sizePolicy2.setHeightForWidth(self.label_2.sizePolicy().hasHeightForWidth())
@@ -87,13 +92,13 @@ class Ui_AboutDialog(object):
 
         self.horizontalLayout = QHBoxLayout()
         self.horizontalLayout.setObjectName(u"horizontalLayout")
-        self.horizontalSpacer = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.horizontalSpacer = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
         self.horizontalLayout.addItem(self.horizontalSpacer)
 
         self.pushButton_o7 = QPushButton(AboutDialog)
         self.pushButton_o7.setObjectName(u"pushButton_o7")
-        sizePolicy3 = QSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
+        sizePolicy3 = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
         sizePolicy3.setHorizontalStretch(0)
         sizePolicy3.setVerticalStretch(0)
         sizePolicy3.setHeightForWidth(self.pushButton_o7.sizePolicy().hasHeightForWidth())
@@ -121,4 +126,3 @@ class Ui_AboutDialog(object):
                         ":0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Dreae (PyCrest). </li><li style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">pyfa-org (PyFa). </li><li style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">EvE-Scout. </li><li style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Sharps. </li><li style=\" margin-top:0px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">choo t. </li></ul></body></html>", None))
         self.pushButton_o7.setText(QCoreApplication.translate("AboutDialog", u"  Fly safe o7  ", None))
     # retranslateUi
-

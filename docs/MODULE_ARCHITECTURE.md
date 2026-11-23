@@ -55,6 +55,7 @@ For each registered mapper:
   - Calls mapper.augment_map(solar_map)
   - Tripwire: Logs in, fetches /refresh.php, parses JSON
   - EveScout: Fetches public API, parses JSON
+  - Wanderer: GETs /connections and /signatures with a per-map bearer token
   - Each adds connections to solar_map
   ↓
 Returns dict: {"Tripwire": 15, "Eve Scout": 8}
@@ -153,6 +154,15 @@ worker_thread_done() handler updates:
 - **Authentication**: None (public API)
 - **API**: https://api.eve-scout.com/v2/public/signatures
 
+### wanderer.py (Wanderer)
+- **Role**: Wanderer mapper implementation
+- **Responsibilities**:
+  - Fetch a map's connections (the holes) and signatures (sig IDs, hole types)
+  - Translate Wanderer's life, mass and ship-size codes
+  - Add wormhole connections to SolarMap
+- **Authentication**: Per-map bearer token (Map Settings → Public Api)
+- **API**: /api/maps/:map/connections and /api/maps/:map/signatures
+
 ### solarmap.py (SolarMap)
 - **Role**: Graph representation of Eve solar system map
 - **Responsibilities**:
@@ -189,7 +199,8 @@ worker_thread_done() handler updates:
 ┌──────────────────────┐
 │  MapperSource        │  Interface
 │  ├─ Tripwire         │  Implementations
-│  └─ EveScout         │
+│  ├─ EveScout         │
+│  └─ Wanderer         │
 └──────┬───────────────┘
        │ augments
        ↓

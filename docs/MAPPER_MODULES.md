@@ -65,6 +65,8 @@ an existing parallel edge, `_merge_wormhole_at` unions the sources list,
 upgrades any placeholder sig/code slots to concrete values, and keeps the
 fresher payload (smaller `time_elapsed`) for size/life/mass. When no match
 is found, a new parallel edge is appended.
+`add_connection` also skips systems that `EveDb.is_routable` rejects and
+raises on an unknown connection type.
 
 If two reports match concretely on one side but disagree on the other,
 that's a scan error — fresher wins and a warning is logged.
@@ -74,6 +76,17 @@ Dijkstra's relaxation step iterates parallel edges per neighbor (see
 size/life/mass restriction on one parallel edge can route the user via
 another. `shortest_path` returns `(path_ids, path_edges)` so callers like
 `Navigation.route` can describe the specific edge that was used.
+
+Hole sizes are `WormholeSize` tiers by CCP's max jump mass: `XLARGE` is the
+1,000,000,000 kg tier (every such hole touches high-sec or Thera, which
+capitals can't enter) and `CAPITAL` the 2,000,000,000 kg one. Freighters, jump
+freighters and the Bowhead pick "X-Large (freighter)", which allows both
+tiers; the Rorqual and all other capitals pick "X-Large (capital)", which
+allows only `CAPITAL`. The Rorqual (0.8B kg) fits `XLARGE` holes by mass but
+is barred from high-sec and Thera. Hole codes (statics.csv) and each
+mapper's own size field cover both tiers; with no hole code or size field,
+`EveDb.get_whsize_by_system` guesses by class pair, and pairs no regular hole
+links stay `UNKNOWN`.
 
 The route-table `path_info` column surfaces the stored `sources` list as
 "Reported by: X, Y" so users can see which mappers contributed each hop.
@@ -87,6 +100,7 @@ Each mapper tool has its own implementation:
 
 - **Tripwire** (`tripwire.py`): Supports multiple instances with different URLs/credentials
 - **Eve Scout** (`evescout.py`): Public API for Thera connections
+- **Wanderer** (`wanderer.py`): Supports multiple instances, one map and API token each
 - **Template** (`mapper_template.py`): Guide for adding new mappers
 
 ## Supported Mappers
@@ -124,6 +138,41 @@ tripwire = Tripwire(
 evescout = EveScout(
     url="https://api.eve-scout.com/v2/public/signatures",
     name="Eve Scout Thera"
+)
+```
+
+### Wanderer
+
+**Status**: Supported with multiple instances; tested against mocked API responses, not yet against a live map
+
+**Configuration**:
+- URL: Wanderer instance URL (self-hosted or community instance)
+- Map slug: The map identifier from the map's URL
+- API token: Bearer token generated in Wanderer under Map Settings → Public Api → Generate
+- Name: Instance identifier (e.g., "Alliance Wanderer")
+
+In the persisted `MapperConfig`, the map slug is stored in the `user` slot
+and the API token in the `password` slot (the token is the secret, so it
+belongs in the slot the UI masks).
+
+**How it reads the map**: holes come from `GET /api/maps/:map/connections`
+(`type` 0 = wormhole), which includes holes Wanderer recorded from character
+jumps or that were drawn by hand, and drops a hole once its connection is
+deleted. `GET /api/maps/:map/signatures` adds the sig IDs on each side and the
+hole type where scanned. Life and mass use Wanderer's codes
+(`assets/js/hooks/Mapper/types/connection.ts`): `time_status` 1 (EOL 1h) and
+2 (EOL 4h) are end of life; `mass_status` 1 is less than half, 2 is critical.
+Hole size comes from the scanned hole type first, then `ship_size_type`
+(3 is the freighter tier, 4 capital; 2, Wanderer's default, counts as
+unknown), then the system pair.
+
+**Example**:
+```python
+wanderer = Wanderer(
+    url="https://wanderer.example.com",
+    map_slug="my-map",
+    token="generated-api-token",
+    name="Alliance Wanderer"
 )
 ```
 
@@ -336,13 +385,14 @@ Any format is acceptable (JSON, XML, etc.) as long as it can be parsed to extrac
 - **Clear interface**: `MapperSource` defines exactly what needs to be implemented
 - **Template available**: `mapper_template.py` provides a starting point
 - **Well-documented**: Extensive documentation and examples
-- **Tested pattern**: Tripwire and Eve Scout serve as reference implementations
+- **Tested pattern**: Tripwire, Eve Scout and Wanderer serve as reference implementations
 
 ## Testing
 
 When adding a new mapper, create unit tests following the pattern in:
 - `test_tripwire.py`: Tests for Tripwire implementation
 - `test_tripwire_gate.py`: Integration tests
+- `test_wanderer.py`: Tests for Wanderer implementation
 
 Example test structure:
 

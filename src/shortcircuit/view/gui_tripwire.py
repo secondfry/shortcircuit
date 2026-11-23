@@ -3,41 +3,47 @@
 ################################################################################
 ## Form generated from reading UI file 'gui_tripwire.ui'
 ##
-## Created by: Qt User Interface Compiler version 5.15.2
+## Created by: Qt User Interface Compiler version 6.11.2
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 
-from PySide2.QtCore import *
-from PySide2.QtGui import *
-from PySide2.QtWidgets import *
-
-from  . import resources_rc
+from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
+    QMetaObject, QObject, QPoint, QRect,
+    QSize, QTime, QUrl, Qt)
+from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
+    QFont, QFontDatabase, QGradient, QIcon,
+    QImage, QKeySequence, QLinearGradient, QPainter,
+    QPalette, QPixmap, QRadialGradient, QTransform)
+from PySide6.QtWidgets import (QAbstractButton, QApplication, QDialog, QDialogButtonBox,
+    QGridLayout, QLabel, QLineEdit, QSizePolicy,
+    QWidget)
+from . import resources_rc
 
 class Ui_TripwireDialog(object):
     def setupUi(self, TripwireDialog):
         if not TripwireDialog.objectName():
             TripwireDialog.setObjectName(u"TripwireDialog")
         TripwireDialog.resize(480, 420)
-        sizePolicy = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
+        sizePolicy = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(TripwireDialog.sizePolicy().hasHeightForWidth())
         TripwireDialog.setSizePolicy(sizePolicy)
         TripwireDialog.setMinimumSize(QSize(480, 420))
         font = QFont()
-        font.setFamily(u"Segoe UI")
+        font.setFamilies([u"Segoe UI"])
         font.setPointSize(9)
         TripwireDialog.setFont(font)
         icon = QIcon()
-        icon.addFile(u":/images/app_icon.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon.addFile(u":/images/app_icon.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
         TripwireDialog.setWindowIcon(icon)
         TripwireDialog.setSizeGripEnabled(False)
         self.gridLayout = QGridLayout(TripwireDialog)
         self.gridLayout.setObjectName(u"gridLayout")
         self.label_4 = QLabel(TripwireDialog)
         self.label_4.setObjectName(u"label_4")
-        sizePolicy1 = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
+        sizePolicy1 = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
         sizePolicy1.setHorizontalStretch(0)
         sizePolicy1.setVerticalStretch(0)
         sizePolicy1.setHeightForWidth(self.label_4.sizePolicy().hasHeightForWidth())
@@ -140,4 +146,3 @@ class Ui_TripwireDialog(object):
         self.lineEdit_proxy.setPlaceholderText(QCoreApplication.translate("TripwireDialog", u"Leave empty to disable", None))
         self.label_5.setText(QCoreApplication.translate("TripwireDialog", u"<html><head/><body><p><a href=\"https://tripwire.eve-apps.com/\"><span style=\" text-decoration: underline; color:#0000ff;\">Don't have a Tripwire account, yet?</span></a></p></body></html>", None))
     # retranslateUi
-

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Short Circuit (formerly Pathfinder) is a PySide2 desktop application that finds the shortest path between Eve Online solar systems, including wormhole connections fetched from third-party mappers (Tripwire, Eve Scout). Python 3.10, packaged with PyInstaller.
+Short Circuit (formerly Pathfinder) is a PySide6 desktop application that finds the shortest path between Eve Online solar systems, including wormhole connections fetched from third-party mappers (Tripwire, Eve Scout, Wanderer). Python 3.13, packaged with PyInstaller.
 
 ## Common Commands
 
@@ -26,7 +26,7 @@ Regenerate Qt UI and resource modules after editing files under `resources/ui/` 
 ```bash
 ./generate_gui.sh      # or generate_gui.bat on Windows
 ```
-This runs `pyside2-uic` / `pyside2-rcc` and writes to `src/shortcircuit/view/gui_*.py` and `resources_rc.py`. Do not edit those generated files by hand — edit the `.ui` / `.qrc` source and regenerate.
+This runs `pyside6-uic` / `pyside6-rcc` and writes to `src/shortcircuit/view/gui_*.py` and `resources_rc.py`. Do not edit those generated files by hand — edit the `.ui` / `.qrc` source and regenerate.
 
 Run tests (pytest, collocated with source under `src/shortcircuit/model/test_*.py`):
 ```bash
@@ -38,7 +38,7 @@ pipenv run pytest src/shortcircuit/model/test_tripwire.py::TestX   # single test
 Build standalone binaries:
 ```bash
 ./build_win_installer.bat   # Windows, PyInstaller --onefile
-./build_mac_installer.sh    # macOS
+./build_mac_installer.sh    # macOS; both read shortcircuit.spec, which prunes unused Qt pieces
 ```
 
 ## Architecture
@@ -54,7 +54,7 @@ The control flow from a button click to an updated solar map spans several modul
 3. `navigation.py` (`Navigation`) owns the `SolarMap`, calls `setup_mappers()` to read config from `app_obj` (the `MainWindow`), and delegates fetching to the registry.
 4. `mapper_registry.py` (`MapperRegistry`) iterates over registered `MapperSource` instances, calls `augment_map(solar_map)` on each, aggregates counts, and isolates failures so one broken mapper doesn't kill the others.
 5. `mapper_base.py` defines the abstract `MapperSource` interface: `augment_map`, `get_name`, `get_config`, `validate_config`. Every mapper implementation inherits from it.
-6. Concrete mappers (`tripwire.py`, `evescout.py`) authenticate if needed, fetch JSON, and call `solar_map.add_connection(...)` for each wormhole.
+6. Concrete mappers (`tripwire.py`, `evescout.py`, `wanderer.py`) authenticate if needed, fetch JSON, and call `solar_map.add_connection(...)` for each wormhole.
 7. `solarmap.py` (`SolarMap`) is the graph itself — holds systems/connections, runs Dijkstra with weights influenced by security prioritization, wormhole size/life/mass restrictions, and the avoidance list.
 
 The detailed flow and diagrams live in `docs/MODULE_ARCHITECTURE.md`; adding a new mapper is documented in `docs/MAPPER_MODULES.md`.
@@ -73,7 +73,7 @@ Eve SDE CSVs (`mapSolarSystems.csv`, `mapSolarSystemJumps.csv`, `mapLocationWorm
 
 ## Conventions
 
-- Python 3.10, 2-space indentation (see existing files).
+- Python 3.13, 2-space indentation (see existing files).
 - Qt-generated files under `view/` are regenerated artifacts — never edit directly.
 - Tests live next to the code they test (`test_*.py` in `src/shortcircuit/model/`), not in a separate top-level tests directory.
 - Known follow-ups and intentionally deferred work are tracked in `TODO.md` (connection deduplication, multi-instance mapper UI, parallel fetching, caching). Prefer aligning with what's listed there over introducing a parallel plan.

@@ -1,5 +1,29 @@
-from shortcircuit.model.evedb import EveDb, SpaceType, WormholeSize, WormholeMassspan, WormholeTimespan
-from shortcircuit.model.solarmap import ConnectionType, SolarMap
+import pytest
+
+from shortcircuit.model.evedb import KNOWN_WH_SIZES, EveDb, SpaceType, WormholeSize, WormholeMassspan, WormholeTimespan
+from shortcircuit.model.solarmap import GATE_CODE, ConnectionType, SolarMap
+
+ALL_SIZES = set(KNOWN_WH_SIZES)
+
+
+def _restrictions(blocked_sizes=(), **overrides):
+  """Route restrictions with nothing filtered, as the UI defaults; override per test."""
+  restrictions = {
+    "size_restriction": {size: size in blocked_sizes for size in ALL_SIZES},
+    "avoidance_list": [],
+    "security_prio": {
+      SpaceType.HS: 1,
+      SpaceType.LS: 1,
+      SpaceType.NS: 1,
+      SpaceType.WH: 1,
+    },
+    "ignore_eol": False,
+    "ignore_masscrit": False,
+    "age_threshold": float('inf'),
+  }
+  restrictions.update(overrides)
+  return restrictions
+
 
 # FIXME(secondfry): why is `shortest_path` unstable?
 # All tests here should have Jita as destination, not Ikuchi.
@@ -11,15 +35,7 @@ def test_dodixie_jita():
   path, _ = map.shortest_path(
     eve_db.name2id("Dodixie"),
     eve_db.name2id("Ikuchi"),
-    {
-      "avoidance_list": [],
-      "security_prio": {
-        SpaceType.HS: 1,
-        SpaceType.LS: 1,
-        SpaceType.NS: 1,
-        SpaceType.WH: 1,
-      }
-    },
+    _restrictions(),
   )
 
   named_path = [eve_db.id2name(x) for x in path]
@@ -45,17 +61,7 @@ def test_dodixie_jita_but_avoid_tama():
   path, _ = map.shortest_path(
     eve_db.name2id("Dodixie"),
     eve_db.name2id("Ikuchi"),
-    {
-      "avoidance_list": [
-        eve_db.name2id("Tama"),
-      ],
-      "security_prio": {
-        SpaceType.HS: 1,
-        SpaceType.LS: 1,
-        SpaceType.NS: 1,
-        SpaceType.WH: 1,
-      }
-    },
+    _restrictions(avoidance_list=[eve_db.name2id("Tama")]),
   )
 
   named_path = [eve_db.id2name(x) for x in path]
@@ -83,15 +89,12 @@ def test_dodixie_jita_but_avoid_hs():
   path, _ = map.shortest_path(
     eve_db.name2id("Dodixie"),
     eve_db.name2id("Sujarento"),
-    {
-      "avoidance_list": [],
-      "security_prio": {
-        SpaceType.HS: 100,
-        SpaceType.LS: 1,
-        SpaceType.NS: 1,
-        SpaceType.WH: 1,
-      }
-    },
+    _restrictions(security_prio={
+      SpaceType.HS: 100,
+      SpaceType.LS: 1,
+      SpaceType.NS: 1,
+      SpaceType.WH: 1,
+    }),
   )
 
   named_path = [eve_db.id2name(x) for x in path]
@@ -130,24 +133,7 @@ def test_wh_botane_ikuchi():
   path, _ = map.shortest_path(
     eve_db.name2id("Dodixie"),
     eve_db.name2id("Jita"),
-    {
-      "size_restriction": {
-        WormholeSize.SMALL: False,
-        WormholeSize.MEDIUM: False,
-        WormholeSize.LARGE: False,
-        WormholeSize.XLARGE: False,
-      },
-      "avoidance_list": [],
-      "security_prio": {
-        SpaceType.HS: 1,
-        SpaceType.LS: 1,
-        SpaceType.NS: 1,
-        SpaceType.WH: 1,
-      },
-      "ignore_eol": False,
-      "ignore_masscrit": False,
-      "age_threshold": float('inf'),
-    },
+    _restrictions(),
   )
 
   named_path = [eve_db.id2name(x) for x in path]
@@ -180,24 +166,7 @@ def test_wh_botane_ikuchi_but_medium():
   path, _ = map.shortest_path(
     eve_db.name2id("Dodixie"),
     eve_db.name2id("Ikuchi"),
-    {
-      "size_restriction": {
-        WormholeSize.SMALL: True,
-        WormholeSize.MEDIUM: False,
-        WormholeSize.LARGE: False,
-        WormholeSize.XLARGE: False,
-      },
-      "avoidance_list": [],
-      "security_prio": {
-        SpaceType.HS: 1,
-        SpaceType.LS: 1,
-        SpaceType.NS: 1,
-        SpaceType.WH: 1,
-      },
-      "ignore_eol": False,
-      "ignore_masscrit": False,
-      "age_threshold": float('inf'),
-    },
+    _restrictions({WormholeSize.SMALL}),
   )
 
   named_path = [eve_db.id2name(x) for x in path]
@@ -238,24 +207,7 @@ def test_wh_botane_ikuchi_but_not_eol():
   path, _ = map.shortest_path(
     eve_db.name2id("Dodixie"),
     eve_db.name2id("Ikuchi"),
-    {
-      "size_restriction": {
-        WormholeSize.SMALL: False,
-        WormholeSize.MEDIUM: False,
-        WormholeSize.LARGE: False,
-        WormholeSize.XLARGE: False,
-      },
-      "avoidance_list": [],
-      "security_prio": {
-        SpaceType.HS: 1,
-        SpaceType.LS: 1,
-        SpaceType.NS: 1,
-        SpaceType.WH: 1,
-      },
-      "ignore_eol": True,
-      "ignore_masscrit": False,
-      "age_threshold": float('inf'),
-    },
+    _restrictions(ignore_eol=True),
   )
 
   named_path = [eve_db.id2name(x) for x in path]
@@ -296,24 +248,7 @@ def test_wh_botane_ikuchi_but_not_crit():
   path, _ = map.shortest_path(
     eve_db.name2id("Dodixie"),
     eve_db.name2id("Ikuchi"),
-    {
-      "size_restriction": {
-        WormholeSize.SMALL: False,
-        WormholeSize.MEDIUM: False,
-        WormholeSize.LARGE: False,
-        WormholeSize.XLARGE: False,
-      },
-      "avoidance_list": [],
-      "security_prio": {
-        SpaceType.HS: 1,
-        SpaceType.LS: 1,
-        SpaceType.NS: 1,
-        SpaceType.WH: 1,
-      },
-      "ignore_eol": False,
-      "ignore_masscrit": True,
-      "age_threshold": float('inf'),
-    },
+    _restrictions(ignore_masscrit=True),
   )
 
   named_path = [eve_db.id2name(x) for x in path]
@@ -354,24 +289,7 @@ def test_wh_botane_ikuchi_but_not_stale():
   path, _ = map.shortest_path(
     eve_db.name2id("Dodixie"),
     eve_db.name2id("Ikuchi"),
-    {
-      "size_restriction": {
-        WormholeSize.SMALL: False,
-        WormholeSize.MEDIUM: False,
-        WormholeSize.LARGE: False,
-        WormholeSize.XLARGE: False,
-      },
-      "avoidance_list": [],
-      "security_prio": {
-        SpaceType.HS: 1,
-        SpaceType.LS: 1,
-        SpaceType.NS: 1,
-        SpaceType.WH: 1,
-      },
-      "ignore_eol": False,
-      "ignore_masscrit": False,
-      "age_threshold": 16,
-    },
+    _restrictions(age_threshold=16),
   )
 
   named_path = [eve_db.id2name(x) for x in path]
@@ -397,17 +315,7 @@ def test_jita_tama_but_avoid_tama():
   path, _ = map.shortest_path(
     eve_db.name2id("Ikuchi"),
     eve_db.name2id("Tama"),
-    {
-      "avoidance_list": [
-        eve_db.name2id("Tama"),
-      ],
-      "security_prio": {
-        SpaceType.HS: 1,
-        SpaceType.LS: 1,
-        SpaceType.NS: 1,
-        SpaceType.WH: 1,
-      },
-    },
+    _restrictions(avoidance_list=[eve_db.name2id("Tama")]),
   )
 
   named_path = [eve_db.id2name(x) for x in path]
@@ -465,24 +373,7 @@ def test_zarzakh_avoided_as_transit():
   path, _ = map.shortest_path(
     eve_db.name2id("Jita"),
     eve_db.name2id("Dodixie"),
-    {
-      "size_restriction": {
-        WormholeSize.SMALL: False,
-        WormholeSize.MEDIUM: False,
-        WormholeSize.LARGE: False,
-        WormholeSize.XLARGE: False,
-      },
-      "avoidance_list": [],
-      "security_prio": {
-        SpaceType.HS: 1,
-        SpaceType.LS: 1,
-        SpaceType.NS: 1,
-        SpaceType.WH: 1,
-      },
-      "ignore_eol": False,
-      "ignore_masscrit": False,
-      "age_threshold": float('inf'),
-    },
+    _restrictions(),
   )
 
   named_path = [eve_db.id2name(x) for x in path]
@@ -521,24 +412,7 @@ def test_zarzakh_as_destination():
   path, _ = map.shortest_path(
     eve_db.name2id("Ikuchi"),
     eve_db.name2id("Zarzakh"),
-    {
-      "size_restriction": {
-        WormholeSize.SMALL: False,
-        WormholeSize.MEDIUM: False,
-        WormholeSize.LARGE: False,
-        WormholeSize.XLARGE: False,
-      },
-      "avoidance_list": [],
-      "security_prio": {
-        SpaceType.HS: 1,
-        SpaceType.LS: 1,
-        SpaceType.NS: 1,
-        SpaceType.WH: 1,
-      },
-      "ignore_eol": False,
-      "ignore_masscrit": False,
-      "age_threshold": float('inf'),
-    },
+    _restrictions(),
   )
 
   named_path = [eve_db.id2name(x) for x in path]
@@ -577,24 +451,7 @@ def test_zarzakh_as_source():
   path, _ = map.shortest_path(
     eve_db.name2id("Zarzakh"),
     eve_db.name2id("Perimeter"),
-    {
-      "size_restriction": {
-        WormholeSize.SMALL: False,
-        WormholeSize.MEDIUM: False,
-        WormholeSize.LARGE: False,
-        WormholeSize.XLARGE: False,
-      },
-      "avoidance_list": [],
-      "security_prio": {
-        SpaceType.HS: 1,
-        SpaceType.LS: 1,
-        SpaceType.NS: 1,
-        SpaceType.WH: 1,
-      },
-      "ignore_eol": False,
-      "ignore_masscrit": False,
-      "age_threshold": float('inf'),
-    },
+    _restrictions(),
   )
 
   named_path = [eve_db.id2name(x) for x in path]
@@ -604,12 +461,12 @@ def test_zarzakh_as_source():
 
 def _wormhole_payload(sig_in="ABC-123", sig_out="DEF-456", time_elapsed=1.0,
                       wh_size=WormholeSize.LARGE, wh_life=WormholeTimespan.STABLE,
-                      wh_mass=WormholeMassspan.STABLE):
+                      wh_mass=WormholeMassspan.STABLE, code=None):
   return [
     sig_in,
-    None,
+    code,
     sig_out,
-    None,
+    code,
     wh_size,
     wh_life,
     wh_mass,
@@ -818,24 +675,7 @@ def test_dijkstra_picks_traversable_parallel_edge():
   path, edges = map.shortest_path(
     eve_db.name2id("Dodixie"),
     eve_db.name2id("Jita"),
-    {
-      "size_restriction": {
-        WormholeSize.SMALL: True,
-        WormholeSize.MEDIUM: False,
-        WormholeSize.LARGE: False,
-        WormholeSize.XLARGE: False,
-      },
-      "avoidance_list": [],
-      "security_prio": {
-        SpaceType.HS: 1,
-        SpaceType.LS: 1,
-        SpaceType.NS: 1,
-        SpaceType.WH: 1,
-      },
-      "ignore_eol": False,
-      "ignore_masscrit": False,
-      "age_threshold": float('inf'),
-    },
+    _restrictions({WormholeSize.SMALL}),
   )
 
   named_path = [eve_db.id2name(x) for x in path]
@@ -872,3 +712,89 @@ class caplog_context:
     import logging
     logging.getLogger().removeHandler(self._handler)
     return False
+
+
+def test_connection_to_system_missing_from_sde_is_skipped():
+  eve_db = EveDb()
+  map = SolarMap(eve_db)
+  missing = 1
+  botane = eve_db.name2id("Botane")
+  jita = eve_db.name2id("Jita")
+  # A two-hole shortcut through an unknown system would win if it were added.
+  assert not map.add_connection(botane, missing, ConnectionType.WORMHOLE, _wormhole_payload())
+  assert not map.add_connection(missing, jita, ConnectionType.WORMHOLE, _wormhole_payload())
+
+  assert map.get_system(missing) is None
+  path, _ = map.shortest_path(
+    eve_db.name2id("Dodixie"),
+    jita,
+    _restrictions(),
+  )
+  assert path[0] == eve_db.name2id("Dodixie")
+  assert path[-1] == jita
+  assert missing not in path
+
+
+def test_connection_to_abyssal_system_is_skipped():
+  # In the SDE, but system_type would raise on it during routing.
+  eve_db = EveDb()
+  map = SolarMap(eve_db)
+  abyssal = 32000001
+  assert not map.add_connection(eve_db.name2id("Botane"), abyssal, ConnectionType.WORMHOLE, _wormhole_payload())
+  assert map.get_system(abyssal) is None
+
+
+def test_unknown_connection_type_raises():
+  eve_db = EveDb()
+  map = SolarMap(eve_db)
+  with pytest.raises(ValueError):
+    map.add_connection(eve_db.name2id("Botane"), eve_db.name2id("Jita"), "bridge")
+
+
+def _stored_size(a, b, size):
+  eve_db = EveDb()
+  map = SolarMap(eve_db)
+  src, dst = eve_db.name2id(a), eve_db.name2id(b)
+  map.add_connection(src, dst, ConnectionType.WORMHOLE, _wormhole_payload(wh_size=size))
+  [(_, con_info)] = _wormhole_edges(map, src, dst)
+  return con_info[2]
+
+
+def test_add_connection_keeps_xlarge_into_highsec_and_thera():
+  # Freighters fit these 1,000,000,000 kg holes; the pilot's size choice filters capitals.
+  assert _stored_size("J152820", "Jita", WormholeSize.XLARGE) == WormholeSize.XLARGE
+  assert _stored_size("HED-GP", "Thera", WormholeSize.XLARGE) == WormholeSize.XLARGE
+
+
+def _route_over_unknown_size_hole(code, blocked_sizes):
+  eve_db = EveDb()
+  map = SolarMap(eve_db)
+  map.add_connection(
+    eve_db.name2id("Botane"),
+    eve_db.name2id("Ikuchi"),
+    ConnectionType.WORMHOLE,
+    _wormhole_payload(code=code, wh_size=WormholeSize.UNKNOWN),
+  )
+  path, _ = map.shortest_path(
+    eve_db.name2id("Dodixie"),
+    eve_db.name2id("Jita"),
+    _restrictions(blocked_sizes),
+  )
+  return [eve_db.id2name(x) for x in path]
+
+
+def test_ignore_wormholes_blocks_unknown_size_hole():
+  path = _route_over_unknown_size_hole(None, ALL_SIZES)
+  assert path[-1] == 'Jita'
+  assert ('Botane', 'Ikuchi') not in zip(path, path[1:])
+
+
+def test_unknown_size_hole_allowed_when_any_size_allowed():
+  # "X-Large (capital)" setting: only CAPITAL is allowed.
+  blocked = ALL_SIZES - {WormholeSize.CAPITAL}
+  assert _route_over_unknown_size_hole(None, blocked) == ['Dodixie', 'Botane', 'Ikuchi', 'Jita']
+
+
+def test_ignore_wormholes_keeps_tripwire_gate_edge():
+  # Tripwire stores stargates as size-less WORMHOLE edges coded GATE.
+  assert _route_over_unknown_size_hole(GATE_CODE, ALL_SIZES) == ['Dodixie', 'Botane', 'Ikuchi', 'Jita']

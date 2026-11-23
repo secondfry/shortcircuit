@@ -1,6 +1,6 @@
 # evescout.py
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Dict, Optional
 
 import requests
@@ -10,6 +10,15 @@ from .evedb import EveDb, WormholeSize, WormholeMassspan, WormholeTimespan
 from .logger import Logger
 from .mapper_base import MapperSource
 from .solarmap import ConnectionType, SolarMap
+
+# Eve Scout's `max_ship_size`.
+MAX_SHIP_SIZE_TO_WH_SIZE = {
+  'small': WormholeSize.SMALL,
+  'medium': WormholeSize.MEDIUM,
+  'large': WormholeSize.LARGE,
+  'xlarge': WormholeSize.XLARGE,
+  'capital': WormholeSize.CAPITAL,
+}
 
 
 class EveScout(MapperSource):
@@ -55,8 +64,6 @@ class EveScout(MapperSource):
     connections = 0
     json_response = result.json()
     for connection in json_response:
-      connections += 1
-
       # Retrieve signature meta data
       source = connection['in_system_id']
       sig_source = connection['in_signature']
@@ -79,8 +86,8 @@ class EveScout(MapperSource):
       # Compute time elapsed from this moment to when the signature was updated
       last_modified = datetime.strptime(
         connection['updated_at'], "%Y-%m-%dT%H:%M:%S.000Z"
-      )
-      delta = datetime.utcnow() - last_modified
+      ).replace(tzinfo=UTC)
+      delta = datetime.now(UTC) - last_modified
       time_elapsed = round(delta.total_seconds() / 3600.0, 1)
 
       if source != 0 and dest != 0:
@@ -91,11 +98,13 @@ class EveScout(MapperSource):
           wh_size = size_result1
         elif WormholeSize.valid(size_result2):
           wh_size = size_result2
+        elif connection.get('max_ship_size') in MAX_SHIP_SIZE_TO_WH_SIZE:
+          wh_size = MAX_SHIP_SIZE_TO_WH_SIZE[connection['max_ship_size']]
         else:
           # Wormhole codes are unknown => determine size based on class of wormholes
           wh_size = self.eve_db.get_whsize_by_system(source, dest)
 
-        solar_map.add_connection(
+        if solar_map.add_connection(
           source,
           dest,
           ConnectionType.WORMHOLE,
@@ -110,7 +119,8 @@ class EveScout(MapperSource):
             time_elapsed,
           ],
           source_name=self.name,
-        )
+        ):
+          connections += 1
 
     return connections
 
