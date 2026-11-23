@@ -27,8 +27,11 @@ def get_csv_reader(filename: str):
 class WormholeSize(int, Enum):
   """Hole tiers by CCP's max jump mass (SDE attribute 1385).
 
-  XLARGE is the 1,000,000,000 kg tier: freighters fit, capitals don't. Every
-  such hole touches high-sec or Thera. CAPITAL is the 2,000,000,000 kg tier.
+  XLARGE is the 1,000,000,000 kg tier, for freighters, jump freighters and the
+  Bowhead. Every such hole touches high-sec or Thera, which capitals can't
+  enter. CAPITAL is the 2,000,000,000 kg tier, for capitals; the Rorqual
+  (0.8B kg) fits XLARGE holes by mass but is barred from high-sec and Thera,
+  so it belongs here too.
   """
   UNKNOWN = 0
   SMALL = 1
