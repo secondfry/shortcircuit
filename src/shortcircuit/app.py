@@ -4,7 +4,7 @@ from enum import Enum
 import json
 import sys
 from functools import partial
-from typing import Dict, List, Optional, TypedDict, Union
+from typing import Dict, List, Optional, Tuple, TypedDict, Union
 
 from PySide6 import QtCore, QtGui, QtWidgets
 
@@ -427,8 +427,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     self.mapper_configs: List[MapperConfig] = []
     self.mapper_states: Dict[str, StateMapper] = {}
     self.appearance: str = "system"
-    self._label_states: Dict[QtWidgets.QLabel, tuple] = {}
-    self._light_priority_sheets = {
+    self._label_states: Dict[QtWidgets.QLabel, Tuple[str, MessageType]] = {}
+    self._light_priority_sheets: Dict[str, str] = {
       name: getattr(self, name).styleSheet()
       for name in DARK_PRIORITY_BACKGROUNDS
     }
@@ -611,7 +611,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
   def _is_dark() -> bool:
     # Judge by what is drawn: some styles (windowsvista, Windows 10's
     # default) report a Dark scheme yet keep a light palette.
-    window = QtGui.QGuiApplication.palette().color(QtGui.QPalette.ColorRole.Window)
+    palette = QtGui.QGuiApplication.palette()
+    window = palette.color(QtGui.QPalette.ColorRole.Window)
     return window.lightness() < 128
 
   def _apply_scheme_colors(self):

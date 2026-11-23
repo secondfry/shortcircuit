@@ -74,23 +74,31 @@ def test_choosing_system_hands_scheme_back_to_os(window):
   assert window.requested[-1] == QtCore.Qt.ColorScheme.Unknown
 
 
-def _switch_palette(qapp, win, window_colour):
-  # What a scheme switch does on a real platform: new application palette,
-  # then PaletteChange to the window (offscreen setPalette skips the latter
-  # once child stylesheets exist).
+def _switch_palette(qapp, window_colour):
+  # A scheme switch gives a new application palette; its PaletteChange is
+  # posted to the window, so let it arrive.
   qapp.setPalette(_palette(window_colour))
-  qapp.sendEvent(win, QtCore.QEvent(QtCore.QEvent.Type.PaletteChange))
+  qapp.processEvents()
 
 
 def test_dark_palette_darkens_and_light_restores_the_ui_file_background(window, qapp):
-  _switch_palette(qapp, window, DARK)
+  _switch_palette(qapp, DARK)
   assert '#2d4a33' in window.spinBox_prio_hs.styleSheet()
-  _switch_palette(qapp, window, LIGHT)
+  _switch_palette(qapp, LIGHT)
   assert window.spinBox_prio_hs.styleSheet() == LIGHT_HS_SHEET
 
 
 def test_dark_request_kept_light_by_the_style_stays_light(window, monkeypatch):
-  # windowsvista (Windows 10's default) reports Dark but draws light.
+  # windowsvista (Windows 10's default) reports the Dark request from
+  # colorScheme() but keeps drawing a light palette.
   monkeypatch.setattr(QtGui.QStyleHints, 'colorScheme', lambda _: window.requested[-1])
   _choose(window, 'dark')
   assert window.spinBox_prio_hs.styleSheet() == LIGHT_HS_SHEET
+
+
+def test_dark_palette_at_start_up_applies_without_a_palette_event(window, qapp):
+  # Under System on a dark OS the palette is already dark at start-up, so no
+  # PaletteChange comes; set_appearance must apply the colours itself.
+  qapp.setPalette(_palette(DARK))
+  window.set_appearance('system')
+  assert '#2d4a33' in window.spinBox_prio_hs.styleSheet()
