@@ -284,10 +284,15 @@ class EveDb(metaclass=Singleton):
   Eve Database Handler
   """
 
-  # Largest ship a hole between two system classes takes, per EVE University
-  # Wormhole_attributes. "kspace" is low/null-sec: high-sec differs on C6
-  # (B041/B520 are 375,000 t) and Pochven holes are at most Large. The Thera
-  # (C12) rows are not checked against EVE University; see TODO.md.
+  # Size of the regular (non-frigate) holes between two system classes, per
+  # EVE University Wormhole_attributes; where those differ, the smallest.
+  # Frigate holes are ignored: they can appear almost anywhere and would make
+  # every w-space pair Small. "kspace" is low/null-sec: high-sec differs on C6
+  # (B041/B520 are 375,000 t). Pochven holes are Large, and Medium between two
+  # Pochven systems (I078/L687/O546), though C729 can also link two of them.
+  # Not modelled: per-system holes, e.g. Turnur (low-sec) gets J377, a
+  # 62,000 t hole from C2-C4, so kspace<->C2-C4 stays Large. The Thera (C12)
+  # rows are not checked against EVE University; see TODO.md.
   SIZE_MATRIX: Dict[str, Dict[str, WormholeSize]] = {
     "kspace": {
       "kspace": WormholeSize.XLARGE,
