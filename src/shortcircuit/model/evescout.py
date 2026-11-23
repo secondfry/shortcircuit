@@ -11,6 +11,15 @@ from .logger import Logger
 from .mapper_base import MapperSource
 from .solarmap import ConnectionType, SolarMap
 
+# Eve Scout's `max_ship_size`; capitals map to X-Large like Wanderer's.
+MAX_SHIP_SIZE_TO_WH_SIZE = {
+  'small': WormholeSize.SMALL,
+  'medium': WormholeSize.MEDIUM,
+  'large': WormholeSize.LARGE,
+  'xlarge': WormholeSize.XLARGE,
+  'capital': WormholeSize.XLARGE,
+}
+
 
 class EveScout(MapperSource):
   """
@@ -89,6 +98,8 @@ class EveScout(MapperSource):
           wh_size = size_result1
         elif WormholeSize.valid(size_result2):
           wh_size = size_result2
+        elif connection.get('max_ship_size') in MAX_SHIP_SIZE_TO_WH_SIZE:
+          wh_size = MAX_SHIP_SIZE_TO_WH_SIZE[connection['max_ship_size']]
         else:
           # Wormhole codes are unknown => determine size based on class of wormholes
           wh_size = self.eve_db.get_whsize_by_system(source, dest)
