@@ -49,6 +49,28 @@ MAPPER_TYPE_LABELS = {
   TYPE_WANDERER: "Wanderer",
 }
 
+# Splitting X-Large into freighter and capital entries moved "[Ignore
+# wormholes]" from index 4 to 5; indexes saved before that sit under the old key.
+WHSIZE_KEY = "restrictions_whsize_v2"
+LEGACY_WHSIZE_KEY = "restrictions_whsize"
+LEGACY_IGNORE_WORMHOLES_INDEX = 4
+
+
+def read_whsize_index(settings: QtCore.QSettings) -> int:
+  if settings.contains(WHSIZE_KEY):
+    return int(settings.value(WHSIZE_KEY))
+  index = int(settings.value(LEGACY_WHSIZE_KEY, "0"))
+  if index == LEGACY_IGNORE_WORMHOLES_INDEX:
+    return index + 1
+  return index
+
+
+def size_restriction_for_index(combo_index: int) -> Dict[WormholeSize, bool]:
+  """Block every size below the "Wormhole size at least" choice; the last
+  entry, "[Ignore wormholes]", blocks them all."""
+  sizes = [size for size in WormholeSize if WormholeSize.valid(size)]
+  return {size: i < combo_index for i, size in enumerate(sizes)}
+
 
 class TripwireDialog(QtWidgets.QDialog, Ui_TripwireDialog):
   """
@@ -573,9 +595,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self._avoid_entity_name(entity)
 
     # Restrictions
-    self.comboBox_size.setCurrentIndex(
-      int(self.settings.value("restrictions_whsize", "0"))
-    )
+    self.comboBox_size.setCurrentIndex(read_whsize_index(self.settings))
     self.checkBox_eol.setChecked(
       self.settings.value("restriction_eol", "false") == "true"
     )
@@ -630,9 +650,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     self.settings.setValue("avoidance_list", avoidance_list_string)
 
     # Restrictions
-    self.settings.setValue(
-      "restrictions_whsize", self.comboBox_size.currentIndex()
-    )
+    self.settings.setValue(WHSIZE_KEY, self.comboBox_size.currentIndex())
+    self.settings.remove(LEGACY_WHSIZE_KEY)
     self.settings.setValue("restriction_eol", self.checkBox_eol.isChecked())
     self.settings.setValue(
       "restriction_masscrit", self.checkBox_masscrit.isChecked()
@@ -763,26 +782,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
     self.tableWidget_path.resizeRowsToContents()
 
-  def get_restrictions_size(self) -> Dict[WormholeSize, bool]:
-    size_restriction = {
-      WormholeSize.SMALL: True,
-      WormholeSize.MEDIUM: True,
-      WormholeSize.LARGE: True,
-      WormholeSize.XLARGE: True,
-    }
-
-    combo_index = self.comboBox_size.currentIndex()
-    if combo_index < 1:
-      size_restriction[WormholeSize.SMALL] = False
-    if combo_index < 2:
-      size_restriction[WormholeSize.MEDIUM] = False
-    if combo_index < 3:
-      size_restriction[WormholeSize.LARGE] = False
-    if combo_index < 4:
-      size_restriction[WormholeSize.XLARGE] = False
-
-    return size_restriction
-
   def get_restrictions_age(self) -> float:
     age_threshold = float('inf')
 
@@ -829,7 +828,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     return res
 
   def get_restrictions(self) -> Restrictions:
-    size_restriction = self.get_restrictions_size()
+    size_restriction = size_restriction_for_index(self.comboBox_size.currentIndex())
     ignore_eol = self.checkBox_eol.isChecked()
     ignore_masscrit = self.checkBox_masscrit.isChecked()
     age_threshold = self.get_restrictions_age()

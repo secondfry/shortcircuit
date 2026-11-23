@@ -3,7 +3,7 @@ import pytest
 from shortcircuit.model.evedb import EveDb, SpaceType, WormholeSize, WormholeMassspan, WormholeTimespan
 from shortcircuit.model.solarmap import ConnectionType, SolarMap
 
-ALL_SIZES = {WormholeSize.SMALL, WormholeSize.MEDIUM, WormholeSize.LARGE, WormholeSize.XLARGE}
+ALL_SIZES = {size for size in WormholeSize if WormholeSize.valid(size)}
 
 
 def _restrictions(blocked_sizes=(), **overrides):
@@ -791,10 +791,10 @@ def _stored_size(a, b, size):
   return con_info[2]
 
 
-def test_add_connection_caps_xlarge_into_highsec_and_thera():
-  assert _stored_size("J152820", "Jita", WormholeSize.XLARGE) == WormholeSize.LARGE
-  assert _stored_size("HED-GP", "Thera", WormholeSize.XLARGE) == WormholeSize.LARGE
-  assert _stored_size("J152820", "HED-GP", WormholeSize.XLARGE) == WormholeSize.XLARGE
+def test_add_connection_keeps_xlarge_into_highsec_and_thera():
+  # Freighters fit these 1,000,000,000 kg holes; the pilot's size choice filters capitals.
+  assert _stored_size("J152820", "Jita", WormholeSize.XLARGE) == WormholeSize.XLARGE
+  assert _stored_size("HED-GP", "Thera", WormholeSize.XLARGE) == WormholeSize.XLARGE
 
 
 def _route_over_unknown_size_hole(code, blocked_sizes):
@@ -820,8 +820,8 @@ def test_ignore_wormholes_blocks_unknown_size_hole():
 
 
 def test_unknown_size_hole_allowed_when_any_size_allowed():
-  # "X-Large" setting: only XLARGE is allowed.
-  blocked = ALL_SIZES - {WormholeSize.XLARGE}
+  # "X-Large (capital)" setting: only CAPITAL is allowed.
+  blocked = ALL_SIZES - {WormholeSize.CAPITAL}
   assert _route_over_unknown_size_hole(None, blocked) == ['Dodixie', 'Botane', 'Ikuchi', 'Jita']
 
 

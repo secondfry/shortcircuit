@@ -10,8 +10,7 @@
 
 ### Wormhole Size Data
 
-- Thera rows in `EveDb.SIZE_MATRIX` (C12) were left as they were and don't match EVE University: Thera↔high-sec holes (Q063, T458) are 62,000 t (Medium) while the table says Large; Thera↔null-sec are 1,000,000 t.
-- Capital bans belong in routing: see the shortcut at `EveDb.cap_whsize_for_capital_bans`.
+- Capitals can't take stargates into high-sec either; the "X-Large (capital)" size choice only filters holes, so routing for capital pilots should also avoid high-sec gates.
 - Per-system hole sizes aren't modelled: the class guess takes the smallest regular hole per class pair (low-sec↔C1–C6 is Medium because of J492), so it under-sizes larger holes in those pairs; Turnur's J377 isn't tracked separately.
 - **Undecided:** whether Wanderer's connection `wormhole_type` should be accepted when Short Circuit doesn't recognise the code (the API's example value is "C2", a class, not a hole type) or only known hole codes.
 

@@ -11,13 +11,13 @@ from .logger import Logger
 from .mapper_base import MapperSource
 from .solarmap import ConnectionType, SolarMap
 
-# Eve Scout's `max_ship_size`; capitals map to X-Large like Wanderer's.
+# Eve Scout's `max_ship_size`.
 MAX_SHIP_SIZE_TO_WH_SIZE = {
   'small': WormholeSize.SMALL,
   'medium': WormholeSize.MEDIUM,
   'large': WormholeSize.LARGE,
   'xlarge': WormholeSize.XLARGE,
-  'capital': WormholeSize.XLARGE,
+  'capital': WormholeSize.CAPITAL,
 }
 
 

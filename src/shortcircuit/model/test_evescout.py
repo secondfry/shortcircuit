@@ -9,7 +9,7 @@ from shortcircuit.model.solarmap import ConnectionType, SolarMap
 
 
 def _size(wh_type, source='Thera', dest='Jita', **extra):
-  """Size of the hole as stored in a SolarMap, i.e. after any capital-ban cap."""
+  """Size of the hole as stored in a SolarMap."""
   eve_db = EveDb()
   source_id, dest_id = eve_db.name2id(source), eve_db.name2id(dest)
   connection = {
@@ -38,21 +38,16 @@ def test_unknown_code_uses_max_ship_size():
   assert _size('XXXX', max_ship_size='medium') == WormholeSize.MEDIUM
 
 
-def test_xlarge_into_thera_is_capped_at_large():
-  # Capped whatever Eve Scout reports; see EveDb.cap_whsize_for_capital_bans.
-  assert _size('XXXX', max_ship_size='xlarge') == WormholeSize.LARGE
-  assert _size('XXXX', max_ship_size='capital') == WormholeSize.LARGE
-
-
-def test_xlarge_between_capital_accessible_systems_is_kept():
-  # Turnur (low-sec) to null-sec: not capped.
-  assert _size('XXXX', 'Turnur', 'HED-GP', max_ship_size='xlarge') == WormholeSize.XLARGE
-  assert _size('XXXX', 'Turnur', 'HED-GP', max_ship_size='capital') == WormholeSize.XLARGE
+def test_xlarge_is_freighter_tier_and_capital_is_capital_tier():
+  # Eve Scout reports 1,000,000,000 kg holes (V898) as xlarge and 2,000,000,000 kg (N944) as capital.
+  assert _size('XXXX', max_ship_size='xlarge') == WormholeSize.XLARGE
+  assert _size('XXXX', 'Turnur', 'HED-GP', max_ship_size='capital') == WormholeSize.CAPITAL
 
 
 def test_unknown_max_ship_size_falls_back_to_system_pair():
-  assert _size('XXXX', max_ship_size='huge') == WormholeSize.LARGE
-  assert _size('XXXX') == WormholeSize.LARGE
+  # Thera to Jita: no code or known max_ship_size, so the class pair's Medium.
+  assert _size('XXXX', max_ship_size='huge') == WormholeSize.MEDIUM
+  assert _size('XXXX') == WormholeSize.MEDIUM
 
 
 def test_hole_code_beats_max_ship_size():

@@ -357,7 +357,12 @@
               </item>
               <item>
                <property name="text">
-                <string>X-Large</string>
+                <string>X-Large (freighter)</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>X-Large (capital)</string>
                </property>
               </item>
               <item>

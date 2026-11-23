@@ -25,11 +25,17 @@ def get_csv_reader(filename: str):
 
 
 class WormholeSize(int, Enum):
+  """Hole tiers by CCP's max jump mass (SDE attribute 1385).
+
+  XLARGE is the 1,000,000,000 kg tier: freighters fit, capitals don't. Every
+  such hole touches high-sec or Thera. CAPITAL is the 2,000,000,000 kg tier.
+  """
   UNKNOWN = 0
   SMALL = 1
   MEDIUM = 2
   LARGE = 3
   XLARGE = 4
+  CAPITAL = 5
 
   @staticmethod
   def valid(value):
@@ -38,6 +44,7 @@ class WormholeSize(int, Enum):
       WormholeSize.MEDIUM,
       WormholeSize.LARGE,
       WormholeSize.XLARGE,
+      WormholeSize.CAPITAL,
     ]
 
 
@@ -291,13 +298,16 @@ class EveDb(metaclass=Singleton):
   # is Medium because J492, a 62,000 t hole, links C1-C6 to low-sec. Pochven
   # holes are Large, and Medium between two Pochven systems (I078/L687/O546),
   # though C729 can also link two of them.
-  # Not modelled: per-system holes, e.g. Turnur (low-sec) gets J377. The Thera
-  # (C12) rows are unchecked; see TODO.md. Capital bans are not encoded here:
-  # see cap_whsize_for_capital_bans.
+  # Null-sec<->C3/C5/C6 is Medium: Tripwire and Wanderer list O883/L614/S804 as
+  # spawning in null-sec, though EVE University and anoik.is say only in C1.
+  # A pair whose smallest regular hole is a 2,000,000,000 kg one is CAPITAL.
+  # Absent pairs have no regular hole, so their size is unknown; Pochven ones
+  # may still get O753/R327, whose spawn classes are unknown.
+  # Not modelled: per-system holes, e.g. Turnur (low-sec) gets J377.
   SIZE_MATRIX: Dict[str, Dict[str, WormholeSize]] = {
     "lowsec": {
-      "lowsec": WormholeSize.XLARGE,
-      "nullsec": WormholeSize.XLARGE,
+      "lowsec": WormholeSize.CAPITAL,
+      "nullsec": WormholeSize.CAPITAL,
       "highsec": WormholeSize.XLARGE,
       "pochven": WormholeSize.LARGE,
       "C1": WormholeSize.MEDIUM,
@@ -306,22 +316,21 @@ class EveDb(metaclass=Singleton):
       "C4": WormholeSize.MEDIUM,
       "C5": WormholeSize.MEDIUM,
       "C6": WormholeSize.MEDIUM,
-      "C12": WormholeSize.LARGE,
-      "C13": WormholeSize.SMALL,
+      "C12": WormholeSize.XLARGE,
       "drifter": WormholeSize.LARGE,
     },
     "nullsec": {
-      "lowsec": WormholeSize.XLARGE,
-      "nullsec": WormholeSize.XLARGE,
+      "lowsec": WormholeSize.CAPITAL,
+      "nullsec": WormholeSize.CAPITAL,
       "highsec": WormholeSize.XLARGE,
       "pochven": WormholeSize.LARGE,
       "C1": WormholeSize.MEDIUM,
       "C2": WormholeSize.LARGE,
-      "C3": WormholeSize.LARGE,
+      "C3": WormholeSize.MEDIUM,
       "C4": WormholeSize.LARGE,
-      "C5": WormholeSize.XLARGE,
-      "C6": WormholeSize.XLARGE,
-      "C12": WormholeSize.LARGE,
+      "C5": WormholeSize.MEDIUM,
+      "C6": WormholeSize.MEDIUM,
+      "C12": WormholeSize.XLARGE,
       "C13": WormholeSize.SMALL,
       "drifter": WormholeSize.LARGE,
     },
@@ -336,8 +345,7 @@ class EveDb(metaclass=Singleton):
       "C4": WormholeSize.LARGE,
       "C5": WormholeSize.XLARGE,
       "C6": WormholeSize.XLARGE,
-      "C12": WormholeSize.LARGE,
-      "C13": WormholeSize.SMALL,
+      "C12": WormholeSize.MEDIUM,
       "drifter": WormholeSize.LARGE,
     },
     "pochven": {
@@ -345,21 +353,16 @@ class EveDb(metaclass=Singleton):
       "nullsec": WormholeSize.LARGE,
       "highsec": WormholeSize.LARGE,
       "pochven": WormholeSize.MEDIUM,
-      "C1": WormholeSize.MEDIUM,
       "C2": WormholeSize.LARGE,
       "C3": WormholeSize.LARGE,
       "C4": WormholeSize.LARGE,
       "C5": WormholeSize.LARGE,
       "C6": WormholeSize.LARGE,
-      "C12": WormholeSize.LARGE,
-      "C13": WormholeSize.SMALL,
-      "drifter": WormholeSize.LARGE,
     },
     "C1": {
       "lowsec": WormholeSize.MEDIUM,
       "nullsec": WormholeSize.MEDIUM,
       "highsec": WormholeSize.MEDIUM,
-      "pochven": WormholeSize.MEDIUM,
       "C1": WormholeSize.MEDIUM,
       "C2": WormholeSize.MEDIUM,
       "C3": WormholeSize.MEDIUM,
@@ -387,7 +390,7 @@ class EveDb(metaclass=Singleton):
     },
     "C3": {
       "lowsec": WormholeSize.MEDIUM,
-      "nullsec": WormholeSize.LARGE,
+      "nullsec": WormholeSize.MEDIUM,
       "highsec": WormholeSize.LARGE,
       "pochven": WormholeSize.LARGE,
       "C1": WormholeSize.MEDIUM,
@@ -417,54 +420,48 @@ class EveDb(metaclass=Singleton):
     },
     "C5": {
       "lowsec": WormholeSize.MEDIUM,
-      "nullsec": WormholeSize.XLARGE,
+      "nullsec": WormholeSize.MEDIUM,
       "highsec": WormholeSize.XLARGE,
       "pochven": WormholeSize.LARGE,
       "C1": WormholeSize.MEDIUM,
       "C2": WormholeSize.LARGE,
       "C3": WormholeSize.LARGE,
       "C4": WormholeSize.LARGE,
-      "C5": WormholeSize.XLARGE,
-      "C6": WormholeSize.XLARGE,
+      "C5": WormholeSize.CAPITAL,
+      "C6": WormholeSize.CAPITAL,
       "C12": WormholeSize.LARGE,
       "C13": WormholeSize.SMALL,
       "drifter": WormholeSize.LARGE,
     },
     "C6": {
       "lowsec": WormholeSize.MEDIUM,
-      "nullsec": WormholeSize.XLARGE,
+      "nullsec": WormholeSize.MEDIUM,
       "highsec": WormholeSize.XLARGE,
       "pochven": WormholeSize.LARGE,
       "C1": WormholeSize.MEDIUM,
       "C2": WormholeSize.LARGE,
       "C3": WormholeSize.LARGE,
       "C4": WormholeSize.LARGE,
-      "C5": WormholeSize.XLARGE,
-      "C6": WormholeSize.XLARGE,
+      "C5": WormholeSize.CAPITAL,
+      "C6": WormholeSize.CAPITAL,
       "C12": WormholeSize.LARGE,
       "C13": WormholeSize.SMALL,
       "drifter": WormholeSize.LARGE,
     },
     "C12": {
-      "lowsec": WormholeSize.LARGE,
-      "nullsec": WormholeSize.LARGE,
-      "highsec": WormholeSize.LARGE,
-      "pochven": WormholeSize.LARGE,
+      "lowsec": WormholeSize.XLARGE,
+      "nullsec": WormholeSize.XLARGE,
+      "highsec": WormholeSize.MEDIUM,
       "C1": WormholeSize.MEDIUM,
       "C2": WormholeSize.LARGE,
       "C3": WormholeSize.LARGE,
       "C4": WormholeSize.LARGE,
       "C5": WormholeSize.LARGE,
       "C6": WormholeSize.LARGE,
-      "C12": WormholeSize.LARGE,
       "C13": WormholeSize.SMALL,
-      "drifter": WormholeSize.LARGE,
     },
     "C13": {
-      "lowsec": WormholeSize.SMALL,
       "nullsec": WormholeSize.SMALL,
-      "highsec": WormholeSize.SMALL,
-      "pochven": WormholeSize.SMALL,
       "C1": WormholeSize.SMALL,
       "C2": WormholeSize.SMALL,
       "C3": WormholeSize.SMALL,
@@ -473,29 +470,21 @@ class EveDb(metaclass=Singleton):
       "C6": WormholeSize.SMALL,
       "C12": WormholeSize.SMALL,
       "C13": WormholeSize.SMALL,
-      "drifter": WormholeSize.SMALL,
     },
     "drifter": {
       "lowsec": WormholeSize.LARGE,
       "nullsec": WormholeSize.LARGE,
       "highsec": WormholeSize.LARGE,
-      "pochven": WormholeSize.LARGE,
       "C1": WormholeSize.MEDIUM,
       "C2": WormholeSize.LARGE,
       "C3": WormholeSize.LARGE,
       "C4": WormholeSize.LARGE,
       "C5": WormholeSize.LARGE,
       "C6": WormholeSize.LARGE,
-      "C12": WormholeSize.LARGE,
-      "C13": WormholeSize.SMALL,
-      "drifter": WormholeSize.LARGE,
     }
   }
 
   ZARZAKH_SYSTEM_ID = 30100000
-
-  # get_class names that cap_whsize_for_capital_bans caps; see its shortcut.
-  CAPITAL_BANNED_CLASSES = {"highsec", "C12"}
 
   def __init__(self):
     filename_statics = 'statics.csv'
@@ -625,19 +614,6 @@ class EveDb(metaclass=Singleton):
     source_class = self.get_class(source_id)
     dest_class = self.get_class(dest_id)
     return EveDb.SIZE_MATRIX.get(source_class, {}).get(dest_class, WormholeSize.UNKNOWN)
-
-  def cap_whsize_for_capital_bans(
-    self, source_id: int, dest_id: int, size: WormholeSize
-  ) -> WormholeSize:
-    # shortcut: capitals can't enter highsec or Thera, so holes touching them
-    # are capped at LARGE here; upgrade when routing filters capitals by
-    # destination system.
-    if size != WormholeSize.XLARGE:
-      return size
-    classes = {self.get_class(source_id), self.get_class(dest_id)}
-    if not classes & EveDb.CAPITAL_BANNED_CLASSES:
-      return size
-    return WormholeSize.LARGE
 
   def system_name_list(self):
     return [x['name'] for x in self.system_desc.values()]

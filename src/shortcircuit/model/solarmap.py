@@ -164,7 +164,6 @@ class SolarMap:
       wh_mass,
       time_elapsed,
     ] = con_info
-    wh_size = self.eve_db.cap_whsize_for_capital_bans(src_sys.get_id(), dst_sys.get_id(), wh_size)
     new_sources = [source_name] if source_name else []
 
     match_idx = self._find_matching_wormhole(

@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'gui_main.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.11.2
+## Created by: Qt User Interface Compiler version 6.9.3
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -219,6 +219,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_4.addWidget(self.label_5)
 
         self.comboBox_size = QComboBox(self.groupBox_restrictions)
+        self.comboBox_size.addItem("")
         self.comboBox_size.addItem("")
         self.comboBox_size.addItem("")
         self.comboBox_size.addItem("")
@@ -512,8 +513,9 @@ class Ui_MainWindow(object):
         self.comboBox_size.setItemText(0, QCoreApplication.translate("MainWindow", u"Small [All]", None))
         self.comboBox_size.setItemText(1, QCoreApplication.translate("MainWindow", u"Medium", None))
         self.comboBox_size.setItemText(2, QCoreApplication.translate("MainWindow", u"Large", None))
-        self.comboBox_size.setItemText(3, QCoreApplication.translate("MainWindow", u"X-Large", None))
-        self.comboBox_size.setItemText(4, QCoreApplication.translate("MainWindow", u"[Ignore wormholes]", None))
+        self.comboBox_size.setItemText(3, QCoreApplication.translate("MainWindow", u"X-Large (freighter)", None))
+        self.comboBox_size.setItemText(4, QCoreApplication.translate("MainWindow", u"X-Large (capital)", None))
+        self.comboBox_size.setItemText(5, QCoreApplication.translate("MainWindow", u"[Ignore wormholes]", None))
 
         self.checkBox_eol.setText(QCoreApplication.translate("MainWindow", u"Ignore end of life wormholes", None))
         self.checkBox_masscrit.setText(QCoreApplication.translate("MainWindow", u"Ignore critical mass wormholes", None))
@@ -534,3 +536,4 @@ class Ui_MainWindow(object):
         self.pushButton_avoid_clear.setText(QCoreApplication.translate("MainWindow", u"Clear list", None))
         self.pushButton_reset.setText(QCoreApplication.translate("MainWindow", u"Reset chain", None))
     # retranslateUi
+

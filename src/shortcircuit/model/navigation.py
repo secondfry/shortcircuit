@@ -147,7 +147,9 @@ class Navigation:
     if wh_size == WormholeSize.LARGE:
       wh_size_text = "Large"
     elif wh_size == WormholeSize.XLARGE:
-      wh_size_text = "X-large"
+      wh_size_text = "X-large (freighter)"
+    elif wh_size == WormholeSize.CAPITAL:
+      wh_size_text = "X-large (capital)"
 
     # Wormhole life
     wh_life_text = "Timespan unknown"

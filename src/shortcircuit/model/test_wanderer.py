@@ -226,7 +226,7 @@ class TestWandererAugmentMap(unittest.TestCase):
 
   def test_size_falls_back_to_ship_size_type(self):
     expected = {0: WormholeSize.SMALL, 1: WormholeSize.MEDIUM,
-                3: WormholeSize.XLARGE, 4: WormholeSize.XLARGE}
+                3: WormholeSize.XLARGE, 4: WormholeSize.CAPITAL}
     _, solar_map, _ = self._augment([_connection(ship_size_type=code) for code in expected])
     for i, size in enumerate(expected.values()):
       self.assertEqual(self._info(solar_map, i)[4], size)
