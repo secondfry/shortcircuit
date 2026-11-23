@@ -629,7 +629,9 @@ class EveDb(metaclass=Singleton):
   def cap_whsize_for_capital_bans(
     self, source_id: int, dest_id: int, size: WormholeSize
   ) -> WormholeSize:
-    # shortcut: capitals can't enter highsec or Thera, so holes touching them are capped at LARGE here; upgrade when routing filters capitals by destination system.
+    # shortcut: capitals can't enter highsec or Thera, so holes touching them
+    # are capped at LARGE here; upgrade when routing filters capitals by
+    # destination system.
     if size != WormholeSize.XLARGE:
       return size
     classes = {self.get_class(source_id), self.get_class(dest_id)}

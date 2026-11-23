@@ -65,6 +65,9 @@ an existing parallel edge, `_merge_wormhole_at` unions the sources list,
 upgrades any placeholder sig/code slots to concrete values, and keeps the
 fresher payload (smaller `time_elapsed`) for size/life/mass. When no match
 is found, a new parallel edge is appended.
+`add_connection` also skips systems that `EveDb.is_routable` rejects, raises
+on an unknown connection type, and passes each hole's size through
+`EveDb.cap_whsize_for_capital_bans`.
 
 If two reports match concretely on one side but disagree on the other,
 that's a scan error — fresher wins and a warning is logged.

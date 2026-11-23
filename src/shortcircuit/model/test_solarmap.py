@@ -492,12 +492,12 @@ def test_zarzakh_as_source():
 
 def _wormhole_payload(sig_in="ABC-123", sig_out="DEF-456", time_elapsed=1.0,
                       wh_size=WormholeSize.LARGE, wh_life=WormholeTimespan.STABLE,
-                      wh_mass=WormholeMassspan.STABLE):
+                      wh_mass=WormholeMassspan.STABLE, code=None):
   return [
     sig_in,
-    None,
+    code,
     sig_out,
-    None,
+    code,
     wh_size,
     wh_life,
     wh_mass,
@@ -786,13 +786,8 @@ def _stored_size(a, b, size):
   eve_db = EveDb()
   map = SolarMap(eve_db)
   src, dst = eve_db.name2id(a), eve_db.name2id(b)
-  map.add_connection(
-    src, dst, ConnectionType.WORMHOLE,
-    ["ABC-123", None, "DEF-456", None, size, WormholeTimespan.STABLE, WormholeMassspan.STABLE, 0.5],
-  )
-  [(_, con_info)] = [
-    e for e in map.get_system(src).get_edges(map.get_system(dst)) if e[0] == ConnectionType.WORMHOLE
-  ]
+  map.add_connection(src, dst, ConnectionType.WORMHOLE, _wormhole_payload(wh_size=size))
+  [(_, con_info)] = _wormhole_edges(map, src, dst)
   return con_info[2]
 
 
@@ -809,16 +804,7 @@ def _route_over_unknown_size_hole(code, blocked_sizes):
     eve_db.name2id("Botane"),
     eve_db.name2id("Ikuchi"),
     ConnectionType.WORMHOLE,
-    [
-      "ABC-123",
-      code,
-      "DEF-456",
-      code,
-      WormholeSize.UNKNOWN,
-      WormholeTimespan.STABLE,
-      WormholeMassspan.STABLE,
-      0.5,
-    ],
+    _wormhole_payload(code=code, wh_size=WormholeSize.UNKNOWN),
   )
   path, _ = map.shortest_path(
     eve_db.name2id("Dodixie"),

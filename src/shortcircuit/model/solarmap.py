@@ -22,6 +22,9 @@ class ConnectionType(int, Enum):
   WORMHOLE = 2
 
 
+GATE_CODE = 'GATE'  # Tripwire's code for stargates stored as holes
+
+
 Edge = Tuple[ConnectionType, Optional[List]]
 
 _SIG_PLACEHOLDERS = frozenset(['', '-------', '???', '----'])
@@ -141,8 +144,6 @@ class SolarMap:
       dst_sys.add_gate_edge(src_sys)
       return True
 
-    wh_size = self.eve_db.cap_whsize_for_capital_bans(source, destination, con_info[4])
-    con_info = [*con_info[:4], wh_size, *con_info[5:]]
     self._add_wormhole(src_sys, dst_sys, con_info, source_name)
     return True
 
@@ -163,6 +164,7 @@ class SolarMap:
       wh_mass,
       time_elapsed,
     ] = con_info
+    wh_size = self.eve_db.cap_whsize_for_capital_bans(src_sys.get_id(), dst_sys.get_id(), wh_size)
     new_sources = [source_name] if source_name else []
 
     match_idx = self._find_matching_wormhole(
@@ -397,9 +399,6 @@ class SolarMap:
       system_type = self.eve_db.system_type(neighbor.get_id())
       return True, restrictions["security_prio"][system_type]
 
-    if con_type != ConnectionType.WORMHOLE:
-      return False, 0
-
     wh_size = con_info[2]
     wh_life = con_info[3]
     wh_mass = con_info[4]
@@ -411,9 +410,9 @@ class SolarMap:
       # Tripwire stores stargates as size-less holes coded GATE, which stay usable.
       all_blocked = all(
         size_restriction.get(size, False)
-        for size in (WormholeSize.SMALL, WormholeSize.MEDIUM, WormholeSize.LARGE, WormholeSize.XLARGE)
+        for size in WormholeSize if WormholeSize.valid(size)
       )
-      if con_info[1] != 'GATE' and all_blocked:
+      if con_info[1] != GATE_CODE and all_blocked:
         return False, 0
     elif size_restriction.get(wh_size, False):
       return False, 0
