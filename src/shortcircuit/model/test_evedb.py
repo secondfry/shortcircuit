@@ -78,7 +78,7 @@ def test_whsize_pochven_is_at_most_large():
 
 
 def test_whsize_highsec_to_c6_is_large():
-  # B041/B520 are 375,000 t, unlike the 1,000,000 t+ k-space<->C5/C6 holes.
+  # B520 is 375,000 t, unlike the 1,000,000 t+ k-space<->C5/C6 holes.
   assert _size("Jita", C6) == WormholeSize.LARGE
   assert _size(C6, "Jita") == WormholeSize.LARGE
   assert _size("Jita", C5) == WormholeSize.XLARGE
@@ -93,9 +93,11 @@ def test_whsize_unknown_class_is_unknown():
   assert eve_db.get_whsize_by_system(missing, eve_db.name2id("Jita")) == WormholeSize.UNKNOWN
 
 
-def test_whsize_by_code_matches_eve_university():
+def test_whsize_by_code_matches_ccp_jump_mass():
+  # Max jump mass (attribute 1385) per CCP's SDE/ESI.
   eve_db = EveDb()
-  for code in ("B041", "B520", "K329", "N290"):
+  for code in ("B520", "K329", "N290", "O753", "R327"):
     assert eve_db.get_whsize_by_code(code) == WormholeSize.LARGE, code
-  for code in ("I078", "L687", "O546"):
+  for code in ("I078", "J492", "L687", "O546"):
     assert eve_db.get_whsize_by_code(code) == WormholeSize.MEDIUM, code
+  assert eve_db.get_whsize_by_code("B041") == WormholeSize.XLARGE

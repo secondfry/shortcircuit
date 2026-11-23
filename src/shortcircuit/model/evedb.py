@@ -288,7 +288,7 @@ class EveDb(metaclass=Singleton):
   # EVE University Wormhole_attributes; where those differ, the smallest.
   # Frigate holes are ignored: they can appear almost anywhere and would make
   # every w-space pair Small. "kspace" is low/null-sec: high-sec differs on C6
-  # (B041/B520 are 375,000 t). Pochven holes are Large, and Medium between two
+  # (B520 is 375,000 t). Pochven holes are Large, and Medium between two
   # Pochven systems (I078/L687/O546), though C729 can also link two of them.
   # Not modelled: per-system holes, e.g. Turnur (low-sec) gets J377, a
   # 62,000 t hole from C2-C4, so kspace<->C2-C4 stays Large. The Thera (C12)
