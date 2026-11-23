@@ -404,7 +404,17 @@ class SolarMap:
     wh_mass = con_info[4]
     time_elapsed = con_info[5]
 
-    if restrictions["size_restriction"].get(wh_size, False):
+    size_restriction = restrictions["size_restriction"]
+    if wh_size == WormholeSize.UNKNOWN:
+      # "[Ignore wormholes]" blocks every size, so unknown-size holes too;
+      # Tripwire stores stargates as size-less holes coded GATE, which stay usable.
+      all_blocked = all(
+        size_restriction.get(size, False)
+        for size in (WormholeSize.SMALL, WormholeSize.MEDIUM, WormholeSize.LARGE, WormholeSize.XLARGE)
+      )
+      if con_info[1] != 'GATE' and all_blocked:
+        return False, 0
+    elif size_restriction.get(wh_size, False):
       return False, 0
 
     if restrictions["ignore_eol"] and wh_life == WormholeTimespan.CRITICAL:

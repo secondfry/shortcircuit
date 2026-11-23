@@ -6,6 +6,7 @@
 
 - A confidence-style score across mappers is intentionally *not* planned — see WHY-OWNED-SERVICE.md for the rationale (and what would change if Short Circuit became a hosted service).
 - `solarmap._merge_one_direction` lets a fresher report's unknown hole type or system-pair (guessed) size overwrite a known, scanned one from another mapper; a guess should not beat a scan.
+- A Tripwire `GATE` edge with placeholder signatures can merge with another mapper's hole on the same system pair at the placeholder tier, swapping codes, so "[Ignore wormholes]" may block that gate or exempt that hole; `GATE` edges should never merge with wormhole reports.
 
 ### Wormhole Size Data
 

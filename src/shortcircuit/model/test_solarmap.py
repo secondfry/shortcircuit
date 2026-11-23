@@ -910,3 +910,60 @@ def test_connection_to_system_missing_from_sde_is_skipped():
   assert path[0] == eve_db.name2id("Dodixie")
   assert path[-1] == jita
   assert missing not in path
+
+
+ALL_SIZES = {WormholeSize.SMALL, WormholeSize.MEDIUM, WormholeSize.LARGE, WormholeSize.XLARGE}
+
+
+def _route_over_unknown_size_hole(code, blocked_sizes):
+  eve_db = EveDb()
+  map = SolarMap(eve_db)
+  map.add_connection(
+    eve_db.name2id("Botane"),
+    eve_db.name2id("Ikuchi"),
+    ConnectionType.WORMHOLE,
+    [
+      "ABC-123",
+      code,
+      "DEF-456",
+      code,
+      WormholeSize.UNKNOWN,
+      WormholeTimespan.STABLE,
+      WormholeMassspan.STABLE,
+      0.5,
+    ],
+  )
+  path, _ = map.shortest_path(
+    eve_db.name2id("Dodixie"),
+    eve_db.name2id("Jita"),
+    {
+      "size_restriction": {size: size in blocked_sizes for size in ALL_SIZES},
+      "avoidance_list": [],
+      "security_prio": {
+        SpaceType.HS: 1,
+        SpaceType.LS: 1,
+        SpaceType.NS: 1,
+        SpaceType.WH: 1,
+      },
+      "ignore_eol": False,
+      "ignore_masscrit": False,
+      "age_threshold": float('inf'),
+    },
+  )
+  return [eve_db.id2name(x) for x in path]
+
+
+def test_ignore_wormholes_blocks_unknown_size_hole():
+  path = _route_over_unknown_size_hole(None, ALL_SIZES)
+  assert ('Botane', 'Ikuchi') not in zip(path, path[1:])
+
+
+def test_unknown_size_hole_allowed_when_any_size_allowed():
+  # "X-Large" setting: only XLARGE is allowed.
+  blocked = ALL_SIZES - {WormholeSize.XLARGE}
+  assert _route_over_unknown_size_hole(None, blocked) == ['Dodixie', 'Botane', 'Ikuchi', 'Jita']
+
+
+def test_ignore_wormholes_keeps_tripwire_gate_edge():
+  # Tripwire stores stargates as size-less WORMHOLE edges coded GATE.
+  assert _route_over_unknown_size_hole('GATE', ALL_SIZES) == ['Dodixie', 'Botane', 'Ikuchi', 'Jita']
