@@ -399,6 +399,7 @@ class TestProcessWormhole:
         }
         
         self.tripwire.eve_db.get_whsize_by_code.return_value = WormholeSize.SMALL
+        self.solar_map.add_connection.return_value = True
         
         result = self.tripwire._process_wormhole(wormhole, self.solar_map)
         

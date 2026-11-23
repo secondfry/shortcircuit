@@ -12,8 +12,8 @@ from unittest import mock
 import requests
 
 from shortcircuit.model import wanderer as wanderer_module
-from shortcircuit.model.evedb import WormholeMassspan, WormholeSize, WormholeTimespan
-from shortcircuit.model.solarmap import ConnectionType
+from shortcircuit.model.evedb import EveDb, WormholeMassspan, WormholeSize, WormholeTimespan
+from shortcircuit.model.solarmap import ConnectionType, SolarMap
 from shortcircuit.model.wanderer import Wanderer
 
 THERA_ID = 31000005
@@ -244,6 +244,14 @@ class TestWandererAugmentMap(unittest.TestCase):
       'not a dict',
     ])
     self.assertEqual(count, 0)
+
+  def test_holes_to_systems_missing_from_sde_are_not_counted(self):
+    solar_map = SolarMap(EveDb())
+    connections = [_connection(), _connection(id='c2', solar_system_target=1)]
+    with mock.patch.object(
+      wanderer_module.requests, 'get', side_effect=_routes(connections, None),
+    ):
+      self.assertEqual(_make_wanderer().augment_map(solar_map), 1)
 
   def test_signature_failure_still_routes_holes(self):
     count, solar_map, _ = self._augment(

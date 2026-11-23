@@ -401,7 +401,7 @@ class Tripwire(MapperSource):
     time_elapsed = round(delta.total_seconds() / 3600.0, 1)
 
     # Add wormhole connection to solar system
-    solar_map.add_connection(
+    return solar_map.add_connection(
       system_from,
       system_to,
       ConnectionType.WORMHOLE,
@@ -417,7 +417,6 @@ class Tripwire(MapperSource):
       ],
       source_name=self.name,
     )
-    return True
 
   def augment_map(self, solar_map: SolarMap):
     """

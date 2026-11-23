@@ -881,8 +881,8 @@ def test_connection_to_system_missing_from_sde_is_skipped():
   botane = eve_db.name2id("Botane")
   jita = eve_db.name2id("Jita")
   # A two-hole shortcut through an unknown system would win if it were added.
-  map.add_connection(botane, missing, ConnectionType.WORMHOLE, _wormhole_payload())
-  map.add_connection(missing, jita, ConnectionType.WORMHOLE, _wormhole_payload())
+  assert not map.add_connection(botane, missing, ConnectionType.WORMHOLE, _wormhole_payload())
+  assert not map.add_connection(missing, jita, ConnectionType.WORMHOLE, _wormhole_payload())
 
   assert map.get_system(missing) is None
   path, _ = map.shortest_path(

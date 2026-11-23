@@ -132,7 +132,7 @@ class Wanderer(MapperSource):
     else:
       wh_mass = WormholeMassspan.STABLE
 
-    solar_map.add_connection(
+    return solar_map.add_connection(
       source,
       dest,
       ConnectionType.WORMHOLE,
@@ -148,7 +148,6 @@ class Wanderer(MapperSource):
       ],
       source_name=self.name,
     )
-    return True
 
   @staticmethod
   def _index_signatures(signatures) -> Dict[Tuple[int, int], dict]:
