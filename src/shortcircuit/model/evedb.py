@@ -288,14 +288,12 @@ class EveDb(metaclass=Singleton):
   # EVE University Wormhole_attributes; where those differ, the smallest.
   # Frigate holes are ignored: they can appear almost anywhere and would make
   # every w-space pair Small. "kspace" is low/null-sec: high-sec differs on C6
-  # (B520, see the shortcut below). Pochven holes are Large, and Medium between
-  # two Pochven systems (I078/L687/O546), though C729 can also link two of them.
+  # (B520). Pochven holes are Large, and Medium between two Pochven systems
+  # (I078/L687/O546), though C729 can also link two of them.
   # Not modelled: per-system holes, e.g. Turnur (low-sec) gets J377, a
   # 62,000 t hole from C2-C4, so kspace<->C2-C4 stays Large. The Thera (C12)
-  # rows are not checked against EVE University; see TODO.md.
-  # shortcut: B520, M164 and V898 are 1,000,000 t holes in CCP's data but stored
-  # LARGE because capitals cannot enter highsec or Thera; upgrade when routing
-  # filters capitals by destination system instead.
+  # rows are unchecked except the capital-ban shortcut; see TODO.md.
+  # highsec<->C6 and kspace<->C12: see the shortcut at wh_codes in __init__.
   SIZE_MATRIX: Dict[str, Dict[str, WormholeSize]] = {
     "kspace": {
       "kspace": WormholeSize.XLARGE,
@@ -484,9 +482,10 @@ class EveDb(metaclass=Singleton):
     self._init_renames(get_csv_reader(filaname_renames))
     self._init_regions(get_csv_reader(filename_regions))
 
-    # shortcut: B520, M164 and V898 are 1,000,000 t holes in CCP's data but stored
-    # LARGE because capitals cannot enter highsec or Thera; upgrade when routing
-    # filters capitals by destination system instead.
+    # shortcut: B520, L031, M164 and V898 are 1,000,000 t holes in CCP's data,
+    # but capitals cannot enter highsec or Thera, so these codes and the
+    # SIZE_MATRIX cells highsec<->C6 and kspace<->C12 are LARGE; upgrade when
+    # routing filters capitals by destination system instead.
     self.wh_codes: Dict[str, WormholeSize] = {
       rows[0]: WormholeSize(int(rows[1]))
       for rows in get_csv_reader(filename_statics)

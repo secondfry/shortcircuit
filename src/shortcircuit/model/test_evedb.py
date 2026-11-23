@@ -102,5 +102,5 @@ def test_whsize_by_code_matches_ccp_jump_mass():
     assert eve_db.get_whsize_by_code(code) == WormholeSize.MEDIUM, code
   assert eve_db.get_whsize_by_code("B041") == WormholeSize.XLARGE
   # Deliberate shortcut: 1,000,000 t in CCP's data, but no capital may enter highsec/Thera.
-  for code in ("B520", "M164", "V898"):
+  for code in ("B520", "L031", "M164", "V898"):
     assert eve_db.get_whsize_by_code(code) == WormholeSize.LARGE, code

@@ -149,6 +149,8 @@ deleted. `GET /api/maps/:map/signatures` adds the sig IDs on each side and the
 hole type where scanned. Life and mass use Wanderer's codes
 (`assets/js/hooks/Mapper/types/connection.ts`): `time_status` 1 (EOL 1h) and
 2 (EOL 4h) are end of life; `mass_status` 1 is less than half, 2 is critical.
+Hole size comes from the scanned hole type first, then `ship_size_type`
+(2, Wanderer's default, counts as unknown), then the system pair.
 
 **Example**:
 ```python

@@ -19,8 +19,11 @@ from .solarmap import ConnectionType, SolarMap
 #                  5 = 24h, 6 = 48h
 #   mass_status:   0 = more than half, 1 = less than half, 2 = critical (<10%)
 #   ship_size_type: 0 = frigate, 1 = medium, 3 = freight, 4 = capital; 2 is
-#                  Wanderer's default "Normal" (also its fallback when it can't
-#                  tell), so it is treated as unknown and sized by system pair
+#                  "Normal" (assets/js/hooks/Mapper/components/map/constants.ts
+#                  SHIP_SIZES_NAMES) and Wanderer's default for any mass it
+#                  doesn't match (lib/wanderer_app/utils/eve_util.ex
+#                  get_connection_size_status), so it is treated as unknown
+#                  and sized by system pair
 CONNECTION_TYPE_WORMHOLE = 0
 EOL_TIME_STATUSES = (1, 2)
 MASS_HALF = 1
