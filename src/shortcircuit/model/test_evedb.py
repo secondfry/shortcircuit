@@ -78,7 +78,7 @@ def test_whsize_pochven_is_at_most_large():
 
 
 def test_whsize_highsec_to_c6_is_large():
-  # B520 is 375,000 t, unlike the 1,000,000 t+ k-space<->C5/C6 holes.
+  # Capitals cannot enter high-sec, so B520 is effectively Large (shortcut in evedb.py).
   assert _size("Jita", C6) == WormholeSize.LARGE
   assert _size(C6, "Jita") == WormholeSize.LARGE
   assert _size("Jita", C5) == WormholeSize.XLARGE
@@ -96,8 +96,11 @@ def test_whsize_unknown_class_is_unknown():
 def test_whsize_by_code_matches_ccp_jump_mass():
   # Max jump mass (attribute 1385) per CCP's SDE/ESI.
   eve_db = EveDb()
-  for code in ("B520", "K329", "N290", "O753", "R327"):
+  for code in ("K329", "N290", "O753", "R327"):
     assert eve_db.get_whsize_by_code(code) == WormholeSize.LARGE, code
   for code in ("I078", "J492", "L687", "O546"):
     assert eve_db.get_whsize_by_code(code) == WormholeSize.MEDIUM, code
   assert eve_db.get_whsize_by_code("B041") == WormholeSize.XLARGE
+  # Deliberate shortcut: 1,000,000 t in CCP's data, but no capital may enter highsec/Thera.
+  for code in ("B520", "M164", "V898"):
+    assert eve_db.get_whsize_by_code(code) == WormholeSize.LARGE, code

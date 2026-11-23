@@ -10,6 +10,7 @@
 ### Wormhole Size Data
 
 - Thera rows in `EveDb.SIZE_MATRIX` (C12) were left as they were and don't match EVE University: Thera↔high-sec holes (Q063, T458) are 62,000 t (Medium) while the table says Large; Thera↔null-sec are 1,000,000 t, but capitals can't enter Thera.
+- Capital bans by destination (high-sec, Thera) should live in routing; then store B520, M164 and V898 (and the high-sec↔C6 and Thera `SIZE_MATRIX` cells) at CCP's X-Large.
 - Per-system hole sizes aren't modelled: k-space↔C2–C4 is Large, though Turnur's J377 from C2–C4 is Medium (62,000 t).
 - **Undecided:** whether Wanderer's connection `wormhole_type` should be accepted when Short Circuit doesn't recognise the code (the API's example value is "C2", a class, not a hole type) or only known hole codes.
 
