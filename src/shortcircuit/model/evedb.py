@@ -286,7 +286,8 @@ class EveDb(metaclass=Singleton):
 
   # Largest ship a hole between two system classes takes, per EVE University
   # Wormhole_attributes. "kspace" is low/null-sec: high-sec differs on C6
-  # (B041/B520 are 375,000 t) and Pochven holes are at most Large.
+  # (B041/B520 are 375,000 t) and Pochven holes are at most Large. The Thera
+  # (C12) rows are not checked against EVE University; see TODO.md.
   SIZE_MATRIX: Dict[str, Dict[str, WormholeSize]] = {
     "kspace": {
       "kspace": WormholeSize.XLARGE,

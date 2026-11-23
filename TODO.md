@@ -9,16 +9,19 @@
 
 ### Wormhole Size Data
 
-- Thera rows in `EveDb.SIZE_MATRIX` (C12) are unchecked: Thera↔high-sec holes are 62,000 t (Medium); Thera↔null-sec are 1,000,000 t, but capitals can't enter Thera.
+- Thera rows in `EveDb.SIZE_MATRIX` (C12) were left as they were and don't match EVE University: Thera↔high-sec holes (Q063, T458) are 62,000 t (Medium) while the table says Large; Thera↔null-sec are 1,000,000 t, but capitals can't enter Thera.
 - **Undecided:** whether Wanderer's connection `wormhole_type` should be accepted when Short Circuit doesn't recognise the code (the API's example value is "C2", a class, not a hole type) or only known hole codes.
 
 ### Multiple Mapper Instance Management
 
 - Per-instance "Test Connection" button (reach out to the server and report auth/HTTP result before saving) — subsumes the credential-test piece of "Configuration Validation" below.
-  - Apply the global proxy setting to every HTTP mapper; only Tripwire uses it today (Eve Scout and Wanderer ignore it).
-  - Log non-200 response bodies: Wanderer returns distinct bodies for an inactive subscription and a bad key, which a bare status code hides.
 - Reordering / drag-and-drop in the Mappers table.
 - Import / export of the mapper list (share configs with corp).
+
+### HTTP Mappers
+
+- Apply the global proxy setting to every HTTP mapper; only Tripwire uses it today (Eve Scout and Wanderer ignore it).
+- Log non-200 response bodies: Wanderer returns distinct bodies for an inactive subscription and a bad key, which a bare status code hides.
 
 ## UI/UX Improvements
 
@@ -58,7 +61,7 @@ Currently mappers are called sequentially. Consider:
 
 ### Stale Documentation
 
-- `docs/MAPPER_MODULES.md` describes a `get_config()` method and a `mapper_template.py` that no longer exist.
+- `docs/MAPPER_MODULES.md` describes a `get_config()` method and a `mapper_template.py` that no longer exist; `AGENTS.md` (step 5 of the fetch pipeline) also lists `get_config` in the `MapperSource` interface, which `mapper_base.py` doesn't have.
 - `docs/MODULE_ARCHITECTURE.md` still has legacy single-Tripwire text.
 - README's feature list and "how it works" name only Tripwire as a mapper source.
 

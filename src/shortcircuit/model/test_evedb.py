@@ -65,12 +65,15 @@ C6 = "J104859"
 
 
 def test_whsize_kspace_pairs():
-  assert _size("Jita", "Amarr") == WormholeSize.XLARGE
+  assert _size("HED-GP", "Amarr") == WormholeSize.XLARGE
+  assert _size("Amarr", "HED-GP") == WormholeSize.XLARGE
 
 
 def test_whsize_pochven_is_at_most_large():
   assert _size("Kino", "HED-GP") == WormholeSize.LARGE
   assert _size("HED-GP", "Kino") == WormholeSize.LARGE
+  assert _size("Kino", "Jita") == WormholeSize.LARGE
+  assert _size("Kino", C6) == WormholeSize.LARGE
   assert _size("Kino", "Ala") == WormholeSize.MEDIUM
 
 
@@ -88,3 +91,11 @@ def test_whsize_unknown_class_is_unknown():
   missing = 1
   assert eve_db.get_whsize_by_system(zarzakh, eve_db.name2id("Jita")) == WormholeSize.UNKNOWN
   assert eve_db.get_whsize_by_system(missing, eve_db.name2id("Jita")) == WormholeSize.UNKNOWN
+
+
+def test_whsize_by_code_matches_eve_university():
+  eve_db = EveDb()
+  for code in ("B041", "B520", "K329", "N290"):
+    assert eve_db.get_whsize_by_code(code) == WormholeSize.LARGE, code
+  for code in ("I078", "L687", "O546"):
+    assert eve_db.get_whsize_by_code(code) == WormholeSize.MEDIUM, code
