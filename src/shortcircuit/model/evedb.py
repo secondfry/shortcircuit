@@ -287,14 +287,13 @@ class EveDb(metaclass=Singleton):
   # Size of the regular (non-frigate) holes between two system classes, per
   # EVE University Wormhole_attributes; where those differ, the smallest.
   # Frigate holes are ignored: they can appear almost anywhere and would make
-  # every w-space pair Small. Each security band has its own row: high-sec
-  # differs on C6 (B520), and low-sec<->C1-C6 is Medium because J492, a
-  # 62,000 t hole, links C1-C6 to low-sec. Pochven holes are Large, and
-  # Medium between two Pochven systems (I078/L687/O546), though C729 can also
-  # link two of them.
+  # every w-space pair Small. Each security band has its own row: low-sec<->C1-C6
+  # is Medium because J492, a 62,000 t hole, links C1-C6 to low-sec. Pochven
+  # holes are Large, and Medium between two Pochven systems (I078/L687/O546),
+  # though C729 can also link two of them.
   # Not modelled: per-system holes, e.g. Turnur (low-sec) gets J377. The Thera
-  # (C12) rows are unchecked except the capital-ban shortcut; see TODO.md.
-  # highsec<->C6, lowsec<->C12 and nullsec<->C12: see the shortcut at wh_codes.
+  # (C12) rows are unchecked; see TODO.md. Capital bans are not encoded here:
+  # see cap_whsize_for_capital_bans.
   SIZE_MATRIX: Dict[str, Dict[str, WormholeSize]] = {
     "lowsec": {
       "lowsec": WormholeSize.XLARGE,
@@ -336,7 +335,7 @@ class EveDb(metaclass=Singleton):
       "C3": WormholeSize.LARGE,
       "C4": WormholeSize.LARGE,
       "C5": WormholeSize.XLARGE,
-      "C6": WormholeSize.LARGE,
+      "C6": WormholeSize.XLARGE,
       "C12": WormholeSize.LARGE,
       "C13": WormholeSize.SMALL,
       "drifter": WormholeSize.LARGE,
@@ -434,7 +433,7 @@ class EveDb(metaclass=Singleton):
     "C6": {
       "lowsec": WormholeSize.MEDIUM,
       "nullsec": WormholeSize.XLARGE,
-      "highsec": WormholeSize.LARGE,
+      "highsec": WormholeSize.XLARGE,
       "pochven": WormholeSize.LARGE,
       "C1": WormholeSize.MEDIUM,
       "C2": WormholeSize.LARGE,
@@ -495,6 +494,9 @@ class EveDb(metaclass=Singleton):
 
   ZARZAKH_SYSTEM_ID = 30100000
 
+  # Classes (as get_class names them) that capitals cannot enter.
+  CAPITAL_BANNED_CLASSES = {"highsec", "C12"}
+
   def __init__(self):
     filename_statics = 'statics.csv'
     filaname_renames = 'renames.csv'
@@ -510,10 +512,6 @@ class EveDb(metaclass=Singleton):
     self._init_renames(get_csv_reader(filaname_renames))
     self._init_regions(get_csv_reader(filename_regions))
 
-    # shortcut: B520, L031, M164 and V898 are 1,000,000 t holes in CCP's data,
-    # but capitals cannot enter highsec or Thera, so these codes and the
-    # SIZE_MATRIX cells highsec<->C6, lowsec<->C12 and nullsec<->C12 are LARGE;
-    # upgrade when routing filters capitals by destination system instead.
     self.wh_codes: Dict[str, WormholeSize] = {
       rows[0]: WormholeSize(int(rows[1]))
       for rows in get_csv_reader(filename_statics)
@@ -618,6 +616,17 @@ class EveDb(metaclass=Singleton):
     # local SDE, is an unknown size rather than an error, so one odd system
     # can't break a mapper.
     return EveDb.SIZE_MATRIX.get(source_class, {}).get(dest_class, WormholeSize.UNKNOWN)
+
+  def cap_whsize_for_capital_bans(
+    self, source_id: int, dest_id: int, size: WormholeSize
+  ) -> WormholeSize:
+    # shortcut: capitals can't enter highsec or Thera, so holes touching them are capped at LARGE here; upgrade when routing filters capitals by destination system.
+    if size != WormholeSize.XLARGE:
+      return size
+    classes = {self.get_class(source_id), self.get_class(dest_id)}
+    if not classes & EveDb.CAPITAL_BANNED_CLASSES:
+      return size
+    return WormholeSize.LARGE
 
   def system_name_list(self):
     return [x['name'] for x in self.system_desc.values()]

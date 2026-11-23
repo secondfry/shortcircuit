@@ -912,6 +912,26 @@ def test_connection_to_system_missing_from_sde_is_skipped():
   assert missing not in path
 
 
+def _stored_size(a, b, size):
+  eve_db = EveDb()
+  map = SolarMap(eve_db)
+  src, dst = eve_db.name2id(a), eve_db.name2id(b)
+  map.add_connection(
+    src, dst, ConnectionType.WORMHOLE,
+    ["ABC-123", None, "DEF-456", None, size, WormholeTimespan.STABLE, WormholeMassspan.STABLE, 0.5],
+  )
+  [(_, con_info)] = [
+    e for e in map.get_system(src).get_edges(map.get_system(dst)) if e[0] == ConnectionType.WORMHOLE
+  ]
+  return con_info[2]
+
+
+def test_add_connection_caps_xlarge_into_highsec_and_thera():
+  assert _stored_size("J152820", "Jita", WormholeSize.XLARGE) == WormholeSize.LARGE
+  assert _stored_size("HED-GP", "Thera", WormholeSize.XLARGE) == WormholeSize.LARGE
+  assert _stored_size("J152820", "HED-GP", WormholeSize.XLARGE) == WormholeSize.XLARGE
+
+
 ALL_SIZES = {WormholeSize.SMALL, WormholeSize.MEDIUM, WormholeSize.LARGE, WormholeSize.XLARGE}
 
 

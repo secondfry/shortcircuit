@@ -139,6 +139,8 @@ class SolarMap:
       return True
 
     if con_type == ConnectionType.WORMHOLE:
+      wh_size = self.eve_db.cap_whsize_for_capital_bans(source, destination, con_info[4])
+      con_info = [*con_info[:4], wh_size, *con_info[5:]]
       self._add_wormhole(src_sys, dst_sys, con_info, source_name)
       return True
 

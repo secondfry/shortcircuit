@@ -78,12 +78,29 @@ def test_whsize_pochven_is_at_most_large():
   assert _size("Kino", "Ala") == WormholeSize.MEDIUM
 
 
-def test_whsize_highsec_to_c6_is_large():
-  # Capitals cannot enter high-sec, so B520 is effectively Large (shortcut in evedb.py).
-  assert _size("Jita", C6) == WormholeSize.LARGE
-  assert _size(C6, "Jita") == WormholeSize.LARGE
+def test_whsize_highsec_to_c5_c6_is_ccp_xlarge():
+  # The table holds CCP's sizes; the capital ban is applied by cap_whsize_for_capital_bans.
+  assert _size("Jita", C6) == WormholeSize.XLARGE
+  assert _size(C6, "Jita") == WormholeSize.XLARGE
   assert _size("Jita", C5) == WormholeSize.XLARGE
   assert _size("HED-GP", C6) == WormholeSize.XLARGE
+
+
+def _cap(a, b, size):
+  eve_db = EveDb()
+  return eve_db.cap_whsize_for_capital_bans(eve_db.name2id(a), eve_db.name2id(b), size)
+
+
+def test_cap_xlarge_touching_highsec_or_thera():
+  for a, b in (("Jita", C5), (C5, "Jita"), ("Thera", "HED-GP"), ("HED-GP", "Thera")):
+    assert _cap(a, b, WormholeSize.XLARGE) == WormholeSize.LARGE, (a, b)
+
+
+def test_cap_leaves_other_holes_alone():
+  assert _cap("HED-GP", C5, WormholeSize.XLARGE) == WormholeSize.XLARGE
+  assert _cap("Tama", "HED-GP", WormholeSize.XLARGE) == WormholeSize.XLARGE
+  for size in (WormholeSize.UNKNOWN, WormholeSize.SMALL, WormholeSize.MEDIUM, WormholeSize.LARGE):
+    assert _cap("Jita", "Thera", size) == size
 
 
 def test_whsize_lowsec_to_c1_c6_is_medium():
@@ -113,7 +130,5 @@ def test_whsize_by_code_matches_ccp_jump_mass():
     assert eve_db.get_whsize_by_code(code) == WormholeSize.LARGE, code
   for code in ("I078", "J492", "L687", "O546"):
     assert eve_db.get_whsize_by_code(code) == WormholeSize.MEDIUM, code
-  assert eve_db.get_whsize_by_code("B041") == WormholeSize.XLARGE
-  # Deliberate shortcut: 1,000,000 t in CCP's data, but no capital may enter highsec/Thera.
-  for code in ("B520", "L031", "M164", "V898"):
-    assert eve_db.get_whsize_by_code(code) == WormholeSize.LARGE, code
+  for code in ("B041", "B520", "L031", "M164", "V898"):
+    assert eve_db.get_whsize_by_code(code) == WormholeSize.XLARGE, code
