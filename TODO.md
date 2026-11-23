@@ -10,8 +10,8 @@
 
 ### Wormhole Size Data
 
-- Thera rows in `EveDb.SIZE_MATRIX` (C12) were left as they were and don't match EVE University: Thera↔high-sec holes (Q063, T458) are 62,000 t (Medium) while the table says Large; Thera↔null-sec are 1,000,000 t, but capitals can't enter Thera.
-- Capital bans by destination (high-sec, Thera) should live in routing; until then `EveDb.cap_whsize_for_capital_bans`, applied in `SolarMap.add_connection`, caps any hole touching them at Large.
+- Thera rows in `EveDb.SIZE_MATRIX` (C12) were left as they were and don't match EVE University: Thera↔high-sec holes (Q063, T458) are 62,000 t (Medium) while the table says Large; Thera↔null-sec are 1,000,000 t.
+- Capital bans belong in routing: see the shortcut at `EveDb.cap_whsize_for_capital_bans`.
 - Per-system hole sizes aren't modelled: high-sec and null-sec↔C2–C4 are Large, and only low-sec↔C1–C6 is Medium (J492, 62,000 t); Turnur's own J377 isn't tracked separately.
 - **Undecided:** whether Wanderer's connection `wormhole_type` should be accepted when Short Circuit doesn't recognise the code (the API's example value is "C2", a class, not a hole type) or only known hole codes.
 

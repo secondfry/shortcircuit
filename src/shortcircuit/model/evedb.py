@@ -494,7 +494,7 @@ class EveDb(metaclass=Singleton):
 
   ZARZAKH_SYSTEM_ID = 30100000
 
-  # Classes (as get_class names them) that capitals cannot enter.
+  # get_class names that cap_whsize_for_capital_bans caps; see its shortcut.
   CAPITAL_BANNED_CLASSES = {"highsec", "C12"}
 
   def __init__(self):
@@ -566,26 +566,31 @@ class EveDb(metaclass=Singleton):
       return WormholeSize.UNKNOWN
     return self.wh_codes.get(code.upper(), WormholeSize.UNKNOWN)
 
-  def has_system(self, system_id: int) -> bool:
-    return system_id in self.system_desc
+  def is_routable(self, system_id: int) -> bool:
+    """In the local SDE and on the map (abyssal and void systems are not)."""
+    if system_id not in self.system_desc:
+      return False
+    try:
+      self.system_type(system_id)
+    except ValueError:
+      return False
+    return True
 
-  def get_class(self, system_id: int):
-    if not self.has_system(system_id):
-      return "Unknown"
-
+  def get_class(self, system_id: int) -> str:
+    """SIZE_MATRIX class of a routable system, refining system_type."""
     db_class = self.system_desc[system_id]['class']
-    match db_class:
-      case 'HS':
+    if db_class == '▲':
+      return "pochven"
+    if db_class in ('C14', 'C15', 'C16', 'C17', 'C18'):
+      return "drifter"
+    match self.system_type(system_id):
+      case SpaceType.HS:
         return "highsec"
-      case '▲':
-        return "pochven"
-      case 'LS':
+      case SpaceType.LS:
         return "lowsec"
-      case 'NS':
+      case SpaceType.NS:
         return "nullsec"
-      case 'C14' | 'C15' | 'C16' | 'C17' | 'C18':
-        return "drifter"
-      case _:
+      case SpaceType.WH:
         return db_class
 
   def system_type(self, system_id: int) -> SpaceType:
@@ -613,11 +618,12 @@ class EveDb(metaclass=Singleton):
         )
 
   def get_whsize_by_system(self, source_id: int, dest_id: int) -> WormholeSize:
+    # A system off the map, or a class without a row (C??), is an unknown size
+    # rather than an error, so one odd system can't break a mapper.
+    if not (self.is_routable(source_id) and self.is_routable(dest_id)):
+      return WormholeSize.UNKNOWN
     source_class = self.get_class(source_id)
     dest_class = self.get_class(dest_id)
-    # A class without a row, e.g. "Unknown" for a system missing from the
-    # local SDE, is an unknown size rather than an error, so one odd system
-    # can't break a mapper.
     return EveDb.SIZE_MATRIX.get(source_class, {}).get(dest_class, WormholeSize.UNKNOWN)
 
   def cap_whsize_for_capital_bans(

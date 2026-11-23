@@ -116,15 +116,14 @@ class SolarMap:
   ) -> bool:
     """Add a connection; False if it was skipped."""
     if con_type not in (ConnectionType.GATE, ConnectionType.WORMHOLE):
-      Logger.error("Unknown connection type provided")
-      return False
+      raise ValueError('unknown connection type {!r}'.format(con_type))
 
     # A mapper can report a system the local SDE lacks (e.g. a newly added
-    # region); routing through it would fail on the missing system data.
+    # region) or one off the map; routing through it would fail.
     for system_id in (source, destination):
-      if not self.eve_db.has_system(system_id):
+      if not self.eve_db.is_routable(system_id):
         Logger.warning(
-          'Skipping connection {} -> {}: system {} is not in the local SDE'
+          'Skipping connection {} -> {}: system {} is not routable'
           .format(source, destination, system_id)
         )
         return False

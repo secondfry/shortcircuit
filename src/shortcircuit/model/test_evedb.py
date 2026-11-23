@@ -125,10 +125,20 @@ def test_size_matrix_is_square_and_symmetric():
       assert matrix[b][a] == size, (a, b)
 
 
-def test_whsize_unknown_class_is_unknown():
+ABYSSAL = 32000001  # AD001: in the SDE, but off the map
+
+
+def test_is_routable():
   eve_db = EveDb()
-  missing = 1
-  assert eve_db.get_whsize_by_system(missing, eve_db.name2id("Jita")) == WormholeSize.UNKNOWN
+  assert eve_db.is_routable(eve_db.name2id("Jita"))
+  assert not eve_db.is_routable(1)
+  assert not eve_db.is_routable(ABYSSAL)
+
+
+def test_whsize_unroutable_system_is_unknown():
+  eve_db = EveDb()
+  for odd in (1, ABYSSAL):
+    assert eve_db.get_whsize_by_system(odd, eve_db.name2id("Jita")) == WormholeSize.UNKNOWN
 
 
 def test_whsize_by_code_matches_ccp_jump_mass():

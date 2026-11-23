@@ -39,13 +39,13 @@ def test_unknown_code_uses_max_ship_size():
 
 
 def test_xlarge_into_thera_is_capped_at_large():
-  # Capitals cannot enter Thera, whatever Eve Scout reports.
+  # Capped whatever Eve Scout reports; see EveDb.cap_whsize_for_capital_bans.
   assert _size('XXXX', max_ship_size='xlarge') == WormholeSize.LARGE
   assert _size('XXXX', max_ship_size='capital') == WormholeSize.LARGE
 
 
 def test_xlarge_between_capital_accessible_systems_is_kept():
-  # Turnur (low-sec) to null-sec: no capital ban applies.
+  # Turnur (low-sec) to null-sec: not capped.
   assert _size('XXXX', 'Turnur', 'HED-GP', max_ship_size='xlarge') == WormholeSize.XLARGE
   assert _size('XXXX', 'Turnur', 'HED-GP', max_ship_size='capital') == WormholeSize.XLARGE
 
