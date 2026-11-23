@@ -287,17 +287,33 @@ class EveDb(metaclass=Singleton):
   # Size of the regular (non-frigate) holes between two system classes, per
   # EVE University Wormhole_attributes; where those differ, the smallest.
   # Frigate holes are ignored: they can appear almost anywhere and would make
-  # every w-space pair Small. "lowsec_nullsec" excludes high-sec, which has its
-  # own row because it differs on C6 (B520). Pochven holes are Large, and
+  # every w-space pair Small. Each security band has its own row: high-sec
+  # differs on C6 (B520), and low-sec<->C1-C6 is Medium because J492, a
+  # 62,000 t hole, links C1-C6 to low-sec. Pochven holes are Large, and
   # Medium between two Pochven systems (I078/L687/O546), though C729 can also
   # link two of them.
-  # Not modelled: per-system holes, e.g. Turnur (low-sec) gets J377, a
-  # 62,000 t hole from C2-C4, so lowsec_nullsec<->C2-C4 stays Large. The Thera
+  # Not modelled: per-system holes, e.g. Turnur (low-sec) gets J377. The Thera
   # (C12) rows are unchecked except the capital-ban shortcut; see TODO.md.
-  # highsec<->C6 and lowsec_nullsec<->C12: see the shortcut at wh_codes.
+  # highsec<->C6, lowsec<->C12 and nullsec<->C12: see the shortcut at wh_codes.
   SIZE_MATRIX: Dict[str, Dict[str, WormholeSize]] = {
-    "lowsec_nullsec": {
-      "lowsec_nullsec": WormholeSize.XLARGE,
+    "lowsec": {
+      "lowsec": WormholeSize.XLARGE,
+      "nullsec": WormholeSize.XLARGE,
+      "highsec": WormholeSize.XLARGE,
+      "pochven": WormholeSize.LARGE,
+      "C1": WormholeSize.MEDIUM,
+      "C2": WormholeSize.MEDIUM,
+      "C3": WormholeSize.MEDIUM,
+      "C4": WormholeSize.MEDIUM,
+      "C5": WormholeSize.MEDIUM,
+      "C6": WormholeSize.MEDIUM,
+      "C12": WormholeSize.LARGE,
+      "C13": WormholeSize.SMALL,
+      "drifter": WormholeSize.LARGE,
+    },
+    "nullsec": {
+      "lowsec": WormholeSize.XLARGE,
+      "nullsec": WormholeSize.XLARGE,
       "highsec": WormholeSize.XLARGE,
       "pochven": WormholeSize.LARGE,
       "C1": WormholeSize.MEDIUM,
@@ -311,7 +327,8 @@ class EveDb(metaclass=Singleton):
       "drifter": WormholeSize.LARGE,
     },
     "highsec": {
-      "lowsec_nullsec": WormholeSize.XLARGE,
+      "lowsec": WormholeSize.XLARGE,
+      "nullsec": WormholeSize.XLARGE,
       "highsec": WormholeSize.XLARGE,
       "pochven": WormholeSize.LARGE,
       "C1": WormholeSize.MEDIUM,
@@ -325,7 +342,8 @@ class EveDb(metaclass=Singleton):
       "drifter": WormholeSize.LARGE,
     },
     "pochven": {
-      "lowsec_nullsec": WormholeSize.LARGE,
+      "lowsec": WormholeSize.LARGE,
+      "nullsec": WormholeSize.LARGE,
       "highsec": WormholeSize.LARGE,
       "pochven": WormholeSize.MEDIUM,
       "C1": WormholeSize.MEDIUM,
@@ -339,7 +357,8 @@ class EveDb(metaclass=Singleton):
       "drifter": WormholeSize.LARGE,
     },
     "C1": {
-      "lowsec_nullsec": WormholeSize.MEDIUM,
+      "lowsec": WormholeSize.MEDIUM,
+      "nullsec": WormholeSize.MEDIUM,
       "highsec": WormholeSize.MEDIUM,
       "pochven": WormholeSize.MEDIUM,
       "C1": WormholeSize.MEDIUM,
@@ -353,7 +372,8 @@ class EveDb(metaclass=Singleton):
       "drifter": WormholeSize.MEDIUM,
     },
     "C2": {
-      "lowsec_nullsec": WormholeSize.LARGE,
+      "lowsec": WormholeSize.MEDIUM,
+      "nullsec": WormholeSize.LARGE,
       "highsec": WormholeSize.LARGE,
       "pochven": WormholeSize.LARGE,
       "C1": WormholeSize.MEDIUM,
@@ -367,7 +387,8 @@ class EveDb(metaclass=Singleton):
       "drifter": WormholeSize.LARGE,
     },
     "C3": {
-      "lowsec_nullsec": WormholeSize.LARGE,
+      "lowsec": WormholeSize.MEDIUM,
+      "nullsec": WormholeSize.LARGE,
       "highsec": WormholeSize.LARGE,
       "pochven": WormholeSize.LARGE,
       "C1": WormholeSize.MEDIUM,
@@ -381,7 +402,8 @@ class EveDb(metaclass=Singleton):
       "drifter": WormholeSize.LARGE,
     },
     "C4": {
-      "lowsec_nullsec": WormholeSize.LARGE,
+      "lowsec": WormholeSize.MEDIUM,
+      "nullsec": WormholeSize.LARGE,
       "highsec": WormholeSize.LARGE,
       "pochven": WormholeSize.LARGE,
       "C1": WormholeSize.MEDIUM,
@@ -395,7 +417,8 @@ class EveDb(metaclass=Singleton):
       "drifter": WormholeSize.LARGE,
     },
     "C5": {
-      "lowsec_nullsec": WormholeSize.XLARGE,
+      "lowsec": WormholeSize.MEDIUM,
+      "nullsec": WormholeSize.XLARGE,
       "highsec": WormholeSize.XLARGE,
       "pochven": WormholeSize.LARGE,
       "C1": WormholeSize.MEDIUM,
@@ -409,7 +432,8 @@ class EveDb(metaclass=Singleton):
       "drifter": WormholeSize.LARGE,
     },
     "C6": {
-      "lowsec_nullsec": WormholeSize.XLARGE,
+      "lowsec": WormholeSize.MEDIUM,
+      "nullsec": WormholeSize.XLARGE,
       "highsec": WormholeSize.LARGE,
       "pochven": WormholeSize.LARGE,
       "C1": WormholeSize.MEDIUM,
@@ -423,7 +447,8 @@ class EveDb(metaclass=Singleton):
       "drifter": WormholeSize.LARGE,
     },
     "C12": {
-      "lowsec_nullsec": WormholeSize.LARGE,
+      "lowsec": WormholeSize.LARGE,
+      "nullsec": WormholeSize.LARGE,
       "highsec": WormholeSize.LARGE,
       "pochven": WormholeSize.LARGE,
       "C1": WormholeSize.MEDIUM,
@@ -437,7 +462,8 @@ class EveDb(metaclass=Singleton):
       "drifter": WormholeSize.LARGE,
     },
     "C13": {
-      "lowsec_nullsec": WormholeSize.SMALL,
+      "lowsec": WormholeSize.SMALL,
+      "nullsec": WormholeSize.SMALL,
       "highsec": WormholeSize.SMALL,
       "pochven": WormholeSize.SMALL,
       "C1": WormholeSize.SMALL,
@@ -451,7 +477,8 @@ class EveDb(metaclass=Singleton):
       "drifter": WormholeSize.SMALL,
     },
     "drifter": {
-      "lowsec_nullsec": WormholeSize.LARGE,
+      "lowsec": WormholeSize.LARGE,
+      "nullsec": WormholeSize.LARGE,
       "highsec": WormholeSize.LARGE,
       "pochven": WormholeSize.LARGE,
       "C1": WormholeSize.MEDIUM,
@@ -485,7 +512,7 @@ class EveDb(metaclass=Singleton):
 
     # shortcut: B520, L031, M164 and V898 are 1,000,000 t holes in CCP's data,
     # but capitals cannot enter highsec or Thera, so these codes and the
-    # SIZE_MATRIX cells highsec<->C6 and lowsec_nullsec<->C12 are LARGE;
+    # SIZE_MATRIX cells highsec<->C6, lowsec<->C12 and nullsec<->C12 are LARGE;
     # upgrade when routing filters capitals by destination system instead.
     self.wh_codes: Dict[str, WormholeSize] = {
       rows[0]: WormholeSize(int(rows[1]))
@@ -550,8 +577,10 @@ class EveDb(metaclass=Singleton):
       sys_class = "highsec"
     elif db_class == "▲":
       sys_class = "pochven"
-    elif db_class in ["LS", "NS"]:
-      sys_class = "lowsec_nullsec"
+    elif db_class == "LS":
+      sys_class = "lowsec"
+    elif db_class == "NS":
+      sys_class = "nullsec"
     elif db_class in ["C14", "C15", "C16", "C17", "C18"]:
       sys_class = "drifter"
     else:

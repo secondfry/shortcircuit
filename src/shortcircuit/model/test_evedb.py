@@ -60,6 +60,7 @@ def _size(a, b):
   return eve_db.get_whsize_by_system(eve_db.name2id(a), eve_db.name2id(b))
 
 
+C2 = "J164417"
 C5 = "J152820"
 C6 = "J104859"
 
@@ -83,6 +84,20 @@ def test_whsize_highsec_to_c6_is_large():
   assert _size(C6, "Jita") == WormholeSize.LARGE
   assert _size("Jita", C5) == WormholeSize.XLARGE
   assert _size("HED-GP", C6) == WormholeSize.XLARGE
+
+
+def test_whsize_lowsec_to_c1_c6_is_medium():
+  # J492 (62,000 t) links C1-C6 to low-sec, so the smallest regular hole is Medium.
+  for wh in (C2, C5, C6):
+    assert _size("Tama", wh) == WormholeSize.MEDIUM, wh
+    assert _size(wh, "Tama") == WormholeSize.MEDIUM, wh
+
+
+def test_whsize_nullsec_to_c2_c5_unchanged():
+  assert _size("HED-GP", C5) == WormholeSize.XLARGE
+  assert _size(C5, "HED-GP") == WormholeSize.XLARGE
+  assert _size("HED-GP", C2) == WormholeSize.LARGE
+  assert _size(C2, "HED-GP") == WormholeSize.LARGE
 
 
 def test_whsize_unknown_class_is_unknown():
