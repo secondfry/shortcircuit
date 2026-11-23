@@ -375,8 +375,8 @@ Any format is acceptable (JSON, XML, etc.) as long as it can be parsed to extrac
 
 When adding a new mapper, create unit tests following the pattern in:
 - `test_tripwire.py`: Tests for Tripwire implementation
-- `test_wanderer.py`: Tests for Wanderer implementation
 - `test_tripwire_gate.py`: Integration tests
+- `test_wanderer.py`: Tests for Wanderer implementation
 
 Example test structure:
 
