@@ -30,7 +30,6 @@ from .view.gui_main import Ui_MainWindow
 from .view.gui_mappers import Ui_MappersDialog
 from .view.gui_tripwire import Ui_TripwireDialog
 from .view.gui_wanderer import Ui_WandererDialog
-from .view.theme import apply_theme
 
 
 class StateEVEConnection(TypedDict):
@@ -64,6 +63,29 @@ def read_whsize_index(settings: QtCore.QSettings) -> int:
   if index == LEGACY_IGNORE_WORMHOLES_INDEX:
     return index + 1
   return index
+
+
+# Saved View > Appearance choice -> the colour scheme Qt is asked for;
+# Unknown hands the choice back to the OS.
+APPEARANCE_KEY = "appearance"
+COLOR_SCHEMES = {
+  "system": QtCore.Qt.ColorScheme.Unknown,
+  "light": QtCore.Qt.ColorScheme.Light,
+  "dark": QtCore.Qt.ColorScheme.Dark,
+}
+
+# The light backgrounds come from gui_main.ui; only dark ones live here.
+DARK_PRIORITY_BACKGROUNDS = {
+  "spinBox_prio_hs": "#2d4a33",
+  "spinBox_prio_ns": "#4a2d2d",
+  "spinBox_prio_wh": "#27374a",
+  "spinBox_prio_ls": "#4a452d",
+}
+
+
+def read_appearance(settings: QtCore.QSettings) -> str:
+  appearance = settings.value(APPEARANCE_KEY, "system")
+  return appearance if appearance in COLOR_SCHEMES else "system"
 
 
 def size_restriction_for_index(combo_index: int) -> Dict[WormholeSize, bool]:
@@ -404,8 +426,12 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     self.global_proxy: str = ""
     self.mapper_configs: List[MapperConfig] = []
     self.mapper_states: Dict[str, StateMapper] = {}
-    self.dark_mode: bool = False
+    self.appearance: str = "system"
     self._label_states: Dict[QtWidgets.QLabel, tuple] = {}
+    self._light_priority_sheets = {
+      name: getattr(self, name).styleSheet()
+      for name in DARK_PRIORITY_BACKGROUNDS
+    }
 
     self.state_eve_connection = StateEVEConnection({
       "connected": False, "char_name": None, "error": None
@@ -559,47 +585,50 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     )
 
     # View menu
-    menu_view = self.menubar.addMenu("&View")
-    self.action_dark_mode = QtWidgets.QAction("&Dark Mode", self)
-    self.action_dark_mode.setCheckable(True)
-    self.action_dark_mode.toggled.connect(self.toggle_dark_mode)
-    menu_view.addAction(self.action_dark_mode)
-    self.action_dark_mode.setChecked(self.dark_mode)
+    menu_appearance = self.menubar.addMenu("&View").addMenu("&Appearance")
+    self.appearance_group = QtGui.QActionGroup(self)
+    for appearance in COLOR_SCHEMES:
+      action = menu_appearance.addAction(appearance.capitalize())
+      action.setCheckable(True)
+      action.setData(appearance)
+      self.appearance_group.addAction(action)
+    self.appearance_group.triggered.connect(
+      lambda action: self.set_appearance(action.data())
+    )
+    QtGui.QGuiApplication.styleHints().colorSchemeChanged.connect(
+      self._apply_scheme_colors
+    )
+    self.set_appearance(self.appearance)
 
-  @QtCore.Slot(bool)
-  def toggle_dark_mode(self, enabled: bool):
-    self.dark_mode = enabled
-    apply_theme(QtWidgets.QApplication.instance(), enabled)
-    self._apply_priority_spinbox_colors()
-    self._refresh_label_colors()
+  def set_appearance(self, appearance: str):
+    self.appearance = appearance
+    for action in self.appearance_group.actions():
+      action.setChecked(action.data() == appearance)
+    QtGui.QGuiApplication.styleHints().setColorScheme(
+      COLOR_SCHEMES[appearance]
+    )
+    # No colorSchemeChanged when the effective scheme stays the same.
+    self._apply_scheme_colors()
 
-  def _apply_priority_spinbox_colors(self):
-    if self.dark_mode:
-      self.spinBox_prio_hs.setStyleSheet(
-        "QSpinBox { background-color: #2d4a33; color: #dcdcdc; }"
+  @staticmethod
+  def _is_dark() -> bool:
+    scheme = QtGui.QGuiApplication.styleHints().colorScheme()
+    return scheme == QtCore.Qt.ColorScheme.Dark
+
+  def _apply_scheme_colors(self):
+    dark = self._is_dark()
+    for name, background in DARK_PRIORITY_BACKGROUNDS.items():
+      getattr(self, name).setStyleSheet(
+        "QSpinBox { background-color: %s; }" % background
+        if dark else self._light_priority_sheets[name]
       )
-      self.spinBox_prio_ns.setStyleSheet(
-        "QSpinBox { background-color: #4a2d2d; color: #dcdcdc; }"
-      )
-      self.spinBox_prio_wh.setStyleSheet(
-        "QSpinBox { background-color: #27374a; color: #dcdcdc; }"
-      )
-      self.spinBox_prio_ls.setStyleSheet(
-        "QSpinBox { background-color: #4a452d; color: #dcdcdc; }"
-      )
-    else:
-      self.spinBox_prio_hs.setStyleSheet(
-        "QSpinBox { background-color: #DFF0D8; }"
-      )
-      self.spinBox_prio_ns.setStyleSheet(
-        "QSpinBox { background-color: #F2DEDE; }"
-      )
-      self.spinBox_prio_wh.setStyleSheet(
-        "QSpinBox { background-color: #D2E2F2; }"
-      )
-      self.spinBox_prio_ls.setStyleSheet(
-        "QSpinBox { background-color: #FCF8E3; }"
-      )
+    for label, (message, message_type) in self._label_states.items():
+      self._label_message(label, message, message_type)
+    # A rich-text label takes its link colour from the palette only when its
+    # text is set, and setText() ignores unchanged text.
+    link_text = self.label_10.text()
+    self.label_10.clear()
+    self.label_10.setText(link_text)
 
   def read_settings_mappers(self):
     self.global_proxy = self.settings.value('proxy') or ""
@@ -664,7 +693,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     self.spinBox_prio_wh.setValue(int(self.settings.value("prio_wh", "1")))
 
     # Appearance
-    self.dark_mode = self.settings.value("dark_mode", "false") == "true"
+    self.appearance = read_appearance(self.settings)
 
     self.settings.endGroup()
 
@@ -720,7 +749,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     self.settings.setValue("prio_wh", self.spinBox_prio_wh.value())
 
     # Appearance
-    self.settings.setValue("dark_mode", self.dark_mode)
+    self.settings.setValue(APPEARANCE_KEY, self.appearance)
 
     self.settings.endGroup()
 
@@ -733,18 +762,18 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
   def _label_message(self, label, message, message_type):
     # FIXME(secondfry): set only color, not entire stylesheet.
     self._label_states[label] = (message, message_type)
+    dark = self._is_dark()
     if message_type == MessageType.OK:
-      color = "#81c784" if self.dark_mode else "green"
+      label.setStyleSheet(
+        "QLabel {color: %s;}" % ("#81c784" if dark else "green")
+      )
     elif message_type == MessageType.ERROR:
-      color = "#e57373" if self.dark_mode else "red"
+      label.setStyleSheet(
+        "QLabel {color: %s;}" % ("#e57373" if dark else "red")
+      )
     else:
-      color = "#dcdcdc" if self.dark_mode else "black"
-    label.setStyleSheet("QLabel {{color: {};}}".format(color))
+      label.setStyleSheet("")
     label.setText(message)
-
-  def _refresh_label_colors(self):
-    for label, (message, message_type) in self._label_states.items():
-      self._label_message(label, message, message_type)
 
   def _avoid_message(self, message, message_type):
     self.statusBar().showMessage(message, 5000)

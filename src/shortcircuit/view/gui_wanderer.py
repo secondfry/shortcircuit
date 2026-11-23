@@ -118,6 +118,6 @@ class Ui_WandererDialog(object):
         self.label_map.setText(QCoreApplication.translate("WandererDialog", u"Map slug:", None))
         self.lineEdit_map.setPlaceholderText(QCoreApplication.translate("WandererDialog", u"Map identifier from the map URL", None))
         self.label_token.setText(QCoreApplication.translate("WandererDialog", u"API token:", None))
-        self.label_help.setText(QCoreApplication.translate("WandererDialog", u"<html><head/><body><p>Generate the token in Wanderer under Map Settings \u2192 Public Api \u2192 Generate. <a href=\"https://github.com/wanderer-industries/wanderer\"><span style=\" text-decoration: underline; color:#0000ff;\">About Wanderer</span></a></p></body></html>", None))
+        self.label_help.setText(QCoreApplication.translate("WandererDialog", u"<html><head/><body><p>Generate the token in Wanderer under Map Settings \u2192 Public Api \u2192 Generate. <a href=\"https://github.com/wanderer-industries/wanderer\"><span style=\" text-decoration: underline;\">About Wanderer</span></a></p></body></html>", None))
     # retranslateUi
 

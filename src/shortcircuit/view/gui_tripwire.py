@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'gui_tripwire.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.11.2
+## Created by: Qt User Interface Compiler version 6.9.3
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -144,5 +144,6 @@ class Ui_TripwireDialog(object):
         self.label_7.setText(QCoreApplication.translate("TripwireDialog", u"Proxy:", None))
         self.lineEdit_proxy.setInputMask("")
         self.lineEdit_proxy.setPlaceholderText(QCoreApplication.translate("TripwireDialog", u"Leave empty to disable", None))
-        self.label_5.setText(QCoreApplication.translate("TripwireDialog", u"<html><head/><body><p><a href=\"https://tripwire.eve-apps.com/\"><span style=\" text-decoration: underline; color:#0000ff;\">Don't have a Tripwire account, yet?</span></a></p></body></html>", None))
+        self.label_5.setText(QCoreApplication.translate("TripwireDialog", u"<html><head/><body><p><a href=\"https://tripwire.eve-apps.com/\"><span style=\" text-decoration: underline;\">Don't have a Tripwire account, yet?</span></a></p></body></html>", None))
     # retranslateUi
+
