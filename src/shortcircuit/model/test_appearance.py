@@ -1,5 +1,8 @@
 # test_appearance.py
-"""View > Appearance: the saved choice and the colour scheme it asks Qt for."""
+"""View > Appearance: the saved choice, the colour scheme it asks Qt for, and
+the colours that follow the palette Qt actually draws."""
+
+import os
 
 import pytest
 from PySide6 import QtCore, QtGui
@@ -7,12 +10,8 @@ from PySide6 import QtCore, QtGui
 from shortcircuit import app as app_module
 from shortcircuit.app import APPEARANCE_KEY, MainWindow, read_appearance
 
-
-def _settings(tmp_path, **values):
-  settings = QtCore.QSettings(str(tmp_path / 'settings.ini'), QtCore.QSettings.IniFormat)
-  for key, value in values.items():
-    settings.setValue(key, value)
-  return settings
+LIGHT_HS_SHEET = 'QSpinBox { background-color: #DFF0D8; }'
+DARK, LIGHT = '#1e1e1e', '#f3f3f3'
 
 
 @pytest.mark.parametrize('saved, expected', [
@@ -21,28 +20,37 @@ def _settings(tmp_path, **values):
   ('light', 'light'),
   ('true', 'system'),
 ])
-def test_read_appearance(tmp_path, saved, expected):
+def test_read_appearance(make_settings, saved, expected):
   values = {} if saved is None else {APPEARANCE_KEY: saved}
-  assert read_appearance(_settings(tmp_path, **values)) == expected
+  assert read_appearance(make_settings(**values)) == expected
+
+
+def _palette(window_colour):
+  # Built from the button colour, which QPalette also uses for Window.
+  return QtGui.QPalette(QtGui.QColor(window_colour))
 
 
 @pytest.fixture
 def window(qapp, tmp_path, monkeypatch):
-  # Offscreen Qt ignores scheme requests, so record them and fake the result.
+  # Offscreen Qt ignores scheme requests: record them, and let each test
+  # decide whether the style answers with a dark palette.
   requested = []
   monkeypatch.setattr(QtGui.QStyleHints, 'setColorScheme', lambda _, scheme: requested.append(scheme))
-  monkeypatch.setattr(
-    QtGui.QStyleHints, 'colorScheme',
-    lambda _: requested[-1] if requested else QtCore.Qt.ColorScheme.Unknown,
-  )
   monkeypatch.setattr(app_module.VersionCheck, 'process', lambda _: None)
-  QtCore.QSettings.setPath(QtCore.QSettings.IniFormat, QtCore.QSettings.UserScope, str(tmp_path))
+  ini, user = QtCore.QSettings.IniFormat, QtCore.QSettings.UserScope
+  # QSettings(format, scope, org) lives at <scope path>/<org>.ini.
+  old_path = os.path.dirname(QtCore.QSettings(ini, user, 'probe').fileName())
+  old_palette = qapp.palette()
+  QtCore.QSettings.setPath(ini, user, str(tmp_path))
+  qapp.setPalette(_palette(LIGHT))
   win = MainWindow()
   win.requested = requested
   yield win
   win.version_thread.quit()
   win.version_thread.wait()
   win.deleteLater()
+  QtCore.QSettings.setPath(ini, user, old_path)
+  qapp.setPalette(old_palette)
 
 
 def _choose(win, appearance):
@@ -66,9 +74,23 @@ def test_choosing_system_hands_scheme_back_to_os(window):
   assert window.requested[-1] == QtCore.Qt.ColorScheme.Unknown
 
 
-def test_light_restores_the_ui_file_spinbox_background(window):
-  light_sheet = window.spinBox_prio_hs.styleSheet()
-  _choose(window, 'dark')
+def _switch_palette(qapp, win, window_colour):
+  # What a scheme switch does on a real platform: new application palette,
+  # then PaletteChange to the window (offscreen setPalette skips the latter
+  # once child stylesheets exist).
+  qapp.setPalette(_palette(window_colour))
+  qapp.sendEvent(win, QtCore.QEvent(QtCore.QEvent.Type.PaletteChange))
+
+
+def test_dark_palette_darkens_and_light_restores_the_ui_file_background(window, qapp):
+  _switch_palette(qapp, window, DARK)
   assert '#2d4a33' in window.spinBox_prio_hs.styleSheet()
-  _choose(window, 'light')
-  assert window.spinBox_prio_hs.styleSheet() == light_sheet == 'QSpinBox { background-color: #DFF0D8; }'
+  _switch_palette(qapp, window, LIGHT)
+  assert window.spinBox_prio_hs.styleSheet() == LIGHT_HS_SHEET
+
+
+def test_dark_request_kept_light_by_the_style_stays_light(window, monkeypatch):
+  # windowsvista (Windows 10's default) reports Dark but draws light.
+  monkeypatch.setattr(QtGui.QStyleHints, 'colorScheme', lambda _: window.requested[-1])
+  _choose(window, 'dark')
+  assert window.spinBox_prio_hs.styleSheet() == LIGHT_HS_SHEET

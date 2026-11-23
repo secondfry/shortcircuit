@@ -65,6 +65,12 @@ def read_whsize_index(settings: QtCore.QSettings) -> int:
   return index
 
 
+def size_restriction_for_index(combo_index: int) -> Dict[WormholeSize, bool]:
+  """Block every size below the "Wormhole size at least" choice; the last
+  entry, "[Ignore wormholes]", blocks them all."""
+  return {size: i < combo_index for i, size in enumerate(KNOWN_WH_SIZES)}
+
+
 # Saved View > Appearance choice -> the colour scheme Qt is asked for;
 # Unknown hands the choice back to the OS.
 APPEARANCE_KEY = "appearance"
@@ -86,12 +92,6 @@ DARK_PRIORITY_BACKGROUNDS = {
 def read_appearance(settings: QtCore.QSettings) -> str:
   appearance = settings.value(APPEARANCE_KEY, "system")
   return appearance if appearance in COLOR_SCHEMES else "system"
-
-
-def size_restriction_for_index(combo_index: int) -> Dict[WormholeSize, bool]:
-  """Block every size below the "Wormhole size at least" choice; the last
-  entry, "[Ignore wormholes]", blocks them all."""
-  return {size: i < combo_index for i, size in enumerate(KNOWN_WH_SIZES)}
 
 
 class TripwireDialog(QtWidgets.QDialog, Ui_TripwireDialog):
@@ -595,9 +595,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     self.appearance_group.triggered.connect(
       lambda action: self.set_appearance(action.data())
     )
-    QtGui.QGuiApplication.styleHints().colorSchemeChanged.connect(
-      self._apply_scheme_colors
-    )
     self.set_appearance(self.appearance)
 
   def set_appearance(self, appearance: str):
@@ -607,13 +604,15 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     QtGui.QGuiApplication.styleHints().setColorScheme(
       COLOR_SCHEMES[appearance]
     )
-    # No colorSchemeChanged when the effective scheme stays the same.
+    # No palette change event when the drawn palette stays the same.
     self._apply_scheme_colors()
 
   @staticmethod
   def _is_dark() -> bool:
-    scheme = QtGui.QGuiApplication.styleHints().colorScheme()
-    return scheme == QtCore.Qt.ColorScheme.Dark
+    # Judge by what is drawn: some styles (windowsvista, Windows 10's
+    # default) report a Dark scheme yet keep a light palette.
+    window = QtGui.QGuiApplication.palette().color(QtGui.QPalette.ColorRole.Window)
+    return window.lightness() < 128
 
   def _apply_scheme_colors(self):
     dark = self._is_dark()
@@ -625,7 +624,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     for label, (message, message_type) in self._label_states.items():
       self._label_message(label, message, message_type)
     # A rich-text label takes its link colour from the palette only when its
-    # text is set, and setText() ignores unchanged text.
+    # text is set, and setText() ignores unchanged text. label_10 is the only
+    # link label in the main window.
     link_text = self.label_10.text()
     self.label_10.clear()
     self.label_10.setText(link_text)
@@ -1293,6 +1293,13 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         )
       )
     )
+
+  def changeEvent(self, event):
+    # The window follows the application palette, so a scheme switch (or a
+    # live OS switch under System) arrives here as PaletteChange.
+    if event.type() == QtCore.QEvent.Type.PaletteChange:
+      self._apply_scheme_colors()
+    super().changeEvent(event)
 
   # event: QCloseEvent
   def closeEvent(self, event):
