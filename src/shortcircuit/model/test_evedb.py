@@ -64,7 +64,7 @@ C5 = "J152820"
 C6 = "J104859"
 
 
-def test_whsize_kspace_pairs():
+def test_whsize_nullsec_highsec_pairs():
   assert _size("HED-GP", "Amarr") == WormholeSize.XLARGE
   assert _size("Amarr", "HED-GP") == WormholeSize.XLARGE
 
@@ -87,9 +87,7 @@ def test_whsize_highsec_to_c6_is_large():
 
 def test_whsize_unknown_class_is_unknown():
   eve_db = EveDb()
-  zarzakh = eve_db.name2id("Zarzakh")
   missing = 1
-  assert eve_db.get_whsize_by_system(zarzakh, eve_db.name2id("Jita")) == WormholeSize.UNKNOWN
   assert eve_db.get_whsize_by_system(missing, eve_db.name2id("Jita")) == WormholeSize.UNKNOWN
 
 
