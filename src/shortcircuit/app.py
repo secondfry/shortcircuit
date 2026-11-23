@@ -10,7 +10,7 @@ from PySide6 import QtCore, QtGui, QtWidgets
 
 from . import __appname__, __date__ as last_update, __version__
 from .model.esi_processor import ESIProcessor
-from .model.evedb import EveDb, Restrictions, SpaceType, WormholeSize
+from .model.evedb import KNOWN_WH_SIZES, EveDb, Restrictions, SpaceType, WormholeSize
 from .model.logger import Logger
 from .model.mapper_config import (
   MapperConfig,
@@ -68,8 +68,7 @@ def read_whsize_index(settings: QtCore.QSettings) -> int:
 def size_restriction_for_index(combo_index: int) -> Dict[WormholeSize, bool]:
   """Block every size below the "Wormhole size at least" choice; the last
   entry, "[Ignore wormholes]", blocks them all."""
-  sizes = [size for size in WormholeSize if WormholeSize.valid(size)]
-  return {size: i < combo_index for i, size in enumerate(sizes)}
+  return {size: i < combo_index for i, size in enumerate(KNOWN_WH_SIZES)}
 
 
 class TripwireDialog(QtWidgets.QDialog, Ui_TripwireDialog):
@@ -651,7 +650,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
     # Restrictions
     self.settings.setValue(WHSIZE_KEY, self.comboBox_size.currentIndex())
-    self.settings.remove(LEGACY_WHSIZE_KEY)
     self.settings.setValue("restriction_eol", self.checkBox_eol.isChecked())
     self.settings.setValue(
       "restriction_masscrit", self.checkBox_masscrit.isChecked()

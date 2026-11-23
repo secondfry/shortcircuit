@@ -323,7 +323,7 @@ class Tripwire(MapperSource):
     :param system_to: Destination system ID
     :return: Tuple of (wh_type_in, wh_type_out, wh_life, wh_mass, wh_size)
     """
-    is_gate = wormhole['type'] == 'GATE'
+    is_gate = wormhole['type'] == GATE_CODE
     
     if is_gate:
       wh_type_in = GATE_CODE

@@ -1,9 +1,9 @@
 import pytest
 
-from shortcircuit.model.evedb import EveDb, SpaceType, WormholeSize, WormholeMassspan, WormholeTimespan
+from shortcircuit.model.evedb import KNOWN_WH_SIZES, EveDb, SpaceType, WormholeSize, WormholeMassspan, WormholeTimespan
 from shortcircuit.model.solarmap import ConnectionType, SolarMap
 
-ALL_SIZES = {size for size in WormholeSize if WormholeSize.valid(size)}
+ALL_SIZES = set(KNOWN_WH_SIZES)
 
 
 def _restrictions(blocked_sizes=(), **overrides):
@@ -35,15 +35,7 @@ def test_dodixie_jita():
   path, _ = map.shortest_path(
     eve_db.name2id("Dodixie"),
     eve_db.name2id("Ikuchi"),
-    {
-      "avoidance_list": [],
-      "security_prio": {
-        SpaceType.HS: 1,
-        SpaceType.LS: 1,
-        SpaceType.NS: 1,
-        SpaceType.WH: 1,
-      }
-    },
+    _restrictions(),
   )
 
   named_path = [eve_db.id2name(x) for x in path]
@@ -69,17 +61,7 @@ def test_dodixie_jita_but_avoid_tama():
   path, _ = map.shortest_path(
     eve_db.name2id("Dodixie"),
     eve_db.name2id("Ikuchi"),
-    {
-      "avoidance_list": [
-        eve_db.name2id("Tama"),
-      ],
-      "security_prio": {
-        SpaceType.HS: 1,
-        SpaceType.LS: 1,
-        SpaceType.NS: 1,
-        SpaceType.WH: 1,
-      }
-    },
+    _restrictions(avoidance_list=[eve_db.name2id("Tama")]),
   )
 
   named_path = [eve_db.id2name(x) for x in path]
@@ -107,15 +89,12 @@ def test_dodixie_jita_but_avoid_hs():
   path, _ = map.shortest_path(
     eve_db.name2id("Dodixie"),
     eve_db.name2id("Sujarento"),
-    {
-      "avoidance_list": [],
-      "security_prio": {
-        SpaceType.HS: 100,
-        SpaceType.LS: 1,
-        SpaceType.NS: 1,
-        SpaceType.WH: 1,
-      }
-    },
+    _restrictions(security_prio={
+      SpaceType.HS: 100,
+      SpaceType.LS: 1,
+      SpaceType.NS: 1,
+      SpaceType.WH: 1,
+    }),
   )
 
   named_path = [eve_db.id2name(x) for x in path]
@@ -336,17 +315,7 @@ def test_jita_tama_but_avoid_tama():
   path, _ = map.shortest_path(
     eve_db.name2id("Ikuchi"),
     eve_db.name2id("Tama"),
-    {
-      "avoidance_list": [
-        eve_db.name2id("Tama"),
-      ],
-      "security_prio": {
-        SpaceType.HS: 1,
-        SpaceType.LS: 1,
-        SpaceType.NS: 1,
-        SpaceType.WH: 1,
-      },
-    },
+    _restrictions(avoidance_list=[eve_db.name2id("Tama")]),
   )
 
   named_path = [eve_db.id2name(x) for x in path]
@@ -816,6 +785,7 @@ def _route_over_unknown_size_hole(code, blocked_sizes):
 
 def test_ignore_wormholes_blocks_unknown_size_hole():
   path = _route_over_unknown_size_hole(None, ALL_SIZES)
+  assert path[-1] == 'Jita'
   assert ('Botane', 'Ikuchi') not in zip(path, path[1:])
 
 

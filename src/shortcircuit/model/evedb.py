@@ -39,13 +39,10 @@ class WormholeSize(int, Enum):
 
   @staticmethod
   def valid(value):
-    return value in [
-      WormholeSize.SMALL,
-      WormholeSize.MEDIUM,
-      WormholeSize.LARGE,
-      WormholeSize.XLARGE,
-      WormholeSize.CAPITAL,
-    ]
+    return value in KNOWN_WH_SIZES
+
+
+KNOWN_WH_SIZES = tuple(s for s in WormholeSize if s != WormholeSize.UNKNOWN)
 
 
 class WormholeTimespan(int, Enum):
@@ -291,8 +288,9 @@ class EveDb(metaclass=Singleton):
   Eve Database Handler
   """
 
-  # Size of the regular (non-frigate) holes between two system classes, per
-  # EVE University Wormhole_attributes; where those differ, the smallest.
+  # Size of the smallest regular (non-frigate) hole per class pair, from CCP's
+  # jump masses (statics.csv) and the spawn lists of EVE University, Tripwire
+  # and Wanderer.
   # Frigate holes are ignored: they can appear almost anywhere and would make
   # every w-space pair Small. Each security band has its own row: low-sec<->C1-C6
   # is Medium because J492, a 62,000 t hole, links C1-C6 to low-sec. Pochven

@@ -8,6 +8,7 @@ from shortcircuit.model.logger import Logger
 from typing_extensions import Self
 
 from .evedb import (
+  KNOWN_WH_SIZES,
   EveDb,
   Restrictions,
   SpaceType,
@@ -409,7 +410,7 @@ class SolarMap:
       # Tripwire stores stargates as size-less holes coded GATE, which stay usable.
       all_blocked = all(
         size_restriction.get(size, False)
-        for size in WormholeSize if WormholeSize.valid(size)
+        for size in KNOWN_WH_SIZES
       )
       if con_info[1] != GATE_CODE and all_blocked:
         return False, 0
@@ -560,6 +561,7 @@ def main():
         WormholeSize.MEDIUM: True,
         WormholeSize.LARGE: True,
         WormholeSize.XLARGE: True,
+        WormholeSize.CAPITAL: True,
       },
       "avoidance_list": [],
       "security_prio": {

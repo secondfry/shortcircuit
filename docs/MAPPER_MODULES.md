@@ -81,9 +81,9 @@ Hole sizes are `WormholeSize` tiers by CCP's max jump mass: `XLARGE` is the
 1,000,000,000 kg tier (freighters fit, capitals don't; every such hole touches
 high-sec or Thera) and `CAPITAL` the 2,000,000,000 kg one, so the pilot's
 "X-Large (freighter)" choice allows both and "X-Large (capital)" only
-`CAPITAL`. A mapper maps its own size field onto both tiers; with no hole code
-or size field, `EveDb.get_whsize_by_system` guesses by class pair, and pairs
-no regular hole links stay `UNKNOWN`.
+`CAPITAL`. Hole codes (statics.csv) and each mapper's own size field cover
+both tiers; with no hole code or size field, `EveDb.get_whsize_by_system`
+guesses by class pair, and pairs no regular hole links stay `UNKNOWN`.
 
 The route-table `path_info` column surfaces the stored `sources` list as
 "Reported by: X, Y" so users can see which mappers contributed each hop.

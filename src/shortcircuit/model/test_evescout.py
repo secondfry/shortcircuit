@@ -35,13 +35,13 @@ def _size(wh_type, source='Thera', dest='Jita', **extra):
 
 def test_unknown_code_uses_max_ship_size():
   assert _size('XXXX', max_ship_size='small') == WormholeSize.SMALL
-  assert _size('XXXX', max_ship_size='medium') == WormholeSize.MEDIUM
+  assert _size('XXXX', 'Turnur', 'HED-GP', max_ship_size='medium') == WormholeSize.MEDIUM
 
 
 def test_xlarge_is_freighter_tier_and_capital_is_capital_tier():
   # Eve Scout reports 1,000,000,000 kg holes (V898) as xlarge and 2,000,000,000 kg (N944) as capital.
   assert _size('XXXX', max_ship_size='xlarge') == WormholeSize.XLARGE
-  assert _size('XXXX', 'Turnur', 'HED-GP', max_ship_size='capital') == WormholeSize.CAPITAL
+  assert _size('XXXX', max_ship_size='capital') == WormholeSize.CAPITAL
 
 
 def test_unknown_max_ship_size_falls_back_to_system_pair():
