@@ -14,6 +14,14 @@ from .wanderer import Wanderer
 if TYPE_CHECKING:
   from shortcircuit.app import MainWindow
 
+WH_SIZE_TEXT = {
+  WormholeSize.SMALL: "Small",
+  WormholeSize.MEDIUM: "Medium",
+  WormholeSize.LARGE: "Large",
+  WormholeSize.XLARGE: "X-large (freighter)",
+  WormholeSize.CAPITAL: "X-large (capital)",
+}
+
 
 def _build_tripwire(cfg: MapperConfig) -> MapperSource:
   return Tripwire(
@@ -138,16 +146,7 @@ class Navigation:
     wh_sig, wh_code = info[0], info[1]
     wh_size, wh_life, wh_mass, time_elapsed = info[2], info[3], info[4], info[5]
     sources = info[6] if len(info) >= 7 else []
-    # Wormhole size
-    wh_size_text = "Unknown"
-    if wh_size == WormholeSize.SMALL:
-      wh_size_text = "Small"
-    if wh_size == WormholeSize.MEDIUM:
-      wh_size_text = "Medium"
-    if wh_size == WormholeSize.LARGE:
-      wh_size_text = "Large"
-    elif wh_size == WormholeSize.XLARGE:
-      wh_size_text = "X-large"
+    wh_size_text = WH_SIZE_TEXT.get(wh_size, "Unknown")
 
     # Wormhole life
     wh_life_text = "Timespan unknown"

@@ -10,7 +10,7 @@ from shortcircuit import USER_AGENT
 from .evedb import EveDb, WormholeSize, WormholeMassspan, WormholeTimespan
 from .logger import Logger
 from .mapper_base import MapperSource
-from .solarmap import ConnectionType, SolarMap
+from .solarmap import GATE_CODE, ConnectionType, SolarMap
 from .utility.configuration import Configuration
 
 
@@ -323,11 +323,11 @@ class Tripwire(MapperSource):
     :param system_to: Destination system ID
     :return: Tuple of (wh_type_in, wh_type_out, wh_life, wh_mass, wh_size)
     """
-    is_gate = wormhole['type'] == 'GATE'
+    is_gate = wormhole['type'] == GATE_CODE
     
     if is_gate:
-      wh_type_in = 'GATE'
-      wh_type_out = 'GATE'
+      wh_type_in = GATE_CODE
+      wh_type_out = GATE_CODE
       wh_life = WormholeTimespan.STABLE
       wh_mass = WormholeMassspan.STABLE
       wh_size = WormholeSize.UNKNOWN  # GATE type doesn't have a size

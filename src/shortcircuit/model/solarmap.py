@@ -8,6 +8,7 @@ from shortcircuit.model.logger import Logger
 from typing_extensions import Self
 
 from .evedb import (
+  KNOWN_WH_SIZES,
   EveDb,
   Restrictions,
   SpaceType,
@@ -20,6 +21,9 @@ from .evedb import (
 class ConnectionType(int, Enum):
   GATE = 1
   WORMHOLE = 2
+
+
+GATE_CODE = 'GATE'  # Tripwire's code for stargates stored as holes
 
 
 Edge = Tuple[ConnectionType, Optional[List]]
@@ -115,12 +119,15 @@ class SolarMap:
     source_name: str = None,
   ) -> bool:
     """Add a connection; False if it was skipped."""
+    if con_type not in (ConnectionType.GATE, ConnectionType.WORMHOLE):
+      raise ValueError('unknown connection type {!r}'.format(con_type))
+
     # A mapper can report a system the local SDE lacks (e.g. a newly added
-    # region); routing through it would fail on the missing system data.
+    # region) or one off the map; routing through it would fail.
     for system_id in (source, destination):
-      if system_id not in self.eve_db.system_desc:
+      if not self.eve_db.is_routable(system_id):
         Logger.warning(
-          'Skipping connection {} -> {}: system {} is not in the local SDE'
+          'Skipping connection {} -> {}: system {} is not routable'
           .format(source, destination, system_id)
         )
         return False
@@ -138,12 +145,8 @@ class SolarMap:
       dst_sys.add_gate_edge(src_sys)
       return True
 
-    if con_type == ConnectionType.WORMHOLE:
-      self._add_wormhole(src_sys, dst_sys, con_info, source_name)
-      return True
-
-    Logger.error("Unknown connection type provided")
-    return False
+    self._add_wormhole(src_sys, dst_sys, con_info, source_name)
+    return True
 
   def _add_wormhole(
     self,
@@ -396,15 +399,22 @@ class SolarMap:
       system_type = self.eve_db.system_type(neighbor.get_id())
       return True, restrictions["security_prio"][system_type]
 
-    if con_type != ConnectionType.WORMHOLE:
-      return False, 0
-
     wh_size = con_info[2]
     wh_life = con_info[3]
     wh_mass = con_info[4]
     time_elapsed = con_info[5]
 
-    if restrictions["size_restriction"].get(wh_size, False):
+    size_restriction = restrictions["size_restriction"]
+    if wh_size == WormholeSize.UNKNOWN:
+      # "[Ignore wormholes]" blocks every size, so unknown-size holes too;
+      # Tripwire stores stargates as size-less holes coded GATE, which stay usable.
+      all_blocked = all(
+        size_restriction.get(size, False)
+        for size in KNOWN_WH_SIZES
+      )
+      if con_info[1] != GATE_CODE and all_blocked:
+        return False, 0
+    elif size_restriction.get(wh_size, False):
       return False, 0
 
     if restrictions["ignore_eol"] and wh_life == WormholeTimespan.CRITICAL:
@@ -551,6 +561,7 @@ def main():
         WormholeSize.MEDIUM: True,
         WormholeSize.LARGE: True,
         WormholeSize.XLARGE: True,
+        WormholeSize.CAPITAL: True,
       },
       "avoidance_list": [],
       "security_prio": {

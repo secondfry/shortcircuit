@@ -32,7 +32,7 @@ SHIP_SIZE_TO_WH_SIZE = {
   0: WormholeSize.SMALL,
   1: WormholeSize.MEDIUM,
   3: WormholeSize.XLARGE,
-  4: WormholeSize.XLARGE,
+  4: WormholeSize.CAPITAL,
 }
 
 SIG_UNKNOWN = '???'
