@@ -12,8 +12,8 @@ from unittest import mock
 import requests
 
 from shortcircuit.model import wanderer as wanderer_module
-from shortcircuit.model.evedb import WormholeMassspan, WormholeSize, WormholeTimespan
-from shortcircuit.model.solarmap import ConnectionType
+from shortcircuit.model.evedb import EveDb, WormholeMassspan, WormholeSize, WormholeTimespan
+from shortcircuit.model.solarmap import ConnectionType, SolarMap
 from shortcircuit.model.wanderer import Wanderer
 
 THERA_ID = 31000005
@@ -225,15 +225,17 @@ class TestWandererAugmentMap(unittest.TestCase):
     self.assertEqual(self._info(solar_map)[4], WormholeSize.XLARGE)
 
   def test_size_falls_back_to_ship_size_type(self):
-    expected = {0: WormholeSize.SMALL, 1: WormholeSize.MEDIUM, 2: WormholeSize.LARGE,
+    expected = {0: WormholeSize.SMALL, 1: WormholeSize.MEDIUM,
                 3: WormholeSize.XLARGE, 4: WormholeSize.XLARGE}
     _, solar_map, _ = self._augment([_connection(ship_size_type=code) for code in expected])
     for i, size in enumerate(expected.values()):
       self.assertEqual(self._info(solar_map, i)[4], size)
 
   def test_size_falls_back_to_system_pair(self):
-    _, solar_map, _ = self._augment([_connection(ship_size_type=None)])
-    self.assertEqual(self._info(solar_map)[4], WormholeSize.MEDIUM)
+    # 2 is Wanderer's default "Normal", so it says no more than a missing code.
+    _, solar_map, _ = self._augment([_connection(ship_size_type=code) for code in (None, 2)])
+    for i in range(2):
+      self.assertEqual(self._info(solar_map, i)[4], WormholeSize.MEDIUM)
 
   def test_malformed_connections_are_skipped(self):
     count, _, _ = self._augment([
@@ -242,6 +244,14 @@ class TestWandererAugmentMap(unittest.TestCase):
       'not a dict',
     ])
     self.assertEqual(count, 0)
+
+  def test_holes_to_systems_missing_from_sde_are_not_counted(self):
+    solar_map = SolarMap(EveDb())
+    connections = [_connection(), _connection(id='c2', solar_system_target=1)]
+    with mock.patch.object(
+      wanderer_module.requests, 'get', side_effect=_routes(connections, None),
+    ):
+      self.assertEqual(_make_wanderer().augment_map(solar_map), 1)
 
   def test_signature_failure_still_routes_holes(self):
     count, solar_map, _ = self._augment(

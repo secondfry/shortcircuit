@@ -55,8 +55,6 @@ class EveScout(MapperSource):
     connections = 0
     json_response = result.json()
     for connection in json_response:
-      connections += 1
-
       # Retrieve signature meta data
       source = connection['in_system_id']
       sig_source = connection['in_signature']
@@ -95,7 +93,7 @@ class EveScout(MapperSource):
           # Wormhole codes are unknown => determine size based on class of wormholes
           wh_size = self.eve_db.get_whsize_by_system(source, dest)
 
-        solar_map.add_connection(
+        if solar_map.add_connection(
           source,
           dest,
           ConnectionType.WORMHOLE,
@@ -110,7 +108,8 @@ class EveScout(MapperSource):
             time_elapsed,
           ],
           source_name=self.name,
-        )
+        ):
+          connections += 1
 
     return connections
 

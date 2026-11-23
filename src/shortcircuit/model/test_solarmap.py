@@ -872,3 +872,41 @@ class caplog_context:
     import logging
     logging.getLogger().removeHandler(self._handler)
     return False
+
+
+def test_connection_to_system_missing_from_sde_is_skipped():
+  eve_db = EveDb()
+  map = SolarMap(eve_db)
+  missing = 1
+  botane = eve_db.name2id("Botane")
+  jita = eve_db.name2id("Jita")
+  # A two-hole shortcut through an unknown system would win if it were added.
+  assert not map.add_connection(botane, missing, ConnectionType.WORMHOLE, _wormhole_payload())
+  assert not map.add_connection(missing, jita, ConnectionType.WORMHOLE, _wormhole_payload())
+
+  assert map.get_system(missing) is None
+  path, _ = map.shortest_path(
+    eve_db.name2id("Dodixie"),
+    jita,
+    {
+      "size_restriction": {
+        WormholeSize.SMALL: False,
+        WormholeSize.MEDIUM: False,
+        WormholeSize.LARGE: False,
+        WormholeSize.XLARGE: False,
+      },
+      "avoidance_list": [],
+      "security_prio": {
+        SpaceType.HS: 1,
+        SpaceType.LS: 1,
+        SpaceType.NS: 1,
+        SpaceType.WH: 1,
+      },
+      "ignore_eol": False,
+      "ignore_masscrit": False,
+      "age_threshold": float('inf'),
+    },
+  )
+  assert path[0] == eve_db.name2id("Dodixie")
+  assert path[-1] == jita
+  assert missing not in path

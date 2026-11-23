@@ -55,6 +55,7 @@ For each registered mapper:
   - Calls mapper.augment_map(solar_map)
   - Tripwire: Logs in, fetches /refresh.php, parses JSON
   - EveScout: Fetches public API, parses JSON
+  - Wanderer: GETs /connections and /signatures with a per-map bearer token
   - Each adds connections to solar_map
   ↓
 Returns dict: {"Tripwire": 15, "Eve Scout": 8}
@@ -198,7 +199,8 @@ worker_thread_done() handler updates:
 ┌──────────────────────┐
 │  MapperSource        │  Interface
 │  ├─ Tripwire         │  Implementations
-│  └─ EveScout         │
+│  ├─ EveScout         │
+│  └─ Wanderer         │
 └──────┬───────────────┘
        │ augments
        ↓

@@ -18,7 +18,12 @@ from .solarmap import ConnectionType, SolarMap
 #   time_status:   0 = normal, 1 = EOL 1h, 2 = EOL 4h, 3 = 4.5h, 4 = 16h,
 #                  5 = 24h, 6 = 48h
 #   mass_status:   0 = more than half, 1 = less than half, 2 = critical (<10%)
-#   ship_size_type: 0 = frigate, 1 = medium, 2 = large, 3 = freight, 4 = capital
+#   ship_size_type: 0 = frigate, 1 = medium, 3 = freight, 4 = capital; 2 is
+#                  "Normal" (assets/js/hooks/Mapper/components/map/constants.ts
+#                  SHIP_SIZES_NAMES) and Wanderer's default for any mass it
+#                  doesn't match (lib/wanderer_app/utils/eve_util.ex
+#                  get_connection_size_status), so it is treated as unknown
+#                  and sized by system pair
 CONNECTION_TYPE_WORMHOLE = 0
 EOL_TIME_STATUSES = (1, 2)
 MASS_HALF = 1
@@ -26,7 +31,6 @@ MASS_CRITICAL = 2
 SHIP_SIZE_TO_WH_SIZE = {
   0: WormholeSize.SMALL,
   1: WormholeSize.MEDIUM,
-  2: WormholeSize.LARGE,
   3: WormholeSize.XLARGE,
   4: WormholeSize.XLARGE,
 }
@@ -128,7 +132,7 @@ class Wanderer(MapperSource):
     else:
       wh_mass = WormholeMassspan.STABLE
 
-    solar_map.add_connection(
+    return solar_map.add_connection(
       source,
       dest,
       ConnectionType.WORMHOLE,
@@ -144,7 +148,6 @@ class Wanderer(MapperSource):
       ],
       source_name=self.name,
     )
-    return True
 
   @staticmethod
   def _index_signatures(signatures) -> Dict[Tuple[int, int], dict]:
