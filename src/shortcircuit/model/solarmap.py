@@ -114,6 +114,16 @@ class SolarMap:
     con_info: List = None,
     source_name: str = None,
   ):
+    # A mapper can report a system the local SDE lacks (e.g. a newly added
+    # region); routing through it would fail on the missing system data.
+    for system_id in (source, destination):
+      if system_id not in self.eve_db.system_desc:
+        Logger.warning(
+          'Skipping connection {} -> {}: system {} is not in the local SDE'
+          .format(source, destination, system_id)
+        )
+        return
+
     if source not in self.systems_list:
       self.add_system(source)
     if destination not in self.systems_list:
