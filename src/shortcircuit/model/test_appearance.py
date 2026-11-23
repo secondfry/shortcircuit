@@ -8,7 +8,7 @@ import pytest
 from PySide6 import QtCore, QtGui
 
 from shortcircuit import app as app_module
-from shortcircuit.app import APPEARANCE_KEY, MainWindow, read_appearance
+from shortcircuit.app import APPEARANCE_KEY, MainWindow, MessageType, read_appearance
 
 LIGHT_HS_SHEET = 'QSpinBox { background-color: #DFF0D8; }'
 DARK, LIGHT = '#1e1e1e', '#f3f3f3'
@@ -102,3 +102,20 @@ def test_dark_palette_at_start_up_applies_without_a_palette_event(window, qapp):
   qapp.setPalette(_palette(DARK))
   window.set_appearance('system')
   assert '#2d4a33' in window.spinBox_prio_hs.styleSheet()
+
+
+def test_status_messages_recolour_on_palette_switch(window, qapp):
+  # (label, type, light sheet, dark sheet): existing messages must follow
+  # the palette, not keep the colour they were shown with.
+  cases = [
+    (window.label_status, MessageType.OK, 'QLabel {color: green;}', 'QLabel {color: #81c784;}'),
+    (window.status_mappers, MessageType.ERROR, 'QLabel {color: red;}', 'QLabel {color: #e57373;}'),
+    (window.status_eve_connection, MessageType.INFO, '', ''),
+  ]
+  for label, message_type, _, _ in cases:
+    window._label_message(label, message_type.name, message_type)
+  for colour, dark in ((LIGHT, False), (DARK, True), (LIGHT, False)):
+    _switch_palette(qapp, colour)
+    for label, message_type, light_sheet, dark_sheet in cases:
+      assert label.styleSheet() == (dark_sheet if dark else light_sheet)
+      assert label.text() == message_type.name
