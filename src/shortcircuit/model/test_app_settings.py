@@ -1,8 +1,6 @@
 # test_app_settings.py
 """The "Wormhole size at least" combo: its saved index and the sizes it blocks."""
 
-from PySide6 import QtCore
-
 from shortcircuit.app import (
   LEGACY_WHSIZE_KEY,
   WHSIZE_KEY,
@@ -12,13 +10,6 @@ from shortcircuit.app import (
 from shortcircuit.model.evedb import WormholeSize
 
 FREIGHTER, CAPITAL, IGNORE_WORMHOLES = 3, 4, 5
-
-
-def _settings(tmp_path, **values):
-  settings = QtCore.QSettings(str(tmp_path / 'settings.ini'), QtCore.QSettings.IniFormat)
-  for key, value in values.items():
-    settings.setValue(key, value)
-  return settings
 
 
 def _allowed(combo_index):
@@ -38,18 +29,18 @@ def test_ignore_wormholes_blocks_every_size():
   assert len(_allowed(0)) == 5
 
 
-def test_legacy_ignore_wormholes_is_kept(tmp_path):
-  assert read_whsize_index(_settings(tmp_path, **{LEGACY_WHSIZE_KEY: 4})) == IGNORE_WORMHOLES
+def test_legacy_ignore_wormholes_is_kept(make_settings):
+  assert read_whsize_index(make_settings(**{LEGACY_WHSIZE_KEY: 4})) == IGNORE_WORMHOLES
 
 
-def test_legacy_xlarge_becomes_freighter(tmp_path):
-  assert read_whsize_index(_settings(tmp_path, **{LEGACY_WHSIZE_KEY: 3})) == FREIGHTER
+def test_legacy_xlarge_becomes_freighter(make_settings):
+  assert read_whsize_index(make_settings(**{LEGACY_WHSIZE_KEY: 3})) == FREIGHTER
 
 
-def test_new_key_wins_over_legacy(tmp_path):
-  settings = _settings(tmp_path, **{LEGACY_WHSIZE_KEY: 4, WHSIZE_KEY: CAPITAL})
+def test_new_key_wins_over_legacy(make_settings):
+  settings = make_settings(**{LEGACY_WHSIZE_KEY: 4, WHSIZE_KEY: CAPITAL})
   assert read_whsize_index(settings) == CAPITAL
 
 
-def test_no_saved_index_is_small(tmp_path):
-  assert read_whsize_index(_settings(tmp_path)) == 0
+def test_no_saved_index_is_small(make_settings):
+  assert read_whsize_index(make_settings()) == 0

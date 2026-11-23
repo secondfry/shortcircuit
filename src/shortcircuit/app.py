@@ -4,7 +4,7 @@ from enum import Enum
 import json
 import sys
 from functools import partial
-from typing import Dict, List, Optional, TypedDict, Union
+from typing import Dict, List, Optional, Tuple, TypedDict, Union
 
 from PySide6 import QtCore, QtGui, QtWidgets
 
@@ -69,6 +69,29 @@ def size_restriction_for_index(combo_index: int) -> Dict[WormholeSize, bool]:
   """Block every size below the "Wormhole size at least" choice; the last
   entry, "[Ignore wormholes]", blocks them all."""
   return {size: i < combo_index for i, size in enumerate(KNOWN_WH_SIZES)}
+
+
+# Saved View > Appearance choice -> the colour scheme Qt is asked for;
+# Unknown hands the choice back to the OS.
+APPEARANCE_KEY = "appearance"
+COLOR_SCHEMES = {
+  "system": QtCore.Qt.ColorScheme.Unknown,
+  "light": QtCore.Qt.ColorScheme.Light,
+  "dark": QtCore.Qt.ColorScheme.Dark,
+}
+
+# The light backgrounds come from gui_main.ui; only dark ones live here.
+DARK_PRIORITY_BACKGROUNDS = {
+  "spinBox_prio_hs": "#2d4a33",
+  "spinBox_prio_ns": "#4a2d2d",
+  "spinBox_prio_wh": "#27374a",
+  "spinBox_prio_ls": "#4a452d",
+}
+
+
+def read_appearance(settings: QtCore.QSettings) -> str:
+  appearance = settings.value(APPEARANCE_KEY, "system")
+  return appearance if appearance in COLOR_SCHEMES else "system"
 
 
 class TripwireDialog(QtWidgets.QDialog, Ui_TripwireDialog):
@@ -403,6 +426,12 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     self.global_proxy: str = ""
     self.mapper_configs: List[MapperConfig] = []
     self.mapper_states: Dict[str, StateMapper] = {}
+    self.appearance: str = "system"
+    self._label_states: Dict[QtWidgets.QLabel, Tuple[str, MessageType]] = {}
+    self._light_priority_sheets: Dict[str, str] = {
+      name: getattr(self, name).styleSheet()
+      for name in DARK_PRIORITY_BACKGROUNDS
+    }
 
     self.state_eve_connection = StateEVEConnection({
       "connected": False, "char_name": None, "error": None
@@ -555,6 +584,53 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
       self.table_item_selection_changed
     )
 
+    # View menu
+    menu_appearance = self.menubar.addMenu("&View").addMenu("&Appearance")
+    self.appearance_group = QtGui.QActionGroup(self)
+    for appearance in COLOR_SCHEMES:
+      action = menu_appearance.addAction(appearance.capitalize())
+      action.setCheckable(True)
+      action.setData(appearance)
+      self.appearance_group.addAction(action)
+    self.appearance_group.triggered.connect(
+      lambda action: self.set_appearance(action.data())
+    )
+    self.set_appearance(self.appearance)
+
+  def set_appearance(self, appearance: str):
+    self.appearance = appearance
+    for action in self.appearance_group.actions():
+      action.setChecked(action.data() == appearance)
+    QtGui.QGuiApplication.styleHints().setColorScheme(
+      COLOR_SCHEMES[appearance]
+    )
+    # No palette change event when the drawn palette stays the same.
+    self._apply_scheme_colors()
+
+  @staticmethod
+  def _is_dark() -> bool:
+    # Judge by what is drawn: some styles (windowsvista, Windows 10's
+    # default) report a Dark scheme yet keep a light palette.
+    palette = QtGui.QGuiApplication.palette()
+    window = palette.color(QtGui.QPalette.ColorRole.Window)
+    return window.lightness() < 128
+
+  def _apply_scheme_colors(self):
+    dark = self._is_dark()
+    for name, background in DARK_PRIORITY_BACKGROUNDS.items():
+      getattr(self, name).setStyleSheet(
+        "QSpinBox { background-color: %s; }" % background
+        if dark else self._light_priority_sheets[name]
+      )
+    for label, (message, message_type) in self._label_states.items():
+      self._label_message(label, message, message_type)
+    # A rich-text label takes its link colour from the palette only when its
+    # text is set, and setText() ignores unchanged text. label_10 is the only
+    # link label in the main window.
+    link_text = self.label_10.text()
+    self.label_10.clear()
+    self.label_10.setText(link_text)
+
   def read_settings_mappers(self):
     self.global_proxy = self.settings.value('proxy') or ""
     migrated = migrate_legacy(self.settings)
@@ -617,6 +693,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     self.spinBox_prio_ns.setValue(int(self.settings.value("prio_ns", "1")))
     self.spinBox_prio_wh.setValue(int(self.settings.value("prio_wh", "1")))
 
+    # Appearance
+    self.appearance = read_appearance(self.settings)
+
     self.settings.endGroup()
 
   def write_settings_mappers(self):
@@ -670,6 +749,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     self.settings.setValue("prio_ns", self.spinBox_prio_ns.value())
     self.settings.setValue("prio_wh", self.spinBox_prio_wh.value())
 
+    # Appearance
+    self.settings.setValue(APPEARANCE_KEY, self.appearance)
+
     self.settings.endGroup()
 
   def _message_box(self, title, text):
@@ -678,28 +760,33 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     msg_box.setText(text)
     return msg_box.exec()
 
-  @staticmethod
-  def _label_message(label, message, message_type):
+  def _label_message(self, label, message, message_type):
     # FIXME(secondfry): set only color, not entire stylesheet.
+    self._label_states[label] = (message, message_type)
+    dark = self._is_dark()
     if message_type == MessageType.OK:
-      label.setStyleSheet("QLabel {color: green;}")
+      label.setStyleSheet(
+        "QLabel {color: %s;}" % ("#81c784" if dark else "green")
+      )
     elif message_type == MessageType.ERROR:
-      label.setStyleSheet("QLabel {color: red;}")
+      label.setStyleSheet(
+        "QLabel {color: %s;}" % ("#e57373" if dark else "red")
+      )
     else:
-      label.setStyleSheet("QLabel {color: black;}")
+      label.setStyleSheet("")
     label.setText(message)
 
   def _avoid_message(self, message, message_type):
     self.statusBar().showMessage(message, 5000)
 
   def _path_message(self, message, message_type):
-    MainWindow._label_message(self.label_status, message, message_type)
+    self._label_message(self.label_status, message, message_type)
 
   def _status_eve_connection(self, message, message_type=MessageType.INFO):
-    MainWindow._label_message(self.status_eve_connection, message, message_type)
+    self._label_message(self.status_eve_connection, message, message_type)
 
   def _status_mappers(self, message, message_type=MessageType.INFO):
-    MainWindow._label_message(self.status_mappers, message, message_type)
+    self._label_message(self.status_mappers, message, message_type)
 
   def avoidance_enabled(self) -> bool:
     return self.groupBox_avoidance.isChecked()
@@ -775,6 +862,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
           item.setIcon(self.icon_wormhole)
 
         item.setBackground(color)
+        # The row colors above are fixed light pastels regardless of theme,
+        # so force dark text to keep them legible in dark mode.
+        item.setForeground(QtGui.QColor(0, 0, 0))
         self.tableWidget_path.setItem(route_step_id, ui_col_id, item)
         ui_col_id += 1
 
@@ -1204,6 +1294,13 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         )
       )
     )
+
+  def changeEvent(self, event):
+    # The window follows the application palette, so a scheme switch (or a
+    # live OS switch under System) arrives here as PaletteChange.
+    if event.type() == QtCore.QEvent.Type.PaletteChange:
+      self._apply_scheme_colors()
+    super().changeEvent(event)
 
   # event: QCloseEvent
   def closeEvent(self, event):

@@ -523,7 +523,7 @@ class Ui_MainWindow(object):
         self.label_4.setText(QCoreApplication.translate("MainWindow", u"hours ago", None))
         self.groupBox_security.setTitle(QCoreApplication.translate("MainWindow", u"Security prioritization", None))
         self.label_6.setText(QCoreApplication.translate("MainWindow", u"NS:", None))
-        self.label_10.setText(QCoreApplication.translate("MainWindow", u"<html><head/><body><p><a href=\"https://github.com/secondfry/shortcircuit/blob/master/README.md#security-prioritization\"><span style=\" text-decoration: underline; color:#0000ff;\">[?]</span></a></p></body></html>", None))
+        self.label_10.setText(QCoreApplication.translate("MainWindow", u"<html><head/><body><p><a href=\"https://github.com/secondfry/shortcircuit/blob/master/README.md#security-prioritization\"><span style=\" text-decoration: underline;\">[?]</span></a></p></body></html>", None))
         self.label_7.setText(QCoreApplication.translate("MainWindow", u"HS:", None))
         self.label_8.setText(QCoreApplication.translate("MainWindow", u"LS:", None))
         self.label_9.setText(QCoreApplication.translate("MainWindow", u"WH:", None))
