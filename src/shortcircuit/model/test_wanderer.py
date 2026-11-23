@@ -1,8 +1,9 @@
 """Tests for the Wanderer mapper integration
 
-Covers config validation, URL normalization, the signature-to-connection
-translation (K162 inference, life/mass mapping from custom_info, elapsed
-time), and the failure modes of the API round trip.
+Covers config validation, URL normalization, building holes from the
+connections endpoint (life, mass and size codes as Wanderer defines them in
+assets/js/hooks/Mapper/types/connection.ts), joining signatures for sig IDs
+and hole types, and the failure modes of the API round trips.
 """
 
 import unittest
@@ -17,6 +18,7 @@ from shortcircuit.model.wanderer import Wanderer
 
 THERA_ID = 31000005
 J_SYSTEM_ID = 31002238
+BASE = 'https://wanderer.example.com/api/maps/my-map'
 
 
 def _make_wanderer(**kwargs):
@@ -32,7 +34,7 @@ def _make_wanderer(**kwargs):
   # on database contents.
   w.eve_db = mock.Mock()
   w.eve_db.get_whsize_by_code.return_value = WormholeSize.UNKNOWN
-  w.eve_db.get_whsize_by_system.return_value = WormholeSize.LARGE
+  w.eve_db.get_whsize_by_system.return_value = WormholeSize.MEDIUM
   return w
 
 
@@ -43,6 +45,23 @@ def _response(status_code=200, payload=None):
   return r
 
 
+def _connection(**overrides):
+  """A healthy wormhole as Wanderer's API returns it (all codes 0 = normal)."""
+  conn = {
+    'id': 'c1',
+    'solar_system_source': J_SYSTEM_ID,
+    'solar_system_target': THERA_ID,
+    'type': 0,
+    'time_status': 0,
+    'mass_status': 0,
+    'ship_size_type': 2,
+    'wormhole_type': None,
+    'updated_at': '2026-11-08T00:00:00Z',
+  }
+  conn.update(overrides)
+  return conn
+
+
 def _signature(**overrides):
   sig = {
     'eve_id': 'ABC-123',
@@ -50,11 +69,18 @@ def _signature(**overrides):
     'solar_system_id': J_SYSTEM_ID,
     'linked_system_id': THERA_ID,
     'type': 'F353',
-    'custom_info': '{"time_status": 1, "mass_status": 1}',
-    'updated_at': '2026-11-08T00:00:00Z',
   }
   sig.update(overrides)
   return sig
+
+
+def _routes(connections=None, signatures=None, conn_response=None, sig_response=None):
+  """A fake requests.get that answers per endpoint."""
+  responses = {
+    f'{BASE}/connections': conn_response or _response(payload={'data': connections or []}),
+    f'{BASE}/signatures': sig_response or _response(payload={'data': signatures or []}),
+  }
+  return lambda url, **kwargs: responses[url]
 
 
 class TestWandererConfig(unittest.TestCase):
@@ -87,82 +113,142 @@ class TestWandererConfig(unittest.TestCase):
 
 class TestWandererAugmentMap(unittest.TestCase):
 
-  def _augment(self, signatures, wanderer=None):
+  def _augment(self, connections, signatures=None, wanderer=None, **route_kwargs):
     w = wanderer or _make_wanderer()
     solar_map = mock.Mock()
     with mock.patch.object(
       wanderer_module.requests, 'get',
-      return_value=_response(payload={'data': signatures}),
+      side_effect=_routes(connections, signatures, **route_kwargs),
     ) as fake_get:
       count = w.augment_map(solar_map)
     return count, solar_map, fake_get
 
-  def test_linked_wormhole_becomes_connection(self):
-    count, solar_map, fake_get = self._augment([_signature()])
+  def _info(self, solar_map, index=0):
+    return solar_map.add_connection.call_args_list[index].args[3]
 
+  def test_requests_both_endpoints_with_the_token(self):
+    _, _, fake_get = self._augment([_connection()])
+    urls = [c.args[0] if c.args else c.kwargs['url'] for c in fake_get.call_args_list]
+    self.assertEqual(urls, [f'{BASE}/connections', f'{BASE}/signatures'])
+    for call in fake_get.call_args_list:
+      self.assertEqual(call.kwargs['headers']['Authorization'], 'Bearer secret-token')
+
+  def test_jump_recorded_hole_without_signatures_is_routed(self):
+    # Holes Wanderer records from character jumps have no signature.
+    count, solar_map, _ = self._augment([_connection()])
     self.assertEqual(count, 1)
-    url = fake_get.call_args.kwargs['url']
-    self.assertEqual(url, 'https://wanderer.example.com/api/maps/my-map/signatures')
-    headers = fake_get.call_args.kwargs['headers']
-    self.assertEqual(headers['Authorization'], 'Bearer secret-token')
+    source, dest, con_type, info = solar_map.add_connection.call_args.args
+    self.assertEqual((source, dest, con_type), (J_SYSTEM_ID, THERA_ID, ConnectionType.WORMHOLE))
+    self.assertEqual(info[0:4], ['???', '----', '???', '----'])
+    self.assertEqual(solar_map.add_connection.call_args.kwargs['source_name'], 'Test Wanderer')
 
-    args, kwargs = solar_map.add_connection.call_args
-    source, dest, con_type, info = args
-    self.assertEqual(source, J_SYSTEM_ID)
-    self.assertEqual(dest, THERA_ID)
-    self.assertEqual(con_type, ConnectionType.WORMHOLE)
-    sig_source, code_source, sig_dest, code_dest = info[0:4]
-    self.assertEqual(sig_source, 'ABC-123')
-    self.assertEqual(code_source, 'F353')
-    self.assertEqual(sig_dest, '???')
-    # The scanned side carries the hole type; the far side is a K162.
-    self.assertEqual(code_dest, 'K162')
-    self.assertEqual(kwargs['source_name'], 'Test Wanderer')
-
-  def test_unknown_type_does_not_fabricate_k162(self):
-    count, solar_map, _ = self._augment([_signature(type=None)])
-    self.assertEqual(count, 1)
-    info = solar_map.add_connection.call_args.args[3]
-    self.assertEqual(info[1], '????')
-    self.assertEqual(info[3], '????')
-
-  def test_unlinked_and_non_wormhole_signatures_are_skipped(self):
-    count, solar_map, _ = self._augment([
-      _signature(linked_system_id=None),
-      _signature(group='Data'),
-      _signature(solar_system_id='not-a-number'),
-    ])
+  def test_signature_without_a_connection_is_not_routed(self):
+    # A deleted (collapsed) connection leaves its signature's linked system
+    # behind; only the connections endpoint says the hole is gone.
+    count, solar_map, _ = self._augment([], [_signature()])
     self.assertEqual(count, 0)
     solar_map.add_connection.assert_not_called()
 
-  def test_eol_and_mass_status_map_to_enums(self):
-    count, solar_map, _ = self._augment([
-      _signature(custom_info='{"time_status": 2, "mass_status": 3}'),
-    ])
-    self.assertEqual(count, 1)
-    info = solar_map.add_connection.call_args.args[3]
-    self.assertEqual(info[5], WormholeTimespan.CRITICAL)
-    self.assertEqual(info[6], WormholeMassspan.CRITICAL)
+  def test_gates_and_bridges_are_skipped(self):
+    count, solar_map, _ = self._augment([_connection(type=1), _connection(type=2)])
+    self.assertEqual(count, 0)
+    solar_map.add_connection.assert_not_called()
 
-  def test_custom_info_accepts_dict_and_tolerates_garbage(self):
-    count, solar_map, _ = self._augment([
-      _signature(custom_info={'time_status': 1, 'mass_status': 2}),
-      _signature(custom_info='not json'),
-      _signature(custom_info=None),
-    ])
-    self.assertEqual(count, 3)
-    first = solar_map.add_connection.call_args_list[0].args[3]
-    self.assertEqual(first[6], WormholeMassspan.DESTAB)
-    for call in solar_map.add_connection.call_args_list[1:]:
-      info = call.args[3]
-      self.assertEqual(info[5], WormholeTimespan.STABLE)
-      self.assertEqual(info[6], WormholeMassspan.STABLE)
-
-  def test_size_falls_back_to_system_pair_when_code_unknown(self):
-    count, solar_map, _ = self._augment([_signature()])
+  def test_signatures_supply_sig_ids_and_types_on_both_sides(self):
+    count, solar_map, _ = self._augment(
+      [_connection()],
+      [
+        _signature(),
+        _signature(eve_id='XYZ-789', solar_system_id=THERA_ID, linked_system_id=J_SYSTEM_ID, type='K162'),
+      ],
+    )
     self.assertEqual(count, 1)
-    info = solar_map.add_connection.call_args.args[3]
-    self.assertEqual(info[4], WormholeSize.LARGE)
+    self.assertEqual(self._info(solar_map)[0:4], ['ABC-123', 'F353', 'XYZ-789', 'K162'])
+
+  def test_known_type_on_one_side_makes_the_far_side_k162(self):
+    _, solar_map, _ = self._augment([_connection()], [_signature()])
+    self.assertEqual(self._info(solar_map)[0:4], ['ABC-123', 'F353', '???', 'K162'])
+
+  def test_k162_on_one_side_leaves_the_far_side_unknown(self):
+    _, solar_map, _ = self._augment([_connection()], [_signature(type='K162')])
+    self.assertEqual(self._info(solar_map)[1], 'K162')
+    self.assertEqual(self._info(solar_map)[3], '----')
+
+  def test_connection_wormhole_type_is_the_source_side_when_no_signature(self):
+    _, solar_map, _ = self._augment([_connection(wormhole_type='d845')])
+    self.assertEqual(self._info(solar_map)[1], 'D845')
+    self.assertEqual(self._info(solar_map)[3], 'K162')
+
+  def test_signature_group_is_case_insensitive(self):
+    _, solar_map, _ = self._augment([_connection()], [_signature(group='wormhole')])
+    self.assertEqual(self._info(solar_map)[0], 'ABC-123')
+
+  def test_life_codes(self):
+    # 0 normal; 1 = EOL 1h and 2 = EOL 4h are end of life; 3+ are longer.
+    expected = {
+      0: WormholeTimespan.STABLE,
+      1: WormholeTimespan.CRITICAL,
+      2: WormholeTimespan.CRITICAL,
+      3: WormholeTimespan.STABLE,
+      4: WormholeTimespan.STABLE,
+      5: WormholeTimespan.STABLE,
+      6: WormholeTimespan.STABLE,
+    }
+    _, solar_map, _ = self._augment([_connection(time_status=code) for code in expected])
+    for i, life in enumerate(expected.values()):
+      self.assertEqual(self._info(solar_map, i)[5], life, f'time_status {list(expected)[i]}')
+
+  def test_mass_codes(self):
+    # 0 more than half, 1 less than half, 2 critical.
+    expected = {
+      0: WormholeMassspan.STABLE,
+      1: WormholeMassspan.DESTAB,
+      2: WormholeMassspan.CRITICAL,
+    }
+    _, solar_map, _ = self._augment([_connection(mass_status=code) for code in expected])
+    for i, mass in enumerate(expected.values()):
+      self.assertEqual(self._info(solar_map, i)[6], mass, f'mass_status {list(expected)[i]}')
+
+  def test_missing_codes_mean_normal(self):
+    conn = _connection()
+    del conn['time_status'], conn['mass_status'], conn['type']
+    count, solar_map, _ = self._augment([conn, _connection(time_status=None, mass_status=None)])
+    self.assertEqual(count, 2)
+    for i in range(2):
+      self.assertEqual(self._info(solar_map, i)[5], WormholeTimespan.STABLE)
+      self.assertEqual(self._info(solar_map, i)[6], WormholeMassspan.STABLE)
+
+  def test_size_prefers_the_hole_type(self):
+    w = _make_wanderer()
+    w.eve_db.get_whsize_by_code.return_value = WormholeSize.XLARGE
+    _, solar_map, _ = self._augment([_connection(ship_size_type=0)], [_signature()], wanderer=w)
+    self.assertEqual(self._info(solar_map)[4], WormholeSize.XLARGE)
+
+  def test_size_falls_back_to_ship_size_type(self):
+    expected = {0: WormholeSize.SMALL, 1: WormholeSize.MEDIUM, 2: WormholeSize.LARGE,
+                3: WormholeSize.XLARGE, 4: WormholeSize.XLARGE}
+    _, solar_map, _ = self._augment([_connection(ship_size_type=code) for code in expected])
+    for i, size in enumerate(expected.values()):
+      self.assertEqual(self._info(solar_map, i)[4], size)
+
+  def test_size_falls_back_to_system_pair(self):
+    _, solar_map, _ = self._augment([_connection(ship_size_type=None)])
+    self.assertEqual(self._info(solar_map)[4], WormholeSize.MEDIUM)
+
+  def test_malformed_connections_are_skipped(self):
+    count, _, _ = self._augment([
+      _connection(solar_system_target=None),
+      _connection(solar_system_source='not-a-number'),
+      'not a dict',
+    ])
+    self.assertEqual(count, 0)
+
+  def test_signature_failure_still_routes_holes(self):
+    count, solar_map, _ = self._augment(
+      [_connection()], sig_response=_response(status_code=500),
+    )
+    self.assertEqual(count, 1)
+    self.assertEqual(self._info(solar_map)[0], '???')
 
 
 class TestWandererFailureModes(unittest.TestCase):
@@ -205,9 +291,7 @@ class TestWandererFailureModes(unittest.TestCase):
 class TestTimeElapsed(unittest.TestCase):
 
   def test_z_suffix_is_parsed(self):
-    self.assertGreaterEqual(
-      Wanderer._time_elapsed('2026-01-01T00:00:00Z'), 0.0
-    )
+    self.assertGreater(Wanderer._time_elapsed('2026-01-01T00:00:00Z'), 0.0)
 
   def test_missing_or_malformed_returns_zero(self):
     self.assertEqual(Wanderer._time_elapsed(None), 0.0)

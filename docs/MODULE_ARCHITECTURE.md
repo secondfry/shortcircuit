@@ -153,6 +153,15 @@ worker_thread_done() handler updates:
 - **Authentication**: None (public API)
 - **API**: https://api.eve-scout.com/v2/public/signatures
 
+### wanderer.py (Wanderer)
+- **Role**: Wanderer mapper implementation
+- **Responsibilities**:
+  - Fetch a map's connections (the holes) and signatures (sig IDs, hole types)
+  - Translate Wanderer's life, mass and ship-size codes
+  - Add wormhole connections to SolarMap
+- **Authentication**: Per-map bearer token (Map Settings → Public Api)
+- **API**: /api/maps/:map/connections and /api/maps/:map/signatures
+
 ### solarmap.py (SolarMap)
 - **Role**: Graph representation of Eve solar system map
 - **Responsibilities**:

@@ -25,10 +25,12 @@ def test_generated_ui_modules_build_widgets(qapp):
   from shortcircuit.view.gui_main import Ui_MainWindow
   from shortcircuit.view.gui_mappers import Ui_MappersDialog
   from shortcircuit.view.gui_tripwire import Ui_TripwireDialog
+  from shortcircuit.view.gui_wanderer import Ui_WandererDialog
 
   cases = [
     (Ui_MainWindow, QtWidgets.QMainWindow, 'tableWidget_path'),
     (Ui_TripwireDialog, QtWidgets.QDialog, 'lineEdit_pass'),
+    (Ui_WandererDialog, QtWidgets.QDialog, 'lineEdit_token'),
     (Ui_MappersDialog, QtWidgets.QDialog, 'tableWidget_mappers'),
     (Ui_AboutDialog, QtWidgets.QDialog, 'label_title'),
   ]

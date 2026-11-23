@@ -87,6 +87,7 @@ Each mapper tool has its own implementation:
 
 - **Tripwire** (`tripwire.py`): Supports multiple instances with different URLs/credentials
 - **Eve Scout** (`evescout.py`): Public API for Thera connections
+- **Wanderer** (`wanderer.py`): Supports multiple instances, one map and API token each
 - **Template** (`mapper_template.py`): Guide for adding new mappers
 
 ## Supported Mappers
@@ -129,17 +130,25 @@ evescout = EveScout(
 
 ### Wanderer
 
-**Status**: Fully supported with multiple instances
+**Status**: Supported with multiple instances; tested against mocked API responses, not yet against a live map
 
 **Configuration**:
 - URL: Wanderer instance URL (self-hosted or community instance)
 - Map slug: The map identifier from the map's URL
-- API token: Bearer token generated in Wanderer under Map Settings → API
+- API token: Bearer token generated in Wanderer under Map Settings → Public Api → Generate
 - Name: Instance identifier (e.g., "Alliance Wanderer")
 
 In the persisted `MapperConfig`, the map slug is stored in the `user` slot
 and the API token in the `password` slot (the token is the secret, so it
 belongs in the slot the UI masks).
+
+**How it reads the map**: holes come from `GET /api/maps/:map/connections`
+(`type` 0 = wormhole), which includes holes Wanderer recorded from character
+jumps or that were drawn by hand, and drops a hole once its connection is
+deleted. `GET /api/maps/:map/signatures` adds the sig IDs on each side and the
+hole type where scanned. Life and mass use Wanderer's codes
+(`assets/js/hooks/Mapper/types/connection.ts`): `time_status` 1 (EOL 1h) and
+2 (EOL 4h) are end of life; `mass_status` 1 is less than half, 2 is critical.
 
 **Example**:
 ```python
@@ -360,12 +369,13 @@ Any format is acceptable (JSON, XML, etc.) as long as it can be parsed to extrac
 - **Clear interface**: `MapperSource` defines exactly what needs to be implemented
 - **Template available**: `mapper_template.py` provides a starting point
 - **Well-documented**: Extensive documentation and examples
-- **Tested pattern**: Tripwire and Eve Scout serve as reference implementations
+- **Tested pattern**: Tripwire, Eve Scout and Wanderer serve as reference implementations
 
 ## Testing
 
 When adding a new mapper, create unit tests following the pattern in:
 - `test_tripwire.py`: Tests for Tripwire implementation
+- `test_wanderer.py`: Tests for Wanderer implementation
 - `test_tripwire_gate.py`: Integration tests
 
 Example test structure:

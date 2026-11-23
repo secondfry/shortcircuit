@@ -109,7 +109,7 @@
    <item row="4" column="1">
     <widget class="QLabel" name="label_help">
      <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Generate the token in Wanderer under Map Settings → API. &lt;a href=&quot;https://github.com/wanderer-industries/wanderer&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;About Wanderer&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Generate the token in Wanderer under Map Settings → Public Api → Generate. &lt;a href=&quot;https://github.com/wanderer-industries/wanderer&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;About Wanderer&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
      <property name="wordWrap">
       <bool>true</bool>

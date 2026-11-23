@@ -157,6 +157,7 @@ discord_integration: false
 Short Circuit supports consuming wormhole data from multiple instances of multiple mapper sources simultaneously:
 - Tripwire.
 - Eve Scout.
+- Wanderer.
 
 TBD:
 - pathfinder.

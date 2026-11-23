@@ -82,7 +82,8 @@ class WandererDialog(QtWidgets.QDialog, Ui_WandererDialog):
   Per-instance Wanderer edit dialog, opened from MappersDialog.
 
   Edits one Wanderer MapperConfig: name, instance URL, map slug and API
-  bearer token (generated in Wanderer under Map Settings -> API).
+  bearer token (generated in Wanderer under Map Settings -> Public Api ->
+  Generate).
   """
 
   def __init__(
@@ -107,9 +108,9 @@ class MappersDialog(QtWidgets.QDialog, Ui_MappersDialog):
 
   Edits a working copy of the config list so Cancel actually discards
   changes. On OK, the caller reads self.configs and persists. Tripwire
-  edits delegate to TripwireDialog; Eve Scout edits use a plain
-  QInputDialog since only the name is user-editable (URL has a safe
-  default).
+  edits delegate to TripwireDialog and Wanderer edits to WandererDialog;
+  Eve Scout edits use a plain QInputDialog since only the name is
+  user-editable (URL has a safe default).
   """
 
   COL_ENABLED = 0

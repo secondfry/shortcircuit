@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Short Circuit (formerly Pathfinder) is a PySide6 desktop application that finds the shortest path between Eve Online solar systems, including wormhole connections fetched from third-party mappers (Tripwire, Eve Scout). Python 3.13, packaged with PyInstaller.
+Short Circuit (formerly Pathfinder) is a PySide6 desktop application that finds the shortest path between Eve Online solar systems, including wormhole connections fetched from third-party mappers (Tripwire, Eve Scout, Wanderer). Python 3.13, packaged with PyInstaller.
 
 ## Common Commands
 
@@ -54,7 +54,7 @@ The control flow from a button click to an updated solar map spans several modul
 3. `navigation.py` (`Navigation`) owns the `SolarMap`, calls `setup_mappers()` to read config from `app_obj` (the `MainWindow`), and delegates fetching to the registry.
 4. `mapper_registry.py` (`MapperRegistry`) iterates over registered `MapperSource` instances, calls `augment_map(solar_map)` on each, aggregates counts, and isolates failures so one broken mapper doesn't kill the others.
 5. `mapper_base.py` defines the abstract `MapperSource` interface: `augment_map`, `get_name`, `get_config`, `validate_config`. Every mapper implementation inherits from it.
-6. Concrete mappers (`tripwire.py`, `evescout.py`) authenticate if needed, fetch JSON, and call `solar_map.add_connection(...)` for each wormhole.
+6. Concrete mappers (`tripwire.py`, `evescout.py`, `wanderer.py`) authenticate if needed, fetch JSON, and call `solar_map.add_connection(...)` for each wormhole.
 7. `solarmap.py` (`SolarMap`) is the graph itself — holds systems/connections, runs Dijkstra with weights influenced by security prioritization, wormhole size/life/mass restrictions, and the avoidance list.
 
 The detailed flow and diagrams live in `docs/MODULE_ARCHITECTURE.md`; adding a new mapper is documented in `docs/MAPPER_MODULES.md`.
