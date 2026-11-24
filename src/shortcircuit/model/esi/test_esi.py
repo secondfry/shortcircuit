@@ -192,7 +192,8 @@ class TestRefreshTokenStorage(_PersistenceCase):
   def test_keyring_unavailable_degrades_gracefully(self):
     with mock.patch.object(esi_module, 'keyring', None):
       self.assertFalse(ESI._store_refresh_token(92000001, 'rt-secret'))
-      self.assertIsNone(ESI._load_refresh_token(92000001))
+      with self.assertRaises(esi_module.KeychainUnreadable):
+        ESI._load_refresh_token(92000001)
       ESI._delete_refresh_token(92000001)  # must not raise
 
 
@@ -211,6 +212,35 @@ class TestSilentLogin(_PersistenceCase):
       self.assertFalse(self.esi.try_silent_login())
     fake_post.assert_not_called()
     self.assertFalse(os.path.exists(self.meta_path))
+
+  def test_missing_keyring_keeps_the_saved_session(self):
+    # A build without keyring can't tell whether the entry exists, so it must
+    # not sign out the build that has it.
+    self._persist_session()
+    with mock.patch.object(esi_module, 'keyring', None), \
+         mock.patch.object(esi_module.requests, 'post') as fake_post:
+      self.assertFalse(self.esi.try_silent_login())
+    fake_post.assert_not_called()
+    self.assertEqual(self.logout_calls, [])
+    self.assertEqual(ESI._load_persisted_char_id(), 92000001)
+
+  def test_unreadable_keychain_keeps_the_session_for_next_launch(self):
+    # Locked, or access denied: nothing is known about the entry yet.
+    self._persist_session()
+    with mock.patch.object(self.fake_keyring, 'get_password', side_effect=Exception('locked')), \
+         mock.patch.object(esi_module.requests, 'post') as fake_post:
+      self.assertFalse(self.esi.try_silent_login())
+    fake_post.assert_not_called()
+    self.assertEqual(self.logout_calls, [])
+    self.assertEqual(ESI._load_persisted_char_id(), 92000001)
+
+    response = mock.Mock(
+      status_code=200,
+      json=lambda: {'access_token': _make_jwt(), 'refresh_token': 'rt-new', 'expires_in': 1200},
+    )
+    with mock.patch.object(esi_module.requests, 'post', return_value=response):
+      self.assertTrue(self.esi.try_silent_login())
+    self.assertEqual(self.login_calls, [(True, 'Test Pilot')])
 
   def test_resumes_session_and_persists_rotated_token(self):
     self._persist_session(refresh_token='rt-old')

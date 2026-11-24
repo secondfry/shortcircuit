@@ -84,6 +84,10 @@ def discover_sso_endpoints(force_refresh=False):
   return endpoints
 
 
+class KeychainUnreadable(Exception):
+  """The keychain could not be read, which is not the same as no entry."""
+
+
 class ESI:
 
   ENDPOINT_ESI_LOCATION_FORMAT = 'https://esi.evetech.net/latest/characters/{}/location/'
@@ -342,7 +346,13 @@ class ESI:
     char_id = ESI._load_persisted_char_id()
     if char_id is None:
       return False
-    refresh_token = ESI._load_refresh_token(char_id)
+    try:
+      refresh_token = ESI._load_refresh_token(char_id)
+    except KeychainUnreadable as e:
+      # Locked, access denied, or no keyring here: the token may well still
+      # be there, so keep the session for a launch that can read it.
+      Logger.warning('Could not load refresh token from keyring: {}'.format(e))
+      return False
     if not refresh_token:
       # Stale meta file pointing at a character with no keyring entry —
       # clean it up so we don't keep checking on every startup.
@@ -415,13 +425,16 @@ class ESI:
 
   @staticmethod
   def _load_refresh_token(char_id):
+    """
+    The stored token, or None when the keychain says there is none. Raises
+    KeychainUnreadable when the keychain could not be asked.
+    """
     if keyring is None:
-      return None
+      raise KeychainUnreadable('keyring unavailable')
     try:
       return keyring.get_password(ESI.KEYRING_SERVICE, str(char_id))
     except Exception as e:
-      Logger.warning('Could not load refresh token from keyring: {}'.format(e))
-      return None
+      raise KeychainUnreadable(str(e)) from e
 
   @staticmethod
   def _delete_refresh_token(char_id):
