@@ -20,6 +20,7 @@ python-dateutil = "*"
 pyside6 = ">=6.8.0.2,<6.10"
 typing-extensions = "*"
 appdirs = "*"
+keyring = "*"
 
 [requires]
 python_version = "3.13"

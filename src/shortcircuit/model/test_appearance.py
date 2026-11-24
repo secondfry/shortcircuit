@@ -37,6 +37,9 @@ def window(qapp, tmp_path, monkeypatch):
   requested = []
   monkeypatch.setattr(QtGui.QStyleHints, 'setColorScheme', lambda _, scheme: requested.append(scheme))
   monkeypatch.setattr(app_module.VersionCheck, 'process', lambda _: None)
+  # The window resumes the saved EVE session on start-up; a test must never
+  # reach the developer's own keychain or spend their refresh token.
+  monkeypatch.setattr(app_module.ESIProcessor, 'try_silent_login', lambda _: None)
   ini, user = QtCore.QSettings.IniFormat, QtCore.QSettings.UserScope
   # QSettings(format, scope, org) lives at <scope path>/<org>.ini.
   old_path = os.path.dirname(QtCore.QSettings(ini, user, 'probe').fileName())
